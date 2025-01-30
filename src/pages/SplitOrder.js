@@ -51,6 +51,7 @@ function SplitOrder() {
   };
 
   const queryString = window.location.search;
+  console.log(queryString);
   const urlParams = new URLSearchParams(queryString);
   const dealId = urlParams.get("dealId");
   console.log(dealId);

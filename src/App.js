@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import "./App.css";
 
 const initialProducts = [
@@ -8,7 +9,26 @@ const initialProducts = [
   { id: 4, name: "Keyboard", price: 150, quantity: 1 },
 ];
 
-function App() {
+function Products() {
+  return (
+    <div className="App">
+      <header className="App-header">
+        <h1>Products List</h1>
+        <div className="product-list">
+          {initialProducts.map((product) => (
+            <div key={product.id} className="product-item">
+              <span>
+                {product.name} - ${product.price}
+              </span>
+            </div>
+          ))}
+        </div>
+      </header>
+    </div>
+  );
+}
+
+function SplitOrder() {
   const [products, setProducts] = useState(initialProducts);
 
   const updateQuantity = (id, delta) => {
@@ -47,9 +67,24 @@ function App() {
           ))}
         </div>
         <h2>Total: ${total}</h2>
-        <button className="split-button">Split Order</button>
+        <button onClick={() => alert("podzial zamowienia")}>
+          Podziel zamówienie
+        </button>
       </header>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <div className="App">
+        <Routes>
+          <Route path="/products" element={<Products />} />
+          <Route path="/split-order" element={<SplitOrder />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 

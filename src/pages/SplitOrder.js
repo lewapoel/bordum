@@ -50,6 +50,11 @@ function SplitOrder() {
     alert("Podziel zamówienie!");
   };
 
+  const queryString = window.location.search;
+  const urlParams = new URLSearchParams(queryString);
+  const dealId = urlParams.get("dealId");
+  console.log(dealId);
+
   return (
     <div className="App">
       <header className="App-header">

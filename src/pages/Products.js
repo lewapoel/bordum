@@ -11,11 +11,6 @@ function Products() {
 
   const products = warehouses[selectedWarehouse] || [];
 
-  const queryString = window.location.search;
-  const urlParams = new URLSearchParams(queryString);
-  const dealId = urlParams.get("dealId");
-  console.log(dealId);
-
   // Filter warehouse products by name
   const filteredProducts = products.filter((p) =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase())

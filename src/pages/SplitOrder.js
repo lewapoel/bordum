@@ -65,7 +65,7 @@ function SplitOrder() {
       const addDealCallback = (result) => {
         if (result.error()) {
           console.error(result.error());
-          alert("Nie udało się utworzyć dealu. Szczegóły w konsoli");
+          alert("Nie udało się utworzyć deala. Szczegóły w konsoli");
         } else {
           alert("Zamówienie podzielone pomyślnie");
         }

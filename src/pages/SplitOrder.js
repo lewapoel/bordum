@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { allProducts } from "../data/warehouses";
 import { getCartItems, getCartTotal } from "../utils/cartUtils";
+import { getBitrix24 } from "../utils/bitrix24";
 
 function SplitOrder() {
   // 1) The dummyCart (read-only, “actual order”).
@@ -14,7 +15,7 @@ function SplitOrder() {
 
   // 2) The subOrder for partial picks. Initialize with the same IDs but 0 qty.
   const initialSubOrder = Object.fromEntries(
-    Object.entries(dummyCart).map(([id]) => [id, 0])
+    Object.entries(dummyCart).map(([id]) => [id, 0]),
   );
   const [subOrder, setSubOrder] = useState(initialSubOrder);
 
@@ -43,18 +44,58 @@ function SplitOrder() {
   const handleSplitOrder = () => {
     if (subOrderTotal === dummyTotal) {
       alert(
-        "Nie można podzielić zamówienia, podzamówienie ma taką samą wartość jak zamówienie główne"
+        "Nie można podzielić zamówienia, podzamówienie ma taką samą wartość jak zamówienie główne",
       );
       return;
     }
-    alert("Podziel zamówienie!");
-  };
 
-  const queryString = window.location.search;
-  console.log(queryString);
-  const urlParams = new URLSearchParams(queryString);
-  const dealId = urlParams.get("dealId");
-  console.log(dealId);
+    const bx24 = getBitrix24();
+
+    // Error alert is shown in `getBitrix24`
+    if (!bx24) {
+      return;
+    }
+    if (bx24) {
+      const dealId = bx24.placement?.info?.()?.options?.ID;
+      if (!dealId) {
+        alert("Nie można pobrać ID aktualnego dealu");
+        return;
+      }
+
+      const addDealCallback = (result) => {
+        if (result.error()) {
+          console.error(result.error());
+          alert("Nie udało się utworzyć dealu. Szczegóły w konsoli");
+        } else {
+          alert("Zamówienie podzielone pomyślnie");
+        }
+      };
+
+      const getDealCallback = (result) => {
+        if (result.error()) {
+          console.error(result.error());
+          alert("Nie udało się pobrać danych deala. Szczegóły w konsoli");
+        } else {
+          let dealData = result.data();
+          delete dealData.ID; // Not needed for creating new deal
+
+          // Add new deal
+          bx24.callMethod(
+            "crm.deal.add",
+            { fields: dealData },
+            addDealCallback,
+          );
+        }
+
+        result.error()
+          ? console.error(result.error())
+          : console.info(result.data());
+      };
+
+      // Fetch deal data
+      bx24.callMethod("crm.deal.get", { id: dealId }, getDealCallback);
+    }
+  };
 
   return (
     <div className="App">

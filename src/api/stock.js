@@ -22,7 +22,6 @@ export async function getStocks(warehouseId, token) {
     result[itemId] = {
       itemId: itemId,
       quantity: stocks[0]["quantity"],
-      unit: stocks[0]["unit"],
     };
 
     return result;

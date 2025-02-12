@@ -18,6 +18,7 @@ export async function getItems(token) {
   return data.map((item) => ({
     id: item["id"],
     name: item["name"],
+    unit: item["unit"],
     prices: item["prices"].reduce((prices, price) => {
       prices[price["name"]] = {
         value: price["value"],
@@ -41,7 +42,6 @@ export async function getWarehouseItems(warehouseId, token) {
     .map((item) => ({
       ...item,
       quantity: stocks[item.id.toString()].quantity,
-      unit: stocks[item.id.toString()].unit,
     }))
     .filter((item) => item.quantity > 0);
 }

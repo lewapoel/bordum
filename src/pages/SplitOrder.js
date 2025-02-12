@@ -1,18 +1,21 @@
 // src/pages/SplitOrder.js
 
-import React, { useState } from "react";
-// import { allProducts } from "../data/warehouses";
+import React, { useContext, useEffect, useState } from "react";
 import { getCartItems, getCartTotal } from "../utils/cartUtils";
 import { getBitrix24 } from "../utils/bitrix24";
+import { AuthContext } from "../api/auth";
+import { getItems } from "../api/item";
 
 function SplitOrder() {
-  const allProducts = [];
+  const { token } = useContext(AuthContext);
+  const [allProducts, setAllProducts] = useState(null);
   // 1) The dummyCart (read-only, “actual order”).
   const [dummyCart] = useState({
     3: 2, // e.g., "Garden Railing"
     12: 1, // e.g., "Metal Rod"
     28: 3, // e.g., "Reinforced Concrete"
   });
+  const [dummyPrice] = useState("zakupu");
 
   // 2) The subOrder for partial picks. Initialize with the same IDs but 0 qty.
   const initialSubOrder = Object.fromEntries(
@@ -21,12 +24,12 @@ function SplitOrder() {
   const [subOrder, setSubOrder] = useState(initialSubOrder);
 
   // 3) Convert dummyCart -> array
-  const dummyCartItems = getCartItems(dummyCart); // includes 0 if any
-  const dummyTotal = getCartTotal(dummyCart);
+  const dummyCartItems = getCartItems(allProducts, dummyPrice, dummyCart); // includes 0 if any
+  const dummyTotal = getCartTotal(allProducts, dummyPrice, dummyCart);
 
   // 4) Convert subOrder -> array
-  const subOrderItems = getCartItems(subOrder); // includes 0 if any
-  const subOrderTotal = getCartTotal(subOrder);
+  const subOrderItems = getCartItems(allProducts, dummyPrice, subOrder); // includes 0 if any
+  const subOrderTotal = getCartTotal(allProducts, dummyPrice, subOrder);
 
   // Let user choose up to the original dummyCart’s qty
   const updateSubOrderItem = (productId, value) => {
@@ -43,6 +46,13 @@ function SplitOrder() {
 
   // 5) Podziel zamówienie
   const handleSplitOrder = () => {
+    if (subOrderTotal === 0) {
+      alert(
+        "Nie można podzielić zamówienia, podzamówienie musi mieć minimum jedną ilość produktu",
+      );
+      return;
+    }
+
     if (subOrderTotal === dummyTotal) {
       alert(
         "Nie można podzielić zamówienia, podzamówienie ma taką samą wartość jak zamówienie główne",
@@ -98,88 +108,114 @@ function SplitOrder() {
     }
   };
 
+  useEffect(() => {
+    if (token) {
+      getItems(token).then((itemsData) => {
+        if (itemsData) {
+          setAllProducts(itemsData);
+        }
+      });
+    }
+  }, [token]);
+
   return (
     <div className="App">
       <header className="App-header">
-        {/* ============== 1) The read-only dummyCart ============== */}
-        <h2>Zamówienie</h2>
-        <p>Łączna kwota zamówienia: zł{dummyTotal}</p>
-        <table>
-          <thead>
-            <tr>
-              <th>Nazwa</th>
-              <th>Cena (zł)</th>
-              <th>Jednostka</th>
-              <th>Ilość</th>
-              <th>Razem (zł)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {dummyCartItems.length === 0 ? (
-              <tr>
-                <td colSpan={5}>Brak wybranych produktów.</td>
-              </tr>
-            ) : (
-              dummyCartItems.map((item) => (
-                <tr key={item.id}>
-                  <td>{item.name}</td>
-                  <td>{item.price}</td>
-                  <td>{item.unit}</td>
-                  <td>{item.cartQty}</td>
-                  <td>{item.price * item.cartQty}</td>
+        {dummyCart && dummyPrice && allProducts ? (
+          <>
+            {/* ============== 1) The read-only dummyCart ============== */}
+            <h2>Zamówienie</h2>
+            <p>Rodzaj ceny: {dummyPrice}</p>
+            <p>Łączna kwota zamówienia: zł{dummyTotal.toFixed(2)}</p>
+            <table>
+              <thead>
+                <tr>
+                  <th>Nazwa</th>
+                  <th>Cena (zł)</th>
+                  <th>Jednostka</th>
+                  <th>Ilość</th>
+                  <th>Razem (zł)</th>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              </thead>
+              <tbody>
+                {dummyCartItems.length === 0 ? (
+                  <tr>
+                    <td colSpan={5}>Brak wybranych produktów.</td>
+                  </tr>
+                ) : (
+                  dummyCartItems.map((item) => (
+                    <tr key={item.id}>
+                      <td>{item.name}</td>
+                      <td>{item.prices[dummyPrice].value}</td>
+                      <td>{item.unit}</td>
+                      <td>{item.cartQty}</td>
+                      <td>
+                        {(item.prices[dummyPrice].value * item.cartQty).toFixed(
+                          2,
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
 
-        <hr />
+            <hr />
 
-        {/* ============== 2) The subOrder table (user picks partial) ============== */}
-        <h2>Podzamówienie</h2>
-        <p>Łączna kwota podzamówienia: zł{subOrderTotal}</p>
-        <table>
-          <thead>
-            <tr>
-              <th>Nazwa</th>
-              <th>Cena (zł)</th>
-              <th>Jednostka</th>
-              <th>Ilość</th>
-              <th>Razem (zł)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {subOrderItems.length === 0 ? (
-              <tr>
-                <td colSpan={5}>Brak produktów do podziału.</td>
-              </tr>
-            ) : (
-              subOrderItems.map((item) => (
-                <tr key={item.id}>
-                  <td>{item.name}</td>
-                  <td>{item.price}</td>
-                  <td>{item.unit}</td>
-                  <td>
-                    <input
-                      type="number"
-                      min="0"
-                      max={dummyCart[item.id]} // can't exceed original quantity
-                      value={item.cartQty}
-                      onChange={(e) =>
-                        updateSubOrderItem(item.id, e.target.value)
-                      }
-                    />
-                  </td>
-                  <td>{item.price * item.cartQty}</td>
+            {/* ============== 2) The subOrder table (user picks partial) ============== */}
+            <h2>Podzamówienie</h2>
+            <p>Rodzaj ceny: {dummyPrice}</p>
+            <p>Łączna kwota podzamówienia: zł{subOrderTotal}</p>
+            <table>
+              <thead>
+                <tr>
+                  <th>Nazwa</th>
+                  <th>Cena (zł)</th>
+                  <th>Jednostka</th>
+                  <th>Ilość</th>
+                  <th>Razem (zł)</th>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-        {/* Button to finalize the sub-order split */}
-        <button className="place-order" onClick={handleSplitOrder}>
-          Podziel zamówienie
-        </button>
+              </thead>
+              <tbody>
+                {subOrderItems.length === 0 ? (
+                  <tr>
+                    <td colSpan={5}>Brak produktów do podziału.</td>
+                  </tr>
+                ) : (
+                  subOrderItems.map((item) => (
+                    <tr key={item.id}>
+                      <td>{item.name}</td>
+                      <td>{item.prices[dummyPrice].value}</td>
+                      <td>{item.unit}</td>
+                      <td>
+                        <input
+                          type="number"
+                          min="0"
+                          max={dummyCart[item.id]} // can't exceed original quantity
+                          value={item.cartQty}
+                          onChange={(e) =>
+                            updateSubOrderItem(item.id, e.target.value)
+                          }
+                        />
+                      </td>
+                      <td>
+                        {(item.prices[dummyPrice].value * item.cartQty).toFixed(
+                          2,
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+            {/* Button to finalize the sub-order split */}
+            <button className="place-order" onClick={handleSplitOrder}>
+              Podziel zamówienie
+            </button>
+          </>
+        ) : (
+          <h1>Ładowanie zamówienia...</h1>
+        )}
       </header>
     </div>
   );

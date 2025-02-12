@@ -26,8 +26,6 @@ function Products() {
     [products, searchTerm],
   );
 
-  console.log(products);
-
   // Update local cart
   const onUpdateUserCartItem = (productId, value) => {
     setUserCart((prevCart) => {
@@ -44,22 +42,10 @@ function Products() {
   };
 
   // For the summary, hide items with qty=0
-  const cartItems = useMemo(() => {
-    if (products && selectedPrice && userCart) {
-      return getCartItems(products, selectedPrice, userCart).filter(
-        (item) => item.cartQty > 0,
-      );
-    }
-
-    return [];
-  }, [products, selectedPrice, userCart]);
-  const cartTotal = useMemo(() => {
-    if (products && selectedPrice && userCart) {
-      return getCartTotal(products, selectedPrice, userCart);
-    }
-
-    return 0;
-  }, [products, selectedPrice, userCart]);
+  const cartItems = getCartItems(products, selectedPrice, userCart).filter(
+    (item) => item.cartQty > 0,
+  );
+  const cartTotal = getCartTotal(products, selectedPrice, userCart);
 
   useEffect(() => {
     if (token) {

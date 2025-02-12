@@ -8,7 +8,7 @@ import { getWarehouseItems } from "../api/item";
 import { PRICES } from "../data/prices";
 
 function Products() {
-  const token = useContext(AuthContext);
+  const { token } = useContext(AuthContext);
   const [warehouses, setWarehouses] = useState([]);
   const [products, setProducts] = useState([]);
 

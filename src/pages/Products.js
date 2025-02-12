@@ -1,6 +1,6 @@
 // src/pages/Products.js
 
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import { getCartItems, getCartTotal } from "../utils/cartUtils";
 import { getWarehouses } from "../api/warehouse";
 import { AuthContext } from "../api/auth";
@@ -9,7 +9,7 @@ import { PRICES } from "../data/prices";
 
 function Products() {
   const { token } = useContext(AuthContext);
-  const [warehouses, setWarehouses] = useState([]);
+  const [warehouses, setWarehouses] = useState(null);
   const [products, setProducts] = useState([]);
 
   const [userCart, setUserCart] = useState({});
@@ -18,9 +18,15 @@ function Products() {
   const [selectedPrice, setSelectedPrice] = useState("zakupu");
 
   // Filter warehouse products by name
-  const filteredProducts = products.filter((p) =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()),
+  const filteredProducts = useMemo(
+    () =>
+      products?.filter?.((p) =>
+        p.name.toLowerCase().includes(searchTerm.toLowerCase()),
+      ),
+    [products, searchTerm],
   );
+
+  console.log(products);
 
   // Update local cart
   const onUpdateUserCartItem = (productId, value) => {
@@ -38,15 +44,27 @@ function Products() {
   };
 
   // For the summary, hide items with qty=0
-  const cartItems = getCartItems(products, selectedPrice, userCart).filter(
-    (item) => item.cartQty > 0,
-  );
-  const cartTotal = getCartTotal(products, selectedPrice, userCart);
+  const cartItems = useMemo(() => {
+    if (products && selectedPrice && userCart) {
+      return getCartItems(products, selectedPrice, userCart).filter(
+        (item) => item.cartQty > 0,
+      );
+    }
+
+    return [];
+  }, [products, selectedPrice, userCart]);
+  const cartTotal = useMemo(() => {
+    if (products && selectedPrice && userCart) {
+      return getCartTotal(products, selectedPrice, userCart);
+    }
+
+    return 0;
+  }, [products, selectedPrice, userCart]);
 
   useEffect(() => {
     if (token) {
       getWarehouses(token).then((warehousesData) => {
-        if (warehousesData.length !== 0) {
+        if (warehousesData) {
           setWarehouses(warehousesData);
         }
       });
@@ -56,7 +74,7 @@ function Products() {
   useEffect(() => {
     if (token && selectedWarehouse) {
       getWarehouseItems(selectedWarehouse, token).then((items) => {
-        if (items.length !== 0) {
+        if (items) {
           setProducts(items);
         }
       });
@@ -88,14 +106,18 @@ function Products() {
                   <td>{item.prices[selectedPrice].value}</td>
                   <td>{item.unit}</td>
                   <td>{item.cartQty}</td>
-                  <td>{item.prices[selectedPrice].value * item.cartQty}</td>
+                  <td>
+                    {(item.prices[selectedPrice].value * item.cartQty).toFixed(
+                      2,
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
 
-        <h2>Łączna kwota: zł{cartTotal}</h2>
+        <h2>Łączna kwota: zł{cartTotal.toFixed(2)}</h2>
         <button
           className="place-order"
           onClick={() => alert("Złóż zamówienie")}
@@ -108,14 +130,23 @@ function Products() {
 
         {/* ============== Warehouse selection + search ============== */}
         <div className="warehouses">
-          {warehouses.map((warehouse) => (
-            <button
-              key={warehouse.id}
-              onClick={() => setSelectedWarehouse(warehouse.id)}
-            >
-              {warehouse.name}
-            </button>
-          ))}
+          {warehouses ? (
+            warehouses.map((warehouse) => (
+              <button
+                key={warehouse.id}
+                onClick={() => {
+                  if (selectedWarehouse !== warehouse.id) {
+                    setProducts(null);
+                    setSelectedWarehouse(warehouse.id);
+                  }
+                }}
+              >
+                {warehouse.name}
+              </button>
+            ))
+          ) : (
+            <h1>Ładowanie magazynów...</h1>
+          )}
         </div>
 
         <input
@@ -139,43 +170,51 @@ function Products() {
         </select>
 
         {/* ============== Main table for selected warehouse ============== */}
-        <table>
-          <thead>
-            <tr>
-              <th>Nazwa</th>
-              <th>Cena (zł)</th>
-              <th>Dostępność</th>
-              <th>Jednostka</th>
-              <th>Ilość</th>
-              <th>Razem (zł)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredProducts.map((product) => {
-              const currentQty = userCart[product.id] || 0;
-              return (
-                <tr key={product.id}>
-                  <td>{product.name}</td>
-                  <td>{product.prices[selectedPrice].value}</td>
-                  <td>{product.quantity}</td>
-                  <td>{product.unit}</td>
-                  <td>
-                    <input
-                      type="number"
-                      min="0"
-                      max={product.quantity}
-                      value={currentQty}
-                      onChange={(e) =>
-                        onUpdateUserCartItem(product.id, e.target.value)
-                      }
-                    />
-                  </td>
-                  <td>{product.prices[selectedPrice].value * currentQty}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        {products ? (
+          <table>
+            <thead>
+              <tr>
+                <th>Nazwa</th>
+                <th>Cena (zł)</th>
+                <th>Dostępność</th>
+                <th>Jednostka</th>
+                <th>Ilość</th>
+                <th>Razem (zł)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredProducts.map((product) => {
+                const currentQty = userCart[product.id] || 0;
+                return (
+                  <tr key={product.id}>
+                    <td>{product.name}</td>
+                    <td>{product.prices[selectedPrice].value}</td>
+                    <td>{product.quantity}</td>
+                    <td>{product.unit}</td>
+                    <td>
+                      <input
+                        type="number"
+                        min="0"
+                        max={product.quantity}
+                        value={currentQty}
+                        onChange={(e) =>
+                          onUpdateUserCartItem(product.id, e.target.value)
+                        }
+                      />
+                    </td>
+                    <td>
+                      {(
+                        product.prices[selectedPrice].value * currentQty
+                      ).toFixed(2)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        ) : (
+          <h1>Ładowanie produktów...</h1>
+        )}
       </header>
     </div>
   );

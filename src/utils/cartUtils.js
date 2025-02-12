@@ -2,12 +2,10 @@
 
 // Calculate sum for a given cart object
 export function getCartTotal(products, selectedPrice, cart) {
-  return Object.entries(cart)
-    .reduce((acc, [id, qty]) => {
-      const product = products.find((p) => p.id === parseInt(id, 10));
-      return acc + (product?.prices[selectedPrice].value || 0) * qty;
-    }, 0)
-    .toFixed(2);
+  return Object.entries(cart).reduce((acc, [id, qty]) => {
+    const product = products.find((p) => p.id === parseInt(id, 10));
+    return acc + (product?.prices[selectedPrice].value || 0) * qty;
+  }, 0);
 }
 
 // Return array of { ...product, cartQty } from the cart object

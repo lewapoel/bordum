@@ -1,11 +1,12 @@
 // src/pages/SplitOrder.js
 
 import React, { useState } from "react";
-import { allProducts } from "../data/warehouses";
+// import { allProducts } from "../data/warehouses";
 import { getCartItems, getCartTotal } from "../utils/cartUtils";
 import { getBitrix24 } from "../utils/bitrix24";
 
 function SplitOrder() {
+  const allProducts = [];
   // 1) The dummyCart (read-only, “actual order”).
   const [dummyCart] = useState({
     3: 2, // e.g., "Garden Railing"

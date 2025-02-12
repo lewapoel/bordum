@@ -1,39 +1,67 @@
 // src/pages/Products.js
 
-import React, { useState } from "react";
-import { warehouses, allProducts } from "../data/warehouses";
+import React, { useContext, useEffect, useState } from "react";
 import { getCartItems, getCartTotal } from "../utils/cartUtils";
+import { getWarehouses } from "../api/warehouse";
+import { AuthContext } from "../api/auth";
+import { getWarehouseItems } from "../api/item";
+import { PRICES } from "../data/prices";
 
 function Products() {
+  const token = useContext(AuthContext);
+  const [warehouses, setWarehouses] = useState([]);
+  const [products, setProducts] = useState([]);
+
   const [userCart, setUserCart] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedWarehouse, setSelectedWarehouse] = useState("Ogrodzenia");
-
-  const products = warehouses[selectedWarehouse] || [];
+  const [selectedWarehouse, setSelectedWarehouse] = useState();
+  const [selectedPrice, setSelectedPrice] = useState("zakupu");
 
   // Filter warehouse products by name
   const filteredProducts = products.filter((p) =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase())
+    p.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   // Update local cart
   const onUpdateUserCartItem = (productId, value) => {
     setUserCart((prevCart) => {
       const numericId = parseInt(productId, 10);
-      const product = allProducts.find((p) => p.id === numericId);
+      const product = products.find((p) => p.id === numericId);
       if (!product) return prevCart;
 
       const newQuantity = Math.min(
         product.quantity,
-        Math.max(0, Number(value))
+        Math.max(0, Number(value)),
       );
       return { ...prevCart, [productId]: newQuantity };
     });
   };
 
   // For the summary, hide items with qty=0
-  const cartItems = getCartItems(userCart).filter((item) => item.cartQty > 0);
-  const cartTotal = getCartTotal(userCart);
+  const cartItems = getCartItems(products, selectedPrice, userCart).filter(
+    (item) => item.cartQty > 0,
+  );
+  const cartTotal = getCartTotal(products, selectedPrice, userCart);
+
+  useEffect(() => {
+    if (token) {
+      getWarehouses(token).then((warehousesData) => {
+        if (warehousesData.length !== 0) {
+          setWarehouses(warehousesData);
+        }
+      });
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (token && selectedWarehouse) {
+      getWarehouseItems(selectedWarehouse, token).then((items) => {
+        if (items.length !== 0) {
+          setProducts(items);
+        }
+      });
+    }
+  }, [token, selectedWarehouse]);
 
   return (
     <div className="App">
@@ -57,10 +85,10 @@ function Products() {
               {cartItems.map((item) => (
                 <tr key={item.id}>
                   <td>{item.name}</td>
-                  <td>{item.price}</td>
+                  <td>{item.prices[selectedPrice].value}</td>
                   <td>{item.unit}</td>
                   <td>{item.cartQty}</td>
-                  <td>{item.price * item.cartQty}</td>
+                  <td>{item.prices[selectedPrice].value * item.cartQty}</td>
                 </tr>
               ))}
             </tbody>
@@ -80,12 +108,12 @@ function Products() {
 
         {/* ============== Warehouse selection + search ============== */}
         <div className="warehouses">
-          {Object.keys(warehouses).map((warehouseName) => (
+          {warehouses.map((warehouse) => (
             <button
-              key={warehouseName}
-              onClick={() => setSelectedWarehouse(warehouseName)}
+              key={warehouse.id}
+              onClick={() => setSelectedWarehouse(warehouse.id)}
             >
-              {warehouseName}
+              {warehouse.name}
             </button>
           ))}
         </div>
@@ -97,6 +125,18 @@ function Products() {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="searchbar"
         />
+
+        <select
+          className="prices"
+          value={selectedPrice}
+          onChange={(e) => setSelectedPrice(e.target.value)}
+        >
+          {PRICES.map((price, idx) => (
+            <option value={price} key={idx}>
+              {price}
+            </option>
+          ))}
+        </select>
 
         {/* ============== Main table for selected warehouse ============== */}
         <table>
@@ -116,7 +156,7 @@ function Products() {
               return (
                 <tr key={product.id}>
                   <td>{product.name}</td>
-                  <td>{product.price}</td>
+                  <td>{product.prices[selectedPrice].value}</td>
                   <td>{product.quantity}</td>
                   <td>{product.unit}</td>
                   <td>
@@ -130,7 +170,7 @@ function Products() {
                       }
                     />
                   </td>
-                  <td>{product.price * currentQty}</td>
+                  <td>{product.prices[selectedPrice].value * currentQty}</td>
                 </tr>
               );
             })}

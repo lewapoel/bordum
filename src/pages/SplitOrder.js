@@ -17,6 +17,7 @@ function SplitOrder() {
 
   const [cartItems, setCartItems] = useState(null);
   const [selectedPrice, setSelectedPrice] = useState(null);
+  const [selectedWarehouse, setSelectedWarehouse] = useState(null);
 
   // 2) The subOrder for partial picks.
   const [subOrder, setSubOrder] = useState(null);
@@ -91,6 +92,7 @@ function SplitOrder() {
             return acc;
           }, {}),
           selectedPrice,
+          selectedWarehouse,
         });
 
         // Add new deal
@@ -115,12 +117,17 @@ function SplitOrder() {
   useEffect(() => {
     getCurrentDealOrderData().then((dealData) => {
       if (dealData) {
-        const { userCart: cart, selectedPrice: price } = dealData;
+        const {
+          userCart: cart,
+          selectedPrice: price,
+          selectedWarehouse: warehouse,
+        } = dealData;
 
-        if (cart && price) {
+        if (cart && price && warehouse) {
           setSubOrder(
             Object.fromEntries(Object.entries(cart).map(([id]) => [id, 0])),
           );
+          setSelectedWarehouse(warehouse);
           setSelectedPrice(price);
           setCartItems(cart);
         } else {

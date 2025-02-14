@@ -83,7 +83,13 @@ function SplitOrder() {
         delete dealData.ID; // Not needed for creating new deal
 
         dealData[ORDER_DATA_FIELD_ID] = JSON.stringify({
-          userCart: subOrder,
+          userCart: Object.entries(subOrder).reduce((acc, [key, value]) => {
+            if (value > 0) {
+              acc[key] = value;
+            }
+
+            return acc;
+          }, {}),
           selectedPrice,
         });
 
@@ -112,11 +118,11 @@ function SplitOrder() {
         const { userCart: cart, selectedPrice: price } = dealData;
 
         if (cart && price) {
-          setCartItems(cart);
-          setSelectedPrice(price);
           setSubOrder(
             Object.fromEntries(Object.entries(cart).map(([id]) => [id, 0])),
           );
+          setSelectedPrice(price);
+          setCartItems(cart);
         } else {
           // Mark that the order doesn't exist
           setCartItems([]);
@@ -229,8 +235,10 @@ function SplitOrder() {
         ) : (
           <>
             {!cartItems ? (
+              <h1>Ładowanie zamówienia...</h1>
+            ) : (
               <>
-                <h1>Ładowanie zamówienia...</h1>
+                <h1>Brak danych zamówienia</h1>
                 <button
                   className="place-order"
                   onClick={() => window.location.reload()}
@@ -238,8 +246,6 @@ function SplitOrder() {
                   Odśwież
                 </button>
               </>
-            ) : (
-              <h1>Brak danych zamówienia</h1>
             )}
           </>
         )}

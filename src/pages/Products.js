@@ -76,7 +76,13 @@ function Products() {
     };
 
     updateBody.fields[ORDER_DATA_FIELD_ID] = JSON.stringify({
-      userCart,
+      userCart: Object.entries(userCart).reduce((acc, [key, value]) => {
+        if (value > 0) {
+          acc[key] = value;
+        }
+
+        return acc;
+      }, {}),
       selectedPrice,
     });
 

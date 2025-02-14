@@ -112,6 +112,8 @@ function SplitOrder() {
     }
   }, [token]);
 
+  console.log(cartItems);
+
   useEffect(() => {
     getCurrentDealOrderData().then((dealData) => {
       if (dealData) {

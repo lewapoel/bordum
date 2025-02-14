@@ -53,7 +53,6 @@ export async function getCurrentDealOrderData() {
       }
     };
 
-    // Update deal order data
     bx24.callMethod("crm.deal.get", { id: dealId }, getOrderDataCallback);
   });
 }

@@ -131,7 +131,10 @@ function SplitOrder() {
   return (
     <div className="App">
       <header className="App-header">
-        {cartItems?.length > 0 && selectedPrice && allProducts ? (
+        {cartItems &&
+        Object.keys(cartItems)?.length > 0 &&
+        selectedPrice &&
+        allProducts ? (
           <>
             {/* ============== 1) The read-only cartItems ============== */}
             <h2>Zamówienie</h2>

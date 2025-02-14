@@ -15,6 +15,7 @@ import { ORDER_DATA_FIELD_ID } from "../api/const";
 
 function Products() {
   const { token } = useContext(AuthContext);
+  const [firstLoad, setFirstLoad] = useState(false);
   const [warehouses, setWarehouses] = useState(null);
   const [products, setProducts] = useState([]);
 
@@ -121,6 +122,8 @@ function Products() {
 
   useEffect(() => {
     getCurrentDealOrderData().then((dealData) => {
+      setFirstLoad(true);
+
       if (dealData) {
         const {
           userCart: cart,
@@ -140,133 +143,139 @@ function Products() {
   return (
     <div className="App">
       <header className="App-header">
-        {/* ====================== SUMMARY (no 0-qty) ====================== */}
-        <h1>Zamówienie</h1>
-        {cartItems.length === 0 ? (
-          <p>Brak wybranych produktów.</p>
-        ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Nazwa</th>
-                <th>Cena (zł)</th>
-                <th>Jednostka</th>
-                <th>Ilość</th>
-                <th>Razem (zł)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {cartItems.map((item) => (
-                <tr key={item.id}>
-                  <td>{item.name}</td>
-                  <td>{item.prices[selectedPrice].value}</td>
-                  <td>{item.unit}</td>
-                  <td>{item.cartQty}</td>
-                  <td>
-                    {(item.prices[selectedPrice].value * item.cartQty).toFixed(
-                      2,
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-
-        <h2>Łączna kwota: zł{cartTotal.toFixed(2)}</h2>
-        <button className="place-order" onClick={() => placeOrder()}>
-          Złóż zamówienie
-        </button>
-
-        <hr />
-        <h2>Magazyn</h2>
-
-        {/* ============== Warehouse selection + search ============== */}
-        <div className="warehouses">
-          {warehouses ? (
-            warehouses.map((warehouse) => (
-              <button
-                key={warehouse.id}
-                onClick={() => {
-                  if (selectedWarehouse !== warehouse.id) {
-                    setProducts(null);
-                    setSelectedWarehouse(warehouse.id);
-                  }
-                }}
-              >
-                {warehouse.name}
-              </button>
-            ))
-          ) : (
-            <h1>Ładowanie magazynów...</h1>
-          )}
-        </div>
-
-        <input
-          type="text"
-          placeholder="Wyszukaj surowiec..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="searchbar"
-        />
-
-        <select
-          className="prices"
-          value={selectedPrice}
-          onChange={(e) => setSelectedPrice(e.target.value)}
-        >
-          {PRICES.map((price, idx) => (
-            <option value={price} key={idx}>
-              {price}
-            </option>
-          ))}
-        </select>
-
-        {/* ============== Main table for selected warehouse ============== */}
-        {products ? (
-          <table>
-            <thead>
-              <tr>
-                <th>Nazwa</th>
-                <th>Cena (zł)</th>
-                <th>Dostępność</th>
-                <th>Jednostka</th>
-                <th>Ilość</th>
-                <th>Razem (zł)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredProducts.map((product) => {
-                const currentQty = userCart[product.id] || 0;
-                return (
-                  <tr key={product.id}>
-                    <td>{product.name}</td>
-                    <td>{product.prices[selectedPrice].value}</td>
-                    <td>{product.quantity}</td>
-                    <td>{product.unit}</td>
-                    <td>
-                      <input
-                        type="number"
-                        min="0"
-                        max={product.quantity}
-                        value={currentQty}
-                        onChange={(e) =>
-                          onUpdateUserCartItem(product.id, e.target.value)
-                        }
-                      />
-                    </td>
-                    <td>
-                      {(
-                        product.prices[selectedPrice].value * currentQty
-                      ).toFixed(2)}
-                    </td>
+        {firstLoad ? (
+          <>
+            {/* ====================== SUMMARY (no 0-qty) ====================== */}
+            <h1>Zamówienie</h1>
+            {cartItems.length === 0 ? (
+              <p>Brak wybranych produktów.</p>
+            ) : (
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nazwa</th>
+                    <th>Cena (zł)</th>
+                    <th>Jednostka</th>
+                    <th>Ilość</th>
+                    <th>Razem (zł)</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                </thead>
+                <tbody>
+                  {cartItems.map((item) => (
+                    <tr key={item.id}>
+                      <td>{item.name}</td>
+                      <td>{item.prices[selectedPrice].value}</td>
+                      <td>{item.unit}</td>
+                      <td>{item.cartQty}</td>
+                      <td>
+                        {(
+                          item.prices[selectedPrice].value * item.cartQty
+                        ).toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+
+            <h2>Łączna kwota: zł{cartTotal.toFixed(2)}</h2>
+            <button className="place-order" onClick={() => placeOrder()}>
+              Złóż zamówienie
+            </button>
+
+            <hr />
+            <h2>Magazyn</h2>
+
+            {/* ============== Warehouse selection + search ============== */}
+            <div className="warehouses">
+              {warehouses ? (
+                warehouses.map((warehouse) => (
+                  <button
+                    key={warehouse.id}
+                    onClick={() => {
+                      if (selectedWarehouse !== warehouse.id) {
+                        setProducts(null);
+                        setSelectedWarehouse(warehouse.id);
+                      }
+                    }}
+                  >
+                    {warehouse.name}
+                  </button>
+                ))
+              ) : (
+                <h1>Ładowanie magazynów...</h1>
+              )}
+            </div>
+
+            <input
+              type="text"
+              placeholder="Wyszukaj surowiec..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="searchbar"
+            />
+
+            <select
+              className="prices"
+              value={selectedPrice}
+              onChange={(e) => setSelectedPrice(e.target.value)}
+            >
+              {PRICES.map((price, idx) => (
+                <option value={price} key={idx}>
+                  {price}
+                </option>
+              ))}
+            </select>
+
+            {/* ============== Main table for selected warehouse ============== */}
+            {products ? (
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nazwa</th>
+                    <th>Cena (zł)</th>
+                    <th>Dostępność</th>
+                    <th>Jednostka</th>
+                    <th>Ilość</th>
+                    <th>Razem (zł)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredProducts.map((product) => {
+                    const currentQty = userCart[product.id] || 0;
+                    return (
+                      <tr key={product.id}>
+                        <td>{product.name}</td>
+                        <td>{product.prices[selectedPrice].value}</td>
+                        <td>{product.quantity}</td>
+                        <td>{product.unit}</td>
+                        <td>
+                          <input
+                            type="number"
+                            min="0"
+                            max={product.quantity}
+                            value={currentQty}
+                            onChange={(e) =>
+                              onUpdateUserCartItem(product.id, e.target.value)
+                            }
+                          />
+                        </td>
+                        <td>
+                          {(
+                            product.prices[selectedPrice].value * currentQty
+                          ).toFixed(2)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            ) : (
+              <h1>Ładowanie produktów...</h1>
+            )}
+          </>
         ) : (
-          <h1>Ładowanie produktów...</h1>
+          <h1>Ładowanie danych zamówienia...</h1>
         )}
       </header>
     </div>

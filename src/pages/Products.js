@@ -48,10 +48,18 @@ function Products() {
   };
 
   // For the summary, hide items with qty=0
-  const cartItems = getCartItems(products, selectedPrice, userCart).filter(
-    (item) => item.cartQty > 0,
+  const cartItems = useMemo(
+    () =>
+      getCartItems(products, selectedPrice, userCart).filter(
+        (item) => item.cartQty > 0,
+      ),
+    [products, selectedPrice, userCart],
   );
-  const cartTotal = getCartTotal(products, selectedPrice, userCart);
+
+  const cartTotal = useMemo(
+    () => getCartTotal(products, selectedPrice, userCart),
+    [products, selectedPrice, userCart],
+  );
 
   const placeOrder = () => {
     const dealId = getCurrentDealId();

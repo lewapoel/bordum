@@ -6,6 +6,8 @@ import { getWarehouses } from "../api/warehouse";
 import { AuthContext } from "../api/auth";
 import { getWarehouseItems } from "../api/item";
 import { PRICES } from "../data/prices";
+import { getBitrix24, getCurrentDealId } from "../utils/bitrix24";
+import { ORDER_DATA_FIELD_ID } from "../api/const";
 
 function Products() {
   const { token } = useContext(AuthContext);
@@ -46,6 +48,42 @@ function Products() {
     (item) => item.cartQty > 0,
   );
   const cartTotal = getCartTotal(products, selectedPrice, userCart);
+
+  console.log(cartItems);
+
+  const placeOrder = () => {
+    const dealId = getCurrentDealId();
+    if (!dealId) {
+      return;
+    }
+
+    const bx24 = getBitrix24();
+
+    const updateOrderDataCallback = (result) => {
+      if (result.error()) {
+        console.error(result.error());
+        alert("Nie udało się zapisać danych zamówienia. Szczegóły w konsoli");
+      } else {
+        alert("Dane zamówienia zapisane pomyślnie");
+      }
+    };
+
+    let updateBody = {
+      id: dealId,
+      fields: {},
+    };
+
+    updateBody.fields[ORDER_DATA_FIELD_ID] = JSON.stringify({
+      cartItems: cartItems.reduce((acc, item) => {
+        acc[item.id] = item.cartQty;
+        return acc;
+      }, {}),
+      selectedPrice,
+    });
+
+    // Update deal order data
+    bx24.callMethod("crm.deal.update", updateBody, updateOrderDataCallback);
+  };
 
   useEffect(() => {
     if (token) {
@@ -104,10 +142,7 @@ function Products() {
         )}
 
         <h2>Łączna kwota: zł{cartTotal.toFixed(2)}</h2>
-        <button
-          className="place-order"
-          onClick={() => alert("Złóż zamówienie")}
-        >
+        <button className="place-order" onClick={() => placeOrder()}>
           Złóż zamówienie
         </button>
 

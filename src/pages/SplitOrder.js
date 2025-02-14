@@ -2,43 +2,40 @@
 
 import React, { useContext, useEffect, useState } from "react";
 import { getCartItems, getCartTotal } from "../utils/cartUtils";
-import { getBitrix24 } from "../utils/bitrix24";
+import {
+  getBitrix24,
+  getCurrentDealId,
+  getCurrentDealOrderData,
+} from "../utils/bitrix24";
 import { AuthContext } from "../api/auth";
 import { getItems } from "../api/item";
 
 function SplitOrder() {
   const { token } = useContext(AuthContext);
   const [allProducts, setAllProducts] = useState(null);
-  // 1) The dummyCart (read-only, “actual order”).
-  const [dummyCart] = useState({
-    3: 2, // e.g., "Garden Railing"
-    12: 1, // e.g., "Metal Rod"
-    28: 3, // e.g., "Reinforced Concrete"
-  });
-  const [dummyPrice] = useState("zakupu");
 
-  // 2) The subOrder for partial picks. Initialize with the same IDs but 0 qty.
-  const initialSubOrder = Object.fromEntries(
-    Object.entries(dummyCart).map(([id]) => [id, 0]),
-  );
-  const [subOrder, setSubOrder] = useState(initialSubOrder);
+  const [cartItems, setCartItems] = useState(null);
+  const [selectedPrice, setSelectedPrice] = useState(null);
 
-  // 3) Convert dummyCart -> array
-  const dummyCartItems = getCartItems(allProducts, dummyPrice, dummyCart); // includes 0 if any
-  const dummyTotal = getCartTotal(allProducts, dummyPrice, dummyCart);
+  // 2) The subOrder for partial picks.
+  const [subOrder, setSubOrder] = useState(null);
+
+  // 3) Convert cartItems -> array
+  const dummyCartItems = getCartItems(allProducts, selectedPrice, cartItems); // includes 0 if any
+  const dummyTotal = getCartTotal(allProducts, selectedPrice, cartItems);
 
   // 4) Convert subOrder -> array
-  const subOrderItems = getCartItems(allProducts, dummyPrice, subOrder); // includes 0 if any
-  const subOrderTotal = getCartTotal(allProducts, dummyPrice, subOrder);
+  const subOrderItems = getCartItems(allProducts, selectedPrice, subOrder); // includes 0 if any
+  const subOrderTotal = getCartTotal(allProducts, selectedPrice, subOrder);
 
-  // Let user choose up to the original dummyCart’s qty
+  // Let user choose up to the original cartItems’s qty
   const updateSubOrderItem = (productId, value) => {
     setSubOrder((prev) => {
       const numericId = parseInt(productId, 10);
       const product = allProducts.find((p) => p.id === numericId);
       if (!product) return prev;
 
-      const maxAllowed = dummyCart[productId] || 0;
+      const maxAllowed = cartItems[productId] || 0;
       const newQty = Math.min(maxAllowed, Math.max(0, Number(value)));
       return { ...prev, [productId]: newQty };
     });
@@ -60,52 +57,37 @@ function SplitOrder() {
       return;
     }
 
-    const bx24 = getBitrix24();
-
-    // Error alert is shown in `getBitrix24`
-    if (!bx24) {
+    const dealId = getCurrentDealId();
+    if (!dealId) {
       return;
     }
-    if (bx24) {
-      const dealId = bx24.placement?.info?.()?.options?.ID;
-      if (!dealId) {
-        alert("Nie można pobrać ID aktualnego dealu");
-        return;
+
+    const bx24 = getBitrix24();
+
+    const addDealCallback = (result) => {
+      if (result.error()) {
+        console.error(result.error());
+        alert("Nie udało się utworzyć deala. Szczegóły w konsoli");
+      } else {
+        alert("Zamówienie podzielone pomyślnie");
       }
+    };
 
-      const addDealCallback = (result) => {
-        if (result.error()) {
-          console.error(result.error());
-          alert("Nie udało się utworzyć deala. Szczegóły w konsoli");
-        } else {
-          alert("Zamówienie podzielone pomyślnie");
-        }
-      };
+    const getDealCallback = (result) => {
+      if (result.error()) {
+        console.error(result.error());
+        alert("Nie udało się pobrać danych deala. Szczegóły w konsoli");
+      } else {
+        let dealData = result.data();
+        delete dealData.ID; // Not needed for creating new deal
 
-      const getDealCallback = (result) => {
-        if (result.error()) {
-          console.error(result.error());
-          alert("Nie udało się pobrać danych deala. Szczegóły w konsoli");
-        } else {
-          let dealData = result.data();
-          delete dealData.ID; // Not needed for creating new deal
+        // Add new deal
+        bx24.callMethod("crm.deal.add", { fields: dealData }, addDealCallback);
+      }
+    };
 
-          // Add new deal
-          bx24.callMethod(
-            "crm.deal.add",
-            { fields: dealData },
-            addDealCallback,
-          );
-        }
-
-        result.error()
-          ? console.error(result.error())
-          : console.info(result.data());
-      };
-
-      // Fetch deal data
-      bx24.callMethod("crm.deal.get", { id: dealId }, getDealCallback);
-    }
+    // Fetch deal data
+    bx24.callMethod("crm.deal.get", { id: dealId }, getDealCallback);
   };
 
   useEffect(() => {
@@ -118,14 +100,24 @@ function SplitOrder() {
     }
   }, [token]);
 
+  useEffect(() => {
+    getCurrentDealOrderData().then(({ items, price }) => {
+      setCartItems(items);
+      setSelectedPrice(price);
+      setSubOrder(
+        Object.fromEntries(Object.entries(items).map(([id]) => [id, 0])),
+      );
+    });
+  }, []);
+
   return (
     <div className="App">
       <header className="App-header">
-        {dummyCart && dummyPrice && allProducts ? (
+        {cartItems && selectedPrice && allProducts ? (
           <>
-            {/* ============== 1) The read-only dummyCart ============== */}
+            {/* ============== 1) The read-only cartItems ============== */}
             <h2>Zamówienie</h2>
-            <p>Rodzaj ceny: {dummyPrice}</p>
+            <p>Rodzaj ceny: {selectedPrice}</p>
             <p>Łączna kwota zamówienia: zł{dummyTotal.toFixed(2)}</p>
             <table>
               <thead>
@@ -146,13 +138,13 @@ function SplitOrder() {
                   dummyCartItems.map((item) => (
                     <tr key={item.id}>
                       <td>{item.name}</td>
-                      <td>{item.prices[dummyPrice].value}</td>
+                      <td>{item.prices[selectedPrice].value}</td>
                       <td>{item.unit}</td>
                       <td>{item.cartQty}</td>
                       <td>
-                        {(item.prices[dummyPrice].value * item.cartQty).toFixed(
-                          2,
-                        )}
+                        {(
+                          item.prices[selectedPrice].value * item.cartQty
+                        ).toFixed(2)}
                       </td>
                     </tr>
                   ))
@@ -164,7 +156,7 @@ function SplitOrder() {
 
             {/* ============== 2) The subOrder table (user picks partial) ============== */}
             <h2>Podzamówienie</h2>
-            <p>Rodzaj ceny: {dummyPrice}</p>
+            <p>Rodzaj ceny: {selectedPrice}</p>
             <p>Łączna kwota podzamówienia: zł{subOrderTotal}</p>
             <table>
               <thead>
@@ -185,13 +177,13 @@ function SplitOrder() {
                   subOrderItems.map((item) => (
                     <tr key={item.id}>
                       <td>{item.name}</td>
-                      <td>{item.prices[dummyPrice].value}</td>
+                      <td>{item.prices[selectedPrice].value}</td>
                       <td>{item.unit}</td>
                       <td>
                         <input
                           type="number"
                           min="0"
-                          max={dummyCart[item.id]} // can't exceed original quantity
+                          max={cartItems[item.id]} // can't exceed original quantity
                           value={item.cartQty}
                           onChange={(e) =>
                             updateSubOrderItem(item.id, e.target.value)
@@ -199,9 +191,9 @@ function SplitOrder() {
                         />
                       </td>
                       <td>
-                        {(item.prices[dummyPrice].value * item.cartQty).toFixed(
-                          2,
-                        )}
+                        {(
+                          item.prices[selectedPrice].value * item.cartQty
+                        ).toFixed(2)}
                       </td>
                     </tr>
                   ))

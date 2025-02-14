@@ -49,8 +49,6 @@ function Products() {
   );
   const cartTotal = getCartTotal(products, selectedPrice, userCart);
 
-  console.log(cartItems);
-
   const placeOrder = () => {
     const dealId = getCurrentDealId();
     if (!dealId) {

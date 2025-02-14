@@ -101,13 +101,15 @@ function SplitOrder() {
   }, [token]);
 
   useEffect(() => {
-    getCurrentDealOrderData().then(({ items, price }) => {
-      setCartItems(items);
-      setSelectedPrice(price);
-      setSubOrder(
-        Object.fromEntries(Object.entries(items).map(([id]) => [id, 0])),
-      );
-    });
+    getCurrentDealOrderData().then(
+      ({ cartItems: items, selectedPrice: price }) => {
+        setCartItems(items);
+        setSelectedPrice(price);
+        setSubOrder(
+          Object.fromEntries(Object.entries(items).map(([id]) => [id, 0])),
+        );
+      },
+    );
   }, []);
 
   return (

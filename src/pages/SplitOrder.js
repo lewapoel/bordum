@@ -9,6 +9,7 @@ import {
 } from "../utils/bitrix24";
 import { AuthContext } from "../api/auth";
 import { getItems } from "../api/item";
+import { ORDER_DATA_FIELD_ID } from "../api/const";
 
 function SplitOrder() {
   const { token } = useContext(AuthContext);
@@ -81,6 +82,11 @@ function SplitOrder() {
         let dealData = result.data();
         delete dealData.ID; // Not needed for creating new deal
 
+        dealData[ORDER_DATA_FIELD_ID] = JSON.stringify({
+          userCart: subOrder,
+          selectedPrice,
+        });
+
         // Add new deal
         bx24.callMethod("crm.deal.add", { fields: dealData }, addDealCallback);
       }
@@ -102,11 +108,11 @@ function SplitOrder() {
 
   useEffect(() => {
     getCurrentDealOrderData().then(
-      ({ cartItems: items, selectedPrice: price }) => {
-        setCartItems(items);
+      ({ userCart: cart, selectedPrice: price }) => {
+        setCartItems(cart);
         setSelectedPrice(price);
         setSubOrder(
-          Object.fromEntries(Object.entries(items).map(([id]) => [id, 0])),
+          Object.fromEntries(Object.entries(cart).map(([id]) => [id, 0])),
         );
       },
     );

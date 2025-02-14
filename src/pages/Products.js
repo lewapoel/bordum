@@ -6,7 +6,11 @@ import { getWarehouses } from "../api/warehouse";
 import { AuthContext } from "../api/auth";
 import { getWarehouseItems } from "../api/item";
 import { PRICES } from "../data/prices";
-import { getBitrix24, getCurrentDealId } from "../utils/bitrix24";
+import {
+  getBitrix24,
+  getCurrentDealId,
+  getCurrentDealOrderData,
+} from "../utils/bitrix24";
 import { ORDER_DATA_FIELD_ID } from "../api/const";
 
 function Products() {
@@ -72,10 +76,7 @@ function Products() {
     };
 
     updateBody.fields[ORDER_DATA_FIELD_ID] = JSON.stringify({
-      cartItems: cartItems.reduce((acc, item) => {
-        acc[item.id] = item.cartQty;
-        return acc;
-      }, {}),
+      userCart,
       selectedPrice,
     });
 
@@ -102,6 +103,15 @@ function Products() {
       });
     }
   }, [token, selectedWarehouse]);
+
+  useEffect(() => {
+    getCurrentDealOrderData().then(
+      ({ userCart: cart, selectedPrice: price }) => {
+        setUserCart(cart);
+        setSelectedPrice(price);
+      },
+    );
+  }, []);
 
   return (
     <div className="App">

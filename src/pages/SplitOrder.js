@@ -117,7 +117,13 @@ function SplitOrder() {
           setSubOrder(
             Object.fromEntries(Object.entries(cart).map(([id]) => [id, 0])),
           );
+        } else {
+          // Mark that the order doesn't exist
+          setCartItems([]);
         }
+      } else {
+        // Mark that the order doesn't exist
+        setCartItems([]);
       }
     });
   }, []);
@@ -125,7 +131,7 @@ function SplitOrder() {
   return (
     <div className="App">
       <header className="App-header">
-        {cartItems && selectedPrice && allProducts ? (
+        {cartItems?.length > 0 && selectedPrice && allProducts ? (
           <>
             {/* ============== 1) The read-only cartItems ============== */}
             <h2>Zamówienie</h2>
@@ -218,7 +224,13 @@ function SplitOrder() {
             </button>
           </>
         ) : (
-          <h1>Ładowanie zamówienia...</h1>
+          <>
+            {!cartItems ? (
+              <h1>Ładowanie zamówienia...</h1>
+            ) : (
+              <h1>Brak danych zamówienia</h1>
+            )}
+          </>
         )}
       </header>
     </div>

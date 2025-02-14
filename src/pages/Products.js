@@ -105,12 +105,16 @@ function Products() {
   }, [token, selectedWarehouse]);
 
   useEffect(() => {
-    getCurrentDealOrderData().then(
-      ({ userCart: cart, selectedPrice: price }) => {
-        setUserCart(cart);
-        setSelectedPrice(price);
-      },
-    );
+    getCurrentDealOrderData().then((dealData) => {
+      if (dealData) {
+        const { userCart: cart, selectedPrice: price } = dealData;
+
+        if (cart && price) {
+          setUserCart(cart);
+          setSelectedPrice(price);
+        }
+      }
+    });
   }, []);
 
   return (

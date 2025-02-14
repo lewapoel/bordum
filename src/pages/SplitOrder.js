@@ -107,15 +107,19 @@ function SplitOrder() {
   }, [token]);
 
   useEffect(() => {
-    getCurrentDealOrderData().then(
-      ({ userCart: cart, selectedPrice: price }) => {
-        setCartItems(cart);
-        setSelectedPrice(price);
-        setSubOrder(
-          Object.fromEntries(Object.entries(cart).map(([id]) => [id, 0])),
-        );
-      },
-    );
+    getCurrentDealOrderData().then((dealData) => {
+      if (dealData) {
+        const { userCart: cart, selectedPrice: price } = dealData;
+
+        if (cart && price) {
+          setCartItems(cart);
+          setSelectedPrice(price);
+          setSubOrder(
+            Object.fromEntries(Object.entries(cart).map(([id]) => [id, 0])),
+          );
+        }
+      }
+    });
   }, []);
 
   return (

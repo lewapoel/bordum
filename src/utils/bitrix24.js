@@ -45,7 +45,11 @@ export async function getCurrentDealOrderData() {
         reject();
       } else {
         const data = result.data();
-        resolve(JSON.parse(data[ORDER_DATA_FIELD_ID]));
+        resolve(
+          data[ORDER_DATA_FIELD_ID]
+            ? JSON.parse(data[ORDER_DATA_FIELD_ID])
+            : null,
+        );
       }
     };
 

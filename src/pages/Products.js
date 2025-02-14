@@ -92,6 +92,7 @@ function Products() {
         return acc;
       }, {}),
       selectedPrice,
+      selectedWarehouse,
     });
 
     // Update deal order data
@@ -121,11 +122,16 @@ function Products() {
   useEffect(() => {
     getCurrentDealOrderData().then((dealData) => {
       if (dealData) {
-        const { userCart: cart, selectedPrice: price } = dealData;
+        const {
+          userCart: cart,
+          selectedPrice: price,
+          selectedWarehouse: warehouse,
+        } = dealData;
 
         if (cart && price) {
           setUserCart(cart);
           setSelectedPrice(price);
+          setSelectedWarehouse(warehouse);
         }
       }
     });

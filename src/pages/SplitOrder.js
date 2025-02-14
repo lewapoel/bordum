@@ -112,8 +112,6 @@ function SplitOrder() {
     }
   }, [token]);
 
-  console.log(cartItems);
-
   useEffect(() => {
     getCurrentDealOrderData().then((dealData) => {
       if (dealData) {
@@ -236,7 +234,7 @@ function SplitOrder() {
           </>
         ) : (
           <>
-            {!cartItems ? (
+            {!cartItems || !allProducts ? (
               <h1>Ładowanie zamówienia...</h1>
             ) : (
               <>

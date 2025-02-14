@@ -229,7 +229,15 @@ function SplitOrder() {
         ) : (
           <>
             {!cartItems ? (
-              <h1>Ładowanie zamówienia...</h1>
+              <>
+                <h1>Ładowanie zamówienia...</h1>
+                <button
+                  className="place-order"
+                  onClick={() => window.location.reload()}
+                >
+                  Odśwież
+                </button>
+              </>
             ) : (
               <h1>Brak danych zamówienia</h1>
             )}

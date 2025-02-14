@@ -115,6 +115,7 @@ function Products() {
       getWarehouseItems(selectedWarehouse, token).then((items) => {
         if (items) {
           setProducts(items);
+          setFirstLoad(true);
         }
       });
     }
@@ -122,8 +123,6 @@ function Products() {
 
   useEffect(() => {
     getCurrentDealOrderData().then((dealData) => {
-      setFirstLoad(true);
-
       if (dealData) {
         const {
           userCart: cart,
@@ -136,6 +135,8 @@ function Products() {
           setSelectedPrice(price);
           setSelectedWarehouse(warehouse);
         }
+      } else {
+        setFirstLoad(true);
       }
     });
   }, []);

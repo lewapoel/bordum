@@ -14,6 +14,7 @@ import {
 import { ORDER_DATA_FIELD_ID } from "../api/const";
 
 function Products() {
+  const dealId = getCurrentDealId();
   const { token } = useContext(AuthContext);
   const [firstLoad, setFirstLoad] = useState(false);
   const [warehouses, setWarehouses] = useState(null);
@@ -62,8 +63,7 @@ function Products() {
     [products, selectedPrice, userCart],
   );
 
-  const placeOrder = async () => {
-    const dealId = await getCurrentDealId();
+  const placeOrder = () => {
     if (!dealId) {
       return;
     }
@@ -122,24 +122,26 @@ function Products() {
   }, [token, selectedWarehouse]);
 
   useEffect(() => {
-    getCurrentDealOrderData().then((dealData) => {
-      if (dealData) {
-        const {
-          userCart: cart,
-          selectedPrice: price,
-          selectedWarehouse: warehouse,
-        } = dealData;
+    if (dealId) {
+      getCurrentDealOrderData().then((dealData) => {
+        if (dealData) {
+          const {
+            userCart: cart,
+            selectedPrice: price,
+            selectedWarehouse: warehouse,
+          } = dealData;
 
-        if (cart && price) {
-          setUserCart(cart);
-          setSelectedPrice(price);
-          setSelectedWarehouse(warehouse);
+          if (cart && price) {
+            setUserCart(cart);
+            setSelectedPrice(price);
+            setSelectedWarehouse(warehouse);
+          }
+        } else {
+          setFirstLoad(true);
         }
-      } else {
-        setFirstLoad(true);
-      }
-    });
-  }, []);
+      });
+    }
+  }, [dealId]);
 
   return (
     <div className="App">

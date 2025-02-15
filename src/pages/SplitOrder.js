@@ -12,6 +12,7 @@ import { getItems } from "../api/item";
 import { ORDER_DATA_FIELD_ID } from "../api/const";
 
 function SplitOrder() {
+  const dealId = getCurrentDealId();
   const { token } = useContext(AuthContext);
   const [allProducts, setAllProducts] = useState(null);
 
@@ -44,7 +45,7 @@ function SplitOrder() {
   };
 
   // 5) Podziel zamówienie
-  const handleSplitOrder = async () => {
+  const handleSplitOrder = () => {
     if (subOrderTotal === 0) {
       alert(
         "Nie można podzielić zamówienia, podzamówienie musi mieć minimum jedną ilość produktu",
@@ -59,7 +60,6 @@ function SplitOrder() {
       return;
     }
 
-    const dealId = await getCurrentDealId();
     if (!dealId) {
       return;
     }
@@ -147,31 +147,33 @@ function SplitOrder() {
   }, [token]);
 
   useEffect(() => {
-    getCurrentDealOrderData().then((dealData) => {
-      if (dealData) {
-        const {
-          userCart: cart,
-          selectedPrice: price,
-          selectedWarehouse: warehouse,
-        } = dealData;
+    if (dealId) {
+      getCurrentDealOrderData().then((dealData) => {
+        if (dealData) {
+          const {
+            userCart: cart,
+            selectedPrice: price,
+            selectedWarehouse: warehouse,
+          } = dealData;
 
-        if (cart && price && warehouse) {
-          setSubOrder(
-            Object.fromEntries(Object.entries(cart).map(([id]) => [id, 0])),
-          );
-          setSelectedWarehouse(warehouse);
-          setSelectedPrice(price);
-          setCartItems(cart);
+          if (cart && price && warehouse) {
+            setSubOrder(
+              Object.fromEntries(Object.entries(cart).map(([id]) => [id, 0])),
+            );
+            setSelectedWarehouse(warehouse);
+            setSelectedPrice(price);
+            setCartItems(cart);
+          } else {
+            // Mark that the order doesn't exist
+            setCartItems([]);
+          }
         } else {
           // Mark that the order doesn't exist
           setCartItems([]);
         }
-      } else {
-        // Mark that the order doesn't exist
-        setCartItems([]);
-      }
-    });
-  }, []);
+      });
+    }
+  }, [dealId]);
 
   return (
     <div className="App">

@@ -61,6 +61,7 @@ function SplitOrder() {
     }
 
     if (!dealId) {
+      alert("Nie można pobrać ID aktualnego dealu");
       return;
     }
 

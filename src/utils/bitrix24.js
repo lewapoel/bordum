@@ -21,7 +21,6 @@ export function getCurrentDealId() {
 
   const dealId = bx24.placement?.info?.()?.options?.ID;
   if (!dealId) {
-    alert("Nie można pobrać ID aktualnego dealu");
     return null;
   }
 

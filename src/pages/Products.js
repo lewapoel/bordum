@@ -62,8 +62,8 @@ function Products() {
     [products, selectedPrice, userCart],
   );
 
-  const placeOrder = () => {
-    const dealId = getCurrentDealId();
+  const placeOrder = async () => {
+    const dealId = await getCurrentDealId();
     if (!dealId) {
       return;
     }

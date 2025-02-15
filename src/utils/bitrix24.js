@@ -11,7 +11,7 @@ export function getBitrix24() {
   return window.BX24;
 }
 
-export function getCurrentDealId() {
+export async function getCurrentDealId() {
   const bx24 = getBitrix24();
 
   // Error alert is shown in `getBitrix24`
@@ -19,17 +19,19 @@ export function getCurrentDealId() {
     return null;
   }
 
-  const dealId = bx24.placement?.info?.()?.options?.ID;
-  if (!dealId) {
-    alert("Nie można pobrać ID aktualnego dealu");
-    return null;
-  }
+  setTimeout(() => {
+    const dealId = bx24.placement?.info?.()?.options?.ID;
+    if (!dealId) {
+      alert("Nie można pobrać ID aktualnego dealu");
+      return null;
+    }
 
-  return dealId;
+    return dealId;
+  }, 2000);
 }
 
 export async function getCurrentDealOrderData() {
-  const dealId = getCurrentDealId();
+  const dealId = await getCurrentDealId();
 
   if (!dealId) {
     return null;

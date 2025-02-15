@@ -44,7 +44,7 @@ function SplitOrder() {
   };
 
   // 5) Podziel zamówienie
-  const handleSplitOrder = () => {
+  const handleSplitOrder = async () => {
     if (subOrderTotal === 0) {
       alert(
         "Nie można podzielić zamówienia, podzamówienie musi mieć minimum jedną ilość produktu",
@@ -59,7 +59,7 @@ function SplitOrder() {
       return;
     }
 
-    const dealId = getCurrentDealId();
+    const dealId = await getCurrentDealId();
     if (!dealId) {
       return;
     }
@@ -114,7 +114,10 @@ function SplitOrder() {
 
         updateBody.fields[ORDER_DATA_FIELD_ID] = JSON.stringify({
           userCart: Object.entries(cartItems).reduce((acc, [key, value]) => {
-            if (value > 0 && !Object.keys(subOrder).includes(key)) {
+            if (
+              value > 0 &&
+              (!Object.keys(subOrder).includes(key) || subOrder[key] === 0)
+            ) {
               acc[key] = value;
             }
 

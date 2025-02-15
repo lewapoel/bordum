@@ -69,16 +69,25 @@ function SplitOrder() {
     const addDealCallback = (result) => {
       if (result.error()) {
         console.error(result.error());
-        alert("Nie udało się utworzyć deala. Szczegóły w konsoli");
+        alert("Nie udało się utworzyć zamówienia. Szczegóły w konsoli");
       } else {
-        alert("Zamówienie podzielone pomyślnie");
+        alert("Nowe zamówienie utworzone pomyślnie");
+      }
+    };
+
+    const editDealCallback = (result) => {
+      if (result.error()) {
+        console.error(result.error());
+        alert("Nie udało się zaktualizować zamówienia. Szczegóły w konsoli");
+      } else {
+        alert("Zamówienie zaktualizowane pomyślnie");
       }
     };
 
     const getDealCallback = (result) => {
       if (result.error()) {
         console.error(result.error());
-        alert("Nie udało się pobrać danych deala. Szczegóły w konsoli");
+        alert("Nie udało się pobrać danych zamówienia. Szczegóły w konsoli");
       } else {
         let dealData = result.data();
         delete dealData.ID; // Not needed for creating new deal
@@ -97,6 +106,26 @@ function SplitOrder() {
 
         // Add new deal
         bx24.callMethod("crm.deal.add", { fields: dealData }, addDealCallback);
+
+        let updateBody = {
+          id: dealId,
+          fields: {},
+        };
+
+        updateBody.fields[ORDER_DATA_FIELD_ID] = JSON.stringify({
+          userCart: Object.entries(cartItems).reduce((acc, [key, value]) => {
+            if (value > 0 && !Object.keys(subOrder).includes(key)) {
+              acc[key] = value;
+            }
+
+            return acc;
+          }, {}),
+          selectedPrice,
+          selectedWarehouse,
+        });
+
+        // Update deal order data
+        bx24.callMethod("crm.deal.update", updateBody, editDealCallback);
       }
     };
 

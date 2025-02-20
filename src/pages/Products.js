@@ -29,9 +29,9 @@ function Products() {
   const filteredProducts = useMemo(
     () =>
       products?.filter?.((p) =>
-        p.name.toLowerCase().includes(searchTerm.toLowerCase()),
+        p.name.toLowerCase().includes(searchTerm.toLowerCase())
       ),
-    [products, searchTerm],
+    [products, searchTerm]
   );
 
   // Update local cart
@@ -43,7 +43,7 @@ function Products() {
 
       const newQuantity = Math.min(
         product.quantity,
-        Math.max(0, Number(value)),
+        Math.max(0, Number(value))
       );
       return { ...prevCart, [productId]: newQuantity };
     });
@@ -53,14 +53,14 @@ function Products() {
   const cartItems = useMemo(
     () =>
       getCartItems(products, selectedPrice, userCart).filter(
-        (item) => item.cartQty > 0,
+        (item) => item.cartQty > 0
       ),
-    [products, selectedPrice, userCart],
+    [products, selectedPrice, userCart]
   );
 
   const cartTotal = useMemo(
     () => getCartTotal(products, selectedPrice, userCart),
-    [products, selectedPrice, userCart],
+    [products, selectedPrice, userCart]
   );
 
   const placeOrder = () => {
@@ -115,6 +115,7 @@ function Products() {
     if (token && selectedWarehouse) {
       getWarehouseItems(selectedWarehouse, token).then((items) => {
         if (items) {
+          console.log(items);
           setProducts(items);
           setFirstLoad(true);
         }

@@ -68,12 +68,15 @@ export default function Order() {
 
     const updateBody = {
       id: placementId,
-      rows: order.map((item) => ({
-        PRODUCT_NAME: item.productName,
-        PRICE: item.unitPrice,
-        QUANTITY: item.quantity,
-        MEASURE_CODE: item.unitCode,
-      })),
+      rows:
+        order.length !== 0
+          ? order.map((item) => ({
+              PRODUCT_NAME: item.productName,
+              PRICE: item.unitPrice,
+              QUANTITY: item.quantity,
+              MEASURE_CODE: item.unitCode,
+            }))
+          : null,
     };
 
     bx24.callMethod(

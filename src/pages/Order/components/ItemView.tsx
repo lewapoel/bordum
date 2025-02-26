@@ -65,6 +65,11 @@ export default function ItemView() {
               return;
             }
 
+            if (quantity <= 0) {
+              alert("Nie można dodać produktu z zerową ilością");
+              return;
+            }
+
             ctx.saveItem({
               productName: ctx.currentItem.name,
               quantity: quantity,

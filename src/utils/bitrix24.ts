@@ -1,6 +1,7 @@
 // src/utils/bitrix24.js
 
 import { ORDER_DATA_FIELD_ID } from "../api/const";
+import { getHashCode } from "./hash.ts";
 
 export function getBitrix24() {
   // @ts-ignore
@@ -55,5 +56,89 @@ export async function getCurrentDealOrderData() {
     };
 
     bx24.callMethod("crm.deal.get", { id: dealId }, getOrderDataCallback);
+  });
+}
+
+type Measure = {
+  code: string;
+  symbol: string;
+};
+
+type Measures = { [symbol: string]: Measure };
+
+export async function getMeasures(): Promise<Measures | null> {
+  const bx24 = getBitrix24();
+
+  if (!bx24) {
+    return null;
+  }
+
+  return new Promise((resolve, reject) => {
+    const getMeasuresCallback = (result: any) => {
+      if (result.error()) {
+        console.error(result.error());
+        alert("Nie udało się pobrać danych jednostek. Szczegóły w konsoli");
+        reject();
+      } else {
+        const data = result.data();
+        const measures: Measures = {};
+
+        data.forEach((measure: any) => {
+          measures[measure["SYMBOL_RUS"]] = {
+            code: measure["CODE"],
+            symbol: measure["SYMBOL_RUS"],
+          };
+        });
+
+        resolve(measures);
+      }
+    };
+
+    bx24.callMethod("crm.measure.list", {}, getMeasuresCallback);
+  });
+}
+
+export async function ensureMeasure(
+  measures: Measures,
+  symbol: string,
+): Promise<string | null> {
+  const bx24 = getBitrix24();
+
+  if (!bx24) {
+    return null;
+  }
+
+  return new Promise((resolve, reject) => {
+    if (!Object.keys(measures).includes(symbol)) {
+      const code = getHashCode(symbol);
+
+      const addMeasureCallback = (result: any) => {
+        if (result.error()) {
+          console.error(result.error());
+          alert("Nie udało się dodać jednostki. Szczegóły w konsoli");
+          reject();
+        } else {
+          const data = result.data();
+          const measures: Measures = {};
+
+          data.forEach((measure: any) => {
+            measures[measure["SYMBOL_RUS"]] = {
+              code: measure["CODE"],
+              symbol: measure["SYMBOL_RUS"],
+            };
+          });
+
+          resolve(code);
+        }
+      };
+
+      bx24.callMethod(
+        "crm.measure.add",
+        { fields: { CODE: code, MEASURE_TITLE: symbol, SYMBOL_RUS: symbol } },
+        addMeasureCallback,
+      );
+    } else {
+      resolve(measures[symbol].code);
+    }
   });
 }

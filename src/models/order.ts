@@ -5,6 +5,7 @@ export type OrderItem = {
   productName: string;
   quantity: number;
   unit: string;
+  unitCode?: string;
   unitPrice: number;
 };
 
@@ -23,5 +24,6 @@ export type OrderData = {
   saveItem: (item: OrderItem) => void;
   selectedItem: number;
   setSelectedItem: (item: number) => void;
+  saveOrder: () => void;
 };
 export const OrderContext = createContext<OrderData | null>(null);

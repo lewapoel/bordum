@@ -5,7 +5,7 @@ import {
   OrderItems,
   OrderView,
 } from "../../../models/order.ts";
-import { useContext } from "react";
+import { useContext, useMemo } from "react";
 
 interface SummaryRowProps {
   index: number;
@@ -51,6 +51,15 @@ interface SummaryViewProps {
 export default function SummaryView({ order }: SummaryViewProps) {
   const ctx = useContext(OrderContext);
 
+  const sum = useMemo(
+    () =>
+      order.reduce((acc, item) => {
+        acc += item.unitPrice * item.quantity;
+        return acc;
+      }, 0),
+    [order],
+  );
+
   return ctx ? (
     <div>
       <h1 className="mb-5">Zamówienie</h1>
@@ -84,6 +93,12 @@ export default function SummaryView({ order }: SummaryViewProps) {
           />
         </tbody>
       </table>
+
+      <h2 className="mt-5">Wartość całkowita: {sum.toFixed(2)}</h2>
+
+      <div className="justify-center flex items-center gap-2 mt-10">
+        <button onClick={ctx.saveOrder}>Potwierdź</button>
+      </div>
     </div>
   ) : (
     <></>

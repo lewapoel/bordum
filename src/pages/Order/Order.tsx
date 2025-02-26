@@ -4,7 +4,12 @@ import { OrderContext, OrderItem, OrderView } from "../../models/order.ts";
 import ItemsView from "./components/ItemsView.tsx";
 import ItemView from "./components/ItemView.tsx";
 import { ItemWarehouses } from "../../api/item.ts";
-import { getBitrix24, getCurrentPlacementId } from "../../utils/bitrix24.ts";
+import {
+  ensureMeasure,
+  getBitrix24,
+  getCurrentPlacementId,
+  getMeasures,
+} from "../../utils/bitrix24.ts";
 
 export default function Order() {
   const placementId = getCurrentPlacementId();
@@ -27,10 +32,27 @@ export default function Order() {
     [selectedItem, order],
   );
 
-  const saveOrder = () => {
+  const saveOrder = async () => {
     if (!placementId) {
       alert("Nie można pobrać ID aktualnej oferty");
       return;
+    }
+
+    const measures = await getMeasures();
+    if (!measures) {
+      return;
+    }
+
+    for (const item of order) {
+      const code = await ensureMeasure(measures, item.unit);
+      if (!code) {
+        alert(
+          `Nie udało się ustalić kodu jednostki produktu: ${item.productName}`,
+        );
+        return;
+      }
+
+      item.unitCode = code;
     }
 
     const bx24 = getBitrix24();
@@ -50,6 +72,7 @@ export default function Order() {
         PRODUCT_NAME: item.productName,
         PRICE: item.unitPrice,
         QUANTITY: item.quantity,
+        MEASURE_CODE: item.unitCode,
       })),
     };
 
@@ -69,14 +92,12 @@ export default function Order() {
         saveItem,
         selectedItem,
         setSelectedItem,
+        saveOrder,
       }}
     >
       {currentView === OrderView.Summary && <SummaryView order={order} />}
       {currentView === OrderView.Items && <ItemsView />}
       {currentView === OrderView.Item && <ItemView />}
-      <div className="justify-center flex items-center gap-2 mt-10">
-        <button onClick={() => saveOrder()}>Potwierdź</button>
-      </div>
     </OrderContext.Provider>
   );
 }

@@ -2,7 +2,12 @@
 
 import { API_URL } from "./const";
 
-export async function getWarehouses(token) {
+export type Warehouse = {
+  id: number;
+  name: string;
+}
+
+export async function getWarehouses(token: string): Promise<Array<Warehouse> | null> {
   const response = await fetch(`${API_URL}/Warehouses`, {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -14,7 +19,7 @@ export async function getWarehouses(token) {
 
   const data = await response.json();
 
-  return data.map((warehouse) => ({
+  return data.map((warehouse: any) => ({
     id: warehouse["id"],
     name: warehouse["name"],
   }));

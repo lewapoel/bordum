@@ -2,14 +2,14 @@
 
 import { API_PASSWORD, API_URL, API_USERNAME } from "./const";
 import { getCurrentTimestamp } from "../utils/time";
-import { createContext, useEffect, useState } from "react";
+import { createContext } from "react";
 
 export async function getToken() {
   const response = await fetch(`${API_URL}/Token`, {
     method: "POST",
     body: new URLSearchParams({
-      username: API_USERNAME,
-      password: API_PASSWORD,
+      username: API_USERNAME ?? "",
+      password: API_PASSWORD ?? "",
       grant_type: "password",
     }),
   });
@@ -27,19 +27,4 @@ export async function getToken() {
   };
 }
 
-export const AuthContext = createContext(null);
-export function AuthProvider({ children }) {
-  const [token, setToken] = useState(null);
-
-  useEffect(() => {
-    getToken().then((tokenData) => {
-      if (tokenData) {
-        setToken(tokenData.token);
-      }
-    });
-  }, []);
-
-  return (
-    <AuthContext.Provider value={{ token }}>{children}</AuthContext.Provider>
-  );
-}
+export const AuthContext = createContext<any>(null);

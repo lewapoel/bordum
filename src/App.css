@@ -2,6 +2,20 @@
   text-align: center;
 }
 
+h1 {
+  font-size: 2em;
+  font-weight: bold;
+}
+
+table, th, td {
+  border: 2px solid white;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 5px;
+}
+
 .App-header {
   background-color: #282c34;
   min-height: 100vh;
@@ -11,7 +25,6 @@
   justify-content: center;
   font-size: calc(10px + 2vmin);
   color: white;
-  padding: 30px 0;
 }
 
 .App-link {
@@ -22,12 +35,6 @@
   display: flex;
   flex-direction: row;
   gap: 10px;
-}
-
-.warehouses button {
-  font-size: 18px;
-  font-weight: bold;
-  padding: 10px 20px;
 }
 
 .searchbar {
@@ -42,10 +49,13 @@
   padding: 10px 20px;
 }
 
-.place-order {
+button {
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
   padding: 10px 20px;
-  margin: 20px 0;
-  font-size: 16px;
+  background-color: darkgray;
+  border-radius: 5px;
 }
 
 hr {

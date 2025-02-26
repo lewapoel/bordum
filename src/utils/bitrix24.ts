@@ -3,15 +3,17 @@
 import { ORDER_DATA_FIELD_ID } from "../api/const";
 
 export function getBitrix24() {
+  // @ts-ignore
   if (!window.BX24) {
     alert("Brak dostępnego API Bitrix24");
     return null;
   }
 
+  // @ts-ignore
   return window.BX24;
 }
 
-export function getCurrentDealId() {
+export function getCurrentPlacementId() {
   const bx24 = getBitrix24();
 
   // Error alert is shown in `getBitrix24`
@@ -19,16 +21,16 @@ export function getCurrentDealId() {
     return null;
   }
 
-  const dealId = bx24.placement?.info?.()?.options?.ID;
-  if (!dealId) {
+  const id = bx24.placement?.info?.()?.options?.ID;
+  if (!id) {
     return null;
   }
 
-  return dealId;
+  return id;
 }
 
 export async function getCurrentDealOrderData() {
-  const dealId = getCurrentDealId();
+  const dealId = getCurrentPlacementId();
 
   if (!dealId) {
     return null;
@@ -37,7 +39,7 @@ export async function getCurrentDealOrderData() {
   const bx24 = getBitrix24();
 
   return new Promise((resolve, reject) => {
-    const getOrderDataCallback = (result) => {
+    const getOrderDataCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
         alert("Nie udało się pobrać danych zamówienia. Szczegóły w konsoli");

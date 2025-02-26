@@ -2,7 +2,18 @@
 
 import { API_URL } from "./const";
 
-export async function getStocks(warehouseId, token) {
+export type Stock = {
+  itemId: number;
+  quantity: number;
+  warehouseId: number;
+};
+
+export type Stocks = { [key: number]: Stock };
+
+export async function getStocks(
+  warehouseId: any,
+  token: any,
+): Promise<Stocks | null> {
   const params = new URLSearchParams({
     warehouseId,
   });
@@ -18,10 +29,11 @@ export async function getStocks(warehouseId, token) {
 
   const data = await response.json();
 
-  return Object.entries(data).reduce((result, [itemId, stocks]) => {
-    result[itemId] = {
-      itemId: itemId,
+  return Object.entries(data).reduce((result: any, [itemId, stocks]: any) => {
+    result[+itemId] = {
+      itemId: +itemId,
       quantity: stocks[0]["quantity"],
+      warehouseId: warehouseId,
     };
 
     return result;

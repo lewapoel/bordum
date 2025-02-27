@@ -17,6 +17,7 @@ export default function Order() {
   const [selectedItem, setSelectedItem] = useState(0);
   const [currentView, setCurrentView] = useState<OrderView>(OrderView.Summary);
   const [currentItem, setCurrentItem] = useState<ItemWarehouses>();
+  const [firstLoad, setFirstLoad] = useState(false);
 
   const saveItem = useCallback(
     (item: OrderItem) => {
@@ -106,6 +107,7 @@ export default function Order() {
         alert("Nie udało się pobrać produktów oferty. Szczegóły w konsoli");
       } else {
         const data = result.data();
+
         setOrder(
           data.map(
             (item: any): OrderItem => ({
@@ -116,6 +118,7 @@ export default function Order() {
             }),
           ),
         );
+        setFirstLoad(true);
       }
     };
 
@@ -139,9 +142,15 @@ export default function Order() {
         saveOrder,
       }}
     >
-      {currentView === OrderView.Summary && <SummaryView order={order} />}
-      {currentView === OrderView.Items && <ItemsView />}
-      {currentView === OrderView.Item && <ItemView />}
+      {firstLoad ? (
+        <>
+          {currentView === OrderView.Summary && <SummaryView order={order} />}
+          {currentView === OrderView.Items && <ItemsView />}
+          {currentView === OrderView.Item && <ItemView />}
+        </>
+      ) : (
+        <h1>Ładowanie danych zamówienia...</h1>
+      )}
     </OrderContext.Provider>
   );
 }

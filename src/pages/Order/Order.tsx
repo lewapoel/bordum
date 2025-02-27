@@ -1,5 +1,5 @@
 import SummaryView from "./components/SummaryView.tsx";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { OrderContext, OrderItem, OrderView } from "../../models/order.ts";
 import ItemsView from "./components/ItemsView.tsx";
 import ItemView from "./components/ItemView.tsx";
@@ -91,6 +91,40 @@ export default function Order() {
       setProductRowsCallback,
     );
   }, [placementId, order]);
+
+  useEffect(() => {
+    if (!placementId) {
+      alert("Nie można pobrać ID aktualnej oferty");
+      return;
+    }
+
+    const bx24 = getBitrix24();
+
+    const getProductRowsCallback = (result: any) => {
+      if (result.error()) {
+        console.error(result.error());
+        alert("Nie udało się pobrać produktów oferty. Szczegóły w konsoli");
+      } else {
+        const data = result.data();
+        setOrder(
+          data.map(
+            (item: any): OrderItem => ({
+              productName: item["PRODUCT_NAME"],
+              quantity: item["QUANTITY"],
+              unit: item["MEASURE_NAME"],
+              unitPrice: item["PRICE"],
+            }),
+          ),
+        );
+      }
+    };
+
+    bx24.callMethod(
+      "crm.quote.productrows.get",
+      { id: placementId },
+      getProductRowsCallback,
+    );
+  }, [placementId]);
 
   return (
     <OrderContext.Provider

@@ -5,7 +5,7 @@ import { OrderContext, OrderView } from "../../../models/order.ts";
 export default function ItemView() {
   const ctx = useContext(OrderContext);
   const [selectedPrice, setSelectedPrice] = useState("zakupu");
-  const [quantity, setQuantity] = useState("");
+  const [quantity, setQuantity] = useState("0");
 
   const price = useMemo(
     () => ctx?.currentItem?.prices[selectedPrice],

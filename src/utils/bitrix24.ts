@@ -98,6 +98,7 @@ export async function getMeasures(): Promise<Measures | null> {
   });
 }
 
+// Ensure that a measure with provided symbol exists, if not, create it
 export async function ensureMeasure(symbol: string) {
   const bx24 = getBitrix24();
 
@@ -110,6 +111,8 @@ export async function ensureMeasure(symbol: string) {
     return null;
   }
 
+  // Code is a required index of the measure, and because Bitrix doesn't provide automatic numbering,
+  // a numeric hash of the symbol is used
   const code = await getHashCode(symbol);
 
   return new Promise((resolve, reject) => {

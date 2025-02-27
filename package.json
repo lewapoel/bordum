@@ -6,7 +6,6 @@
   "dependencies": {
     "@nozbe/microfuzz": "^1.0.0",
     "@tailwindcss/vite": "^4.0.8",
-    "@types/node": "^22.13.5",
     "clsx": "^2.1.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

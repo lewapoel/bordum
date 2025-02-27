@@ -108,10 +108,10 @@ export async function ensureMeasure(
     return null;
   }
 
+  const code = await getHashCode(symbol);
+
   return new Promise((resolve, reject) => {
     if (!Object.keys(measures).includes(symbol)) {
-      const code = getHashCode(symbol);
-
       const addMeasureCallback = (result: any) => {
         if (result.error()) {
           console.error(result.error());

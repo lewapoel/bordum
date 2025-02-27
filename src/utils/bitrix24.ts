@@ -98,13 +98,15 @@ export async function getMeasures(): Promise<Measures | null> {
   });
 }
 
-export async function ensureMeasure(
-  measures: Measures,
-  symbol: string,
-): Promise<string | null> {
+export async function ensureMeasure(symbol: string) {
   const bx24 = getBitrix24();
 
   if (!bx24) {
+    return null;
+  }
+
+  const measures = await getMeasures();
+  if (!measures) {
     return null;
   }
 
@@ -118,7 +120,7 @@ export async function ensureMeasure(
           alert("Nie udało się dodać jednostki. Szczegóły w konsoli");
           reject();
         } else {
-          resolve(code);
+          resolve(true);
         }
       };
 
@@ -128,7 +130,7 @@ export async function ensureMeasure(
         addMeasureCallback,
       );
     } else {
-      resolve(measures[symbol].code);
+      resolve(true);
     }
   });
 }

@@ -38,21 +38,17 @@ export default function Order() {
       return;
     }
 
+    for (const item of order) {
+      await ensureMeasure(item.unit);
+    }
+
     const measures = await getMeasures();
     if (!measures) {
       return;
     }
 
     for (const item of order) {
-      const code = await ensureMeasure(measures, item.unit);
-      if (!code) {
-        alert(
-          `Nie udało się ustalić kodu jednostki produktu: ${item.productName}`,
-        );
-        return;
-      }
-
-      item.unitCode = code;
+      item.unitCode = measures[item.unit].code;
     }
 
     const bx24 = getBitrix24();

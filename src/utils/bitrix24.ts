@@ -118,16 +118,6 @@ export async function ensureMeasure(
           alert("Nie udało się dodać jednostki. Szczegóły w konsoli");
           reject();
         } else {
-          const data = result.data();
-          const measures: Measures = {};
-
-          data.forEach((measure: any) => {
-            measures[measure["SYMBOL_RUS"]] = {
-              code: measure["CODE"],
-              symbol: measure["SYMBOL_RUS"],
-            };
-          });
-
           resolve(code);
         }
       };

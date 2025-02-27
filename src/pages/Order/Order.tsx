@@ -17,6 +17,7 @@ export default function Order() {
   const [selectedItem, setSelectedItem] = useState(0);
   const [currentView, setCurrentView] = useState<OrderView>(OrderView.Summary);
   const [currentItem, setCurrentItem] = useState<ItemWarehouses>();
+
   const saveItem = useCallback(
     (item: OrderItem) => {
       // Adding new item when `selectedItem` is out of range
@@ -32,7 +33,16 @@ export default function Order() {
     [selectedItem, order],
   );
 
-  const saveOrder = async () => {
+  const removeItem = useCallback(() => {
+    if (selectedItem < order.length) {
+      const newOrder = [...order];
+      newOrder.splice(selectedItem, 1);
+
+      setOrder(newOrder);
+    }
+  }, [selectedItem, order]);
+
+  const saveOrder = useCallback(async () => {
     if (!placementId) {
       alert("Nie można pobrać ID aktualnej oferty");
       return;
@@ -80,7 +90,7 @@ export default function Order() {
       updateBody,
       setProductRowsCallback,
     );
-  };
+  }, [placementId, order]);
 
   return (
     <OrderContext.Provider
@@ -89,6 +99,7 @@ export default function Order() {
         setCurrentItem,
         setCurrentView,
         saveItem,
+        removeItem,
         selectedItem,
         setSelectedItem,
         saveOrder,

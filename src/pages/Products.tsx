@@ -2,9 +2,9 @@
 
 import { useContext, useEffect, useMemo, useState } from "react";
 import { getCartItems, getCartTotal } from "../utils/cartUtils";
-import { getWarehouses } from "../api/warehouse";
+import { useGetWarehouses } from "../api/warehouse";
 import { AuthContext } from "../api/auth";
-import { getWarehouseItems } from "../api/item";
+import { getWarehouseItems, useGetItems } from "../api/item";
 import { PRICES } from "../data/prices";
 import {
   getBitrix24,
@@ -12,6 +12,7 @@ import {
   getCurrentDealOrderData,
 } from "../utils/bitrix24";
 import { ORDER_DATA_FIELD_ID } from "../api/const";
+import { useGetStocks } from "../api/stock.ts";
 
 function Products() {
   const dealId = getCurrentPlacementId();
@@ -20,10 +21,15 @@ function Products() {
   const [warehouses, setWarehouses] = useState<any>(null);
   const [products, setProducts] = useState<any>([]);
 
+  const warehousesQuery = useGetWarehouses(token);
+  const itemsQuery = useGetItems(token);
+
   const [userCart, setUserCart] = useState<any>({});
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedWarehouse, setSelectedWarehouse] = useState();
   const [selectedPrice, setSelectedPrice] = useState("zakupu");
+
+  const stocksQuery = useGetStocks(token, selectedWarehouse);
 
   // Filter warehouse products by name
   const filteredProducts = useMemo(
@@ -105,26 +111,21 @@ function Products() {
   };
 
   useEffect(() => {
-    if (token) {
-      getWarehouses(token).then((warehousesData) => {
-        if (warehousesData) {
-          setWarehouses(warehousesData);
-        }
-      });
+    if (warehousesQuery.data) {
+      setWarehouses(warehousesQuery.data);
     }
-  }, [token]);
+  }, [warehousesQuery]);
 
   useEffect(() => {
-    if (token && selectedWarehouse) {
-      getWarehouseItems(selectedWarehouse, token).then((items) => {
+    if (itemsQuery.data && selectedWarehouse && stocksQuery.data) {
+      getWarehouseItems(itemsQuery.data, stocksQuery.data).then((items) => {
         if (items) {
-          console.log(items);
           setProducts(items);
           setFirstLoad(true);
         }
       });
     }
-  }, [token, selectedWarehouse]);
+  }, [itemsQuery, selectedWarehouse, stocksQuery]);
 
   useEffect(() => {
     if (dealId) {

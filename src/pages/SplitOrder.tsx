@@ -8,13 +8,15 @@ import {
   getCurrentDealOrderData,
 } from "../utils/bitrix24";
 import { AuthContext } from "../api/auth";
-import { getItems } from "../api/item";
+import { useGetItems } from "../api/item";
 import { ORDER_DATA_FIELD_ID } from "../api/const";
 
 function SplitOrder() {
   const dealId = getCurrentPlacementId();
   const { token } = useContext(AuthContext);
   const [allProducts, setAllProducts] = useState<any>(null);
+
+  const itemsQuery = useGetItems(token);
 
   const [cartItems, setCartItems] = useState<any>(null);
   const [selectedPrice, setSelectedPrice] = useState(null);
@@ -144,14 +146,10 @@ function SplitOrder() {
   };
 
   useEffect(() => {
-    if (token) {
-      getItems(token).then((itemsData) => {
-        if (itemsData) {
-          setAllProducts(itemsData);
-        }
-      });
+    if (itemsQuery.data) {
+      setAllProducts(itemsQuery.data);
     }
-  }, [token]);
+  }, [itemsQuery]);
 
   useEffect(() => {
     if (dealId) {

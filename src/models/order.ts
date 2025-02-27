@@ -22,8 +22,9 @@ export type OrderData = {
   currentItem?: ItemWarehouses;
   setCurrentItem: (item: ItemWarehouses) => void;
   saveItem: (item: OrderItem) => void;
+  removeItem: () => void;
   selectedItem: number;
   setSelectedItem: (item: number) => void;
-  saveOrder: () => void;
+  saveOrder: () => Promise<void>;
 };
 export const OrderContext = createContext<OrderData | null>(null);

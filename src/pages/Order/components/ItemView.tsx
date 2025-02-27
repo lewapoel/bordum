@@ -1,20 +1,71 @@
 import { PRICES } from "../../../data/prices.ts";
-import { useContext, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { OrderContext, OrderView } from "../../../models/order.ts";
 
 export default function ItemView() {
   const ctx = useContext(OrderContext);
   const [selectedPrice, setSelectedPrice] = useState("zakupu");
-  const [quantity, setQuantity] = useState(0);
+  const [quantity, setQuantity] = useState("");
 
   const price = useMemo(
     () => ctx?.currentItem?.prices[selectedPrice],
     [ctx, selectedPrice],
   );
 
+  const addItem = useCallback(() => {
+    if (!ctx?.currentItem) {
+      return;
+    }
+
+    if (isNaN(+quantity) || +quantity <= 0) {
+      alert("Nieprawidłowa ilość");
+      return;
+    }
+
+    ctx.saveItem({
+      productName: ctx.currentItem.name,
+      quantity: +quantity,
+      unit: ctx.currentItem.unit,
+      unitPrice: ctx.currentItem.prices[selectedPrice].value,
+    });
+    ctx.setCurrentView(OrderView.Summary);
+  }, [ctx, selectedPrice, quantity]);
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      switch (e.key) {
+        case "Enter":
+          addItem();
+          break;
+        case "Escape":
+          if (ctx) {
+            ctx.setCurrentView(OrderView.Items);
+          }
+          break;
+        default:
+          break;
+      }
+    },
+    [ctx, addItem],
+  );
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleKeyDown]);
+
   return ctx?.currentItem && price ? (
     <div>
       <h1 className="mb-5">Towar</h1>
+
+      <div className="justify-center flex items-center gap-2 mb-10">
+        <button onClick={() => addItem()}>Potwierdź (ENTER)</button>
+        <button onClick={() => ctx.setCurrentView(OrderView.Items)}>
+          Anuluj (ESC)
+        </button>
+      </div>
 
       <table>
         <thead>
@@ -33,10 +84,10 @@ export default function ItemView() {
             <td>
               <input
                 type="number"
-                min="0"
+                min={0}
                 // max={} TODO
                 value={quantity}
-                onChange={(e) => setQuantity(+e.target.value)}
+                onChange={(e) => setQuantity(e.target.value)}
               />
             </td>
             <td>{ctx.currentItem.unit}</td>
@@ -54,37 +105,10 @@ export default function ItemView() {
               </select>
             </td>
             <td>{price.value}</td>
-            <td>{(price.value * quantity).toFixed(2)}</td>
+            <td>{(price.value * +quantity).toFixed(2)}</td>
           </tr>
         </tbody>
       </table>
-      <div className="justify-center flex items-center gap-2 mt-10">
-        <button
-          onClick={() => {
-            if (!ctx?.currentItem) {
-              return;
-            }
-
-            if (quantity <= 0) {
-              alert("Nie można dodać produktu z zerową ilością");
-              return;
-            }
-
-            ctx.saveItem({
-              productName: ctx.currentItem.name,
-              quantity: quantity,
-              unit: ctx.currentItem.unit,
-              unitPrice: ctx.currentItem.prices[selectedPrice].value,
-            });
-            ctx.setCurrentView(OrderView.Summary);
-          }}
-        >
-          Potwierdź
-        </button>
-        <button onClick={() => ctx.setCurrentView(OrderView.Items)}>
-          Anuluj
-        </button>
-      </div>
     </div>
   ) : (
     <></>

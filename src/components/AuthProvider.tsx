@@ -1,16 +1,15 @@
 import { useEffect, useState } from "react";
-import { AuthContext, getToken } from "../api/auth.ts";
+import { AuthContext, useGetToken } from "../api/auth.ts";
 
 export function AuthProvider({ children }: any) {
   const [token, setToken] = useState(null);
+  const query = useGetToken();
 
   useEffect(() => {
-    getToken().then((tokenData) => {
-      if (tokenData) {
-        setToken(tokenData.token);
-      }
-    });
-  }, []);
+    if (query.data) {
+      setToken(query.data.token);
+    }
+  }, [query.data]);
 
   return (
     <AuthContext.Provider value={{ token }}>{children}</AuthContext.Provider>

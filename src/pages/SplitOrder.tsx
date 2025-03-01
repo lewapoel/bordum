@@ -71,7 +71,7 @@ function SplitOrder() {
     }
 
     if (!placementId) {
-      alert("Nie można pobrać ID aktualnego dealu");
+      alert("Nie można pobrać ID aktualnej oferty");
       return;
     }
 
@@ -114,7 +114,6 @@ function SplitOrder() {
 
   useEffect(() => {
     if (!placementId) {
-      alert("Nie można pobrać ID aktualnej oferty");
       return;
     }
 

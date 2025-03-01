@@ -40,6 +40,26 @@ function SplitOrder() {
   );
   const subOrderSum = useMemo(() => reduceSum(subOrder), [subOrder, reduceSum]);
 
+  // Resulting order from the split
+  const orderResult = useMemo(
+    () =>
+      order.reduce((acc: Array<OrderItem>, item, idx) => {
+        const quantity = item.quantity - subOrder[idx].quantity;
+        if (quantity > 0) {
+          acc.push({ ...item, quantity });
+        }
+
+        return acc;
+      }, []),
+    [order, subOrder],
+  );
+
+  // Resulting suborder from the split
+  const subOrderResult = useMemo(
+    () => subOrder.filter((item) => item.quantity > 0),
+    [subOrder],
+  );
+
   // Let user choose up to the original order item’s qty
   const updateSubOrderItem = useCallback(
     (idx: number, value: string) => {
@@ -86,7 +106,7 @@ function SplitOrder() {
         alert("Nie udało się utworzyć oferty. Szczegóły w konsoli");
       } else {
         alert("Nowa oferta utworzone pomyślnie");
-        void updateOrder(result.data(), subOrder, false);
+        void updateOrder(result.data(), subOrderResult, false);
       }
     };
 
@@ -105,7 +125,7 @@ function SplitOrder() {
           addEstimateCallback,
         );
 
-        void updateOrder(placementId, order, false);
+        void updateOrder(placementId, orderResult, false);
       }
     };
 

@@ -1,7 +1,5 @@
-// src/api/item.js
-
-import { API_URL } from "./const";
-import { Stock, Stocks, getStocks } from "./stock";
+import { API_URL } from "./const.ts";
+import { Stock, Stocks, getStocks } from "./stock.ts";
 import { Warehouse } from "./warehouse.ts";
 import { useQuery } from "@tanstack/react-query";
 
@@ -21,6 +19,7 @@ export type Item = {
 
 export function useGetItems(token: string) {
   return useQuery({
+    // eslint-disable-next-line
     queryKey: ["items"],
     queryFn: () =>
       fetch(`${API_URL}/Items`, {
@@ -86,6 +85,7 @@ export function useGetItemsWarehouses(
   warehouses?: Array<Warehouse> | null,
 ) {
   return useQuery({
+    // eslint-disable-next-line
     queryKey: ["itemsWarehouses", items?.length, warehouses?.length],
     queryFn: async () => {
       if (!items || !warehouses) {

@@ -1,223 +1,165 @@
-// src/pages/SplitOrder.js
-
-import { useContext, useEffect, useState } from "react";
-import { getCartItems, getCartTotal } from "../utils/cartUtils";
-import {
-  getBitrix24,
-  getCurrentPlacementId,
-  getCurrentDealOrderData,
-} from "../utils/bitrix24";
-import { AuthContext } from "../api/auth";
-import { useGetItems } from "../api/item";
-import { ORDER_DATA_FIELD_ID } from "../api/const";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { getBitrix24, getCurrentPlacementId } from "../utils/bitrix24";
+import { OrderItem } from "../models/order.ts";
+import { getOrder, updateOrder } from "../api/bitrix24/order.ts";
 
 function SplitOrder() {
-  const dealId = getCurrentPlacementId();
-  const { token } = useContext(AuthContext);
-  const [allProducts, setAllProducts] = useState<any>(null);
+  const placementId = getCurrentPlacementId();
 
-  const itemsQuery = useGetItems(token);
+  const [order, setOrder] = useState<Array<OrderItem>>([]);
+  const [subOrder, setSubOrder] = useState<Array<OrderItem>>([]);
+  const [firstLoad, setFirstLoad] = useState(false);
 
-  const [cartItems, setCartItems] = useState<any>(null);
-  const [selectedPrice, setSelectedPrice] = useState(null);
-  const [selectedWarehouse, setSelectedWarehouse] = useState(null);
+  const reduceQuantity = useCallback(
+    (o: Array<OrderItem>) =>
+      o.reduce((total, item) => {
+        total += item.quantity;
+        return total;
+      }, 0),
+    [],
+  );
 
-  // 2) The subOrder for partial picks.
-  const [subOrder, setSubOrder] = useState<any>(null);
+  const reduceSum = useCallback(
+    (o: Array<OrderItem>) =>
+      o.reduce((acc, item) => {
+        acc += item.unitPrice * item.quantity;
+        return acc;
+      }, 0),
+    [],
+  );
 
-  // 3) Convert cartItems -> array
-  const dummyCartItems = getCartItems(allProducts, selectedPrice, cartItems); // includes 0 if any
-  const dummyTotal = getCartTotal(allProducts, selectedPrice, cartItems);
+  const orderQuantity = useMemo(
+    () => reduceQuantity(order),
+    [order, reduceQuantity],
+  );
+  const orderSum = useMemo(() => reduceSum(order), [order, reduceSum]);
 
-  // 4) Convert subOrder -> array
-  const subOrderItems = getCartItems(allProducts, selectedPrice, subOrder); // includes 0 if any
-  const subOrderTotal = getCartTotal(allProducts, selectedPrice, subOrder);
+  const subOrderQuantity = useMemo(
+    () => reduceQuantity(subOrder),
+    [subOrder, reduceQuantity],
+  );
+  const subOrderSum = useMemo(() => reduceSum(subOrder), [subOrder, reduceSum]);
 
-  // Let user choose up to the original cartItems’s qty
-  const updateSubOrderItem = (productId: any, value: any) => {
-    setSubOrder((prev: any) => {
-      const numericId = parseInt(productId, 10);
-      const product = allProducts.find((p: any) => p.id === numericId);
-      if (!product) return prev;
+  // Let user choose up to the original order item’s qty
+  const updateSubOrderItem = useCallback(
+    (idx: number, value: string) => {
+      setSubOrder((prev) => {
+        const maxAllowed = order[idx].quantity;
 
-      const maxAllowed = cartItems[productId] || 0;
-      const newQty = Math.min(maxAllowed, Math.max(0, Number(value)));
-      return { ...prev, [productId]: newQty };
-    });
-  };
+        const newPrev = [...prev];
+        newPrev[idx].quantity = Math.min(maxAllowed, Math.max(0, +value));
 
-  // 5) Podziel zamówienie
+        return newPrev;
+      });
+    },
+    [order],
+  );
+
   const handleSplitOrder = () => {
-    if (subOrderTotal === 0) {
+    if (subOrderQuantity === 0) {
       alert(
         "Nie można podzielić zamówienia, podzamówienie musi mieć minimum jedną ilość produktu",
       );
       return;
     }
 
-    if (subOrderTotal === dummyTotal) {
+    if (subOrderQuantity === orderQuantity) {
       alert(
         "Nie można podzielić zamówienia, podzamówienie ma taką samą wartość jak zamówienie główne",
       );
       return;
     }
 
-    if (!dealId) {
+    if (!placementId) {
       alert("Nie można pobrać ID aktualnego dealu");
       return;
     }
 
     const bx24 = getBitrix24();
+    if (!bx24) {
+      return;
+    }
 
-    const addDealCallback = (result: any) => {
+    const addEstimateCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert("Nie udało się utworzyć zamówienia. Szczegóły w konsoli");
+        alert("Nie udało się utworzyć oferty. Szczegóły w konsoli");
       } else {
-        alert("Nowe zamówienie utworzone pomyślnie");
+        alert("Nowa oferta utworzone pomyślnie");
+        void updateOrder(result.data(), subOrder, false);
       }
     };
 
-    const editDealCallback = (result: any) => {
+    const getEstimateCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert("Nie udało się zaktualizować zamówienia. Szczegóły w konsoli");
+        alert("Nie udało się pobrać danych oferty. Szczegóły w konsoli");
       } else {
-        alert("Zamówienie zaktualizowane pomyślnie");
+        const estimateData = result.data();
+        delete estimateData.ID; // Not needed for creating new estimate
+
+        // Add new estimate
+        bx24.callMethod(
+          "crm.quote.add",
+          { fields: estimateData },
+          addEstimateCallback,
+        );
+
+        void updateOrder(placementId, order, false);
       }
     };
 
-    const getDealCallback = (result: any) => {
-      if (result.error()) {
-        console.error(result.error());
-        alert("Nie udało się pobrać danych zamówienia. Szczegóły w konsoli");
-      } else {
-        const dealData = result.data();
-        delete dealData.ID; // Not needed for creating new deal
-
-        dealData[ORDER_DATA_FIELD_ID] = JSON.stringify({
-          userCart: Object.entries(subOrder).reduce(
-            (acc: any, [key, value]: any) => {
-              if (value > 0) {
-                acc[key] = value;
-              }
-
-              return acc;
-            },
-            {},
-          ),
-          selectedPrice,
-          selectedWarehouse,
-        });
-
-        // Add new deal
-        bx24.callMethod("crm.deal.add", { fields: dealData }, addDealCallback);
-
-        const updateBody: any = {
-          id: dealId,
-          fields: {},
-        };
-
-        updateBody.fields[ORDER_DATA_FIELD_ID] = JSON.stringify({
-          userCart: Object.entries(cartItems).reduce(
-            (acc: any, [key, value]: any) => {
-              if (
-                value > 0 &&
-                (!Object.keys(subOrder).includes(key) || subOrder[key] === 0)
-              ) {
-                acc[key] = value;
-              }
-
-              return acc;
-            },
-            {},
-          ),
-          selectedPrice,
-          selectedWarehouse,
-        });
-
-        // Update deal order data
-        bx24.callMethod("crm.deal.update", updateBody, editDealCallback);
-      }
-    };
-
-    // Fetch deal data
-    bx24.callMethod("crm.deal.get", { id: dealId }, getDealCallback);
+    bx24.callMethod("crm.quote.get", { id: placementId }, getEstimateCallback);
   };
 
   useEffect(() => {
-    if (itemsQuery.data) {
-      setAllProducts(itemsQuery.data);
+    if (!placementId) {
+      alert("Nie można pobrać ID aktualnej oferty");
+      return;
     }
-  }, [itemsQuery]);
 
-  useEffect(() => {
-    if (dealId) {
-      getCurrentDealOrderData().then((dealData: any) => {
-        if (dealData) {
-          const {
-            userCart: cart,
-            selectedPrice: price,
-            selectedWarehouse: warehouse,
-          } = dealData;
-
-          if (cart && price && warehouse) {
-            setSubOrder(
-              Object.fromEntries(Object.entries(cart).map(([id]) => [id, 0])),
-            );
-            setSelectedWarehouse(warehouse);
-            setSelectedPrice(price);
-            setCartItems(cart);
-          } else {
-            // Mark that the order doesn't exist
-            setCartItems([]);
-          }
-        } else {
-          // Mark that the order doesn't exist
-          setCartItems([]);
-        }
-      });
-    }
-  }, [dealId]);
+    getOrder(placementId).then((res) => {
+      if (res) {
+        setOrder(res);
+        setSubOrder(res.map((item) => ({ ...item, quantity: 0 })));
+        setFirstLoad(true);
+      }
+    });
+  }, [placementId]);
 
   return (
     <>
-      {cartItems &&
-      Object.keys(cartItems)?.length > 0 &&
-      selectedPrice &&
-      allProducts ? (
+      {firstLoad ? (
         <>
-          {/* ============== 1) The read-only cartItems ============== */}
-          <h2>Zamówienie</h2>
-          <p>Rodzaj ceny: {selectedPrice}</p>
-          <p>Łączna kwota zamówienia: zł{dummyTotal.toFixed(2)}</p>
+          <h1 className="mb-5">Zamówienie</h1>
+          <p className="font-bold mb-2">
+            Łączna kwota zamówienia: {orderSum.toFixed(2)}
+          </p>
           <table>
             <thead>
               <tr>
-                <th>Nazwa</th>
-                <th>Cena (zł)</th>
-                <th>Jednostka</th>
+                <th>Lp.</th>
+                <th>Nazwa towaru</th>
                 <th>Ilość</th>
-                <th>Razem (zł)</th>
+                <th>Jedn. miary</th>
+                <th>Cena jedn.</th>
+                <th>Wartość</th>
               </tr>
             </thead>
             <tbody>
-              {dummyCartItems.length === 0 ? (
+              {order.length === 0 ? (
                 <tr>
-                  <td colSpan={5}>Brak wybranych produktów.</td>
+                  <td colSpan={6}>Brak wybranych produktów.</td>
                 </tr>
               ) : (
-                dummyCartItems.map((item) => (
+                order.map((item, idx) => (
                   <tr key={item.id}>
-                    <td>{item.name}</td>
-                    <td>{item.prices[selectedPrice].value}</td>
+                    <td>{idx + 1}</td>
+                    <td>{item.productName}</td>
+                    <td>{item.quantity}</td>
                     <td>{item.unit}</td>
-                    <td>{item.cartQty}</td>
-                    <td>
-                      {(
-                        item.prices[selectedPrice].value * item.cartQty
-                      ).toFixed(2)}
-                    </td>
+                    <td>{item.unitPrice}</td>
+                    <td>{(item.unitPrice * item.quantity).toFixed(2)}</td>
                   </tr>
                 ))
               )}
@@ -226,73 +168,56 @@ function SplitOrder() {
 
           <hr />
 
-          {/* ============== 2) The subOrder table (user picks partial) ============== */}
-          <h2>Podzamówienie</h2>
-          <p>Rodzaj ceny: {selectedPrice}</p>
-          <p>Łączna kwota podzamówienia: zł{subOrderTotal}</p>
+          <h1 className="mb-5">Podzamówienie</h1>
+          <p className="font-bold mb-2">
+            Łączna kwota podzamówienia: {subOrderSum.toFixed(2)}
+          </p>
           <table>
             <thead>
               <tr>
-                <th>Nazwa</th>
-                <th>Cena (zł)</th>
-                <th>Jednostka</th>
+                <th>Lp.</th>
+                <th>Nazwa towaru</th>
                 <th>Ilość</th>
-                <th>Razem (zł)</th>
+                <th>Jedn. miary</th>
+                <th>Cena jedn.</th>
+                <th>Wartość</th>
               </tr>
             </thead>
             <tbody>
-              {subOrderItems.length === 0 ? (
+              {subOrder.length === 0 ? (
                 <tr>
-                  <td colSpan={5}>Brak produktów do podziału.</td>
+                  <td colSpan={6}>Brak produktów do podziału.</td>
                 </tr>
               ) : (
-                subOrderItems.map((item) => (
+                subOrder.map((item, idx) => (
                   <tr key={item.id}>
-                    <td>{item.name}</td>
-                    <td>{item.prices[selectedPrice].value}</td>
-                    <td>{item.unit}</td>
+                    <td>{idx + 1}</td>
+                    <td>{item.productName}</td>
                     <td>
                       <input
                         type="number"
                         min="0"
-                        max={cartItems[item.id]} // can't exceed original quantity
-                        value={item.cartQty}
+                        max={order[idx].quantity} // can't exceed original quantity
+                        value={item.quantity}
                         onChange={(e) =>
-                          updateSubOrderItem(item.id, e.target.value)
+                          updateSubOrderItem(idx, e.target.value)
                         }
                       />
                     </td>
-                    <td>
-                      {(
-                        item.prices[selectedPrice].value * item.cartQty
-                      ).toFixed(2)}
-                    </td>
+                    <td>{item.unit}</td>
+                    <td>{item.unitPrice}</td>
+                    <td>{(item.unitPrice * item.quantity).toFixed(2)}</td>
                   </tr>
                 ))
               )}
             </tbody>
           </table>
-          {/* Button to finalize the sub-order split */}
-          <button className="place-order" onClick={handleSplitOrder}>
+          <button className="place-order mt-5" onClick={handleSplitOrder}>
             Podziel zamówienie
           </button>
         </>
       ) : (
-        <>
-          {!cartItems || !allProducts ? (
-            <h1>Ładowanie zamówienia...</h1>
-          ) : (
-            <>
-              <h1>Brak danych zamówienia</h1>
-              <button
-                className="place-order"
-                onClick={() => window.location.reload()}
-              >
-                Odśwież
-              </button>
-            </>
-          )}
-        </>
+        <h1>Ładowanie danych zamówienia...</h1>
       )}
     </>
   );

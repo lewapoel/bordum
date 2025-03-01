@@ -1,6 +1,4 @@
-// src/api/stock.js
-
-import { API_URL } from "./const";
+import { API_URL } from "./const.ts";
 import { useQuery } from "@tanstack/react-query";
 
 export type Stock = {

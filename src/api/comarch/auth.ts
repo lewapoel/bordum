@@ -1,7 +1,5 @@
-// src/api/auth.js
-
-import { API_PASSWORD, API_URL, API_USERNAME } from "./const";
-import { getCurrentTimestamp } from "../utils/time";
+import { API_PASSWORD, API_URL, API_USERNAME } from "./const.ts";
+import { getCurrentTimestamp } from "../../utils/time.ts";
 import { createContext } from "react";
 import { useQuery } from "@tanstack/react-query";
 

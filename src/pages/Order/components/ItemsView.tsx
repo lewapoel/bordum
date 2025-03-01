@@ -6,13 +6,13 @@ import {
   useRef,
   useState,
 } from "react";
-import { AuthContext } from "../../../api/auth.ts";
-import { useGetWarehouses } from "../../../api/warehouse.ts";
+import { AuthContext } from "../../../api/comarch/auth.ts";
+import { useGetWarehouses } from "../../../api/comarch/warehouse.ts";
 import {
   ItemWarehouses,
   useGetItems,
   useGetItemsWarehouses,
-} from "../../../api/item.ts";
+} from "../../../api/comarch/item.ts";
 import { OrderContext, OrderView } from "../../../models/order.ts";
 import { useFuzzySearchList, Highlight } from "@nozbe/microfuzz/react";
 import clsx from "clsx";

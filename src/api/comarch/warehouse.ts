@@ -1,6 +1,4 @@
-// src/api/warehouse.js
-
-import { API_URL } from "./const";
+import { API_URL } from "./const.ts";
 import { useQuery } from "@tanstack/react-query";
 
 export type Warehouse = {
@@ -10,6 +8,7 @@ export type Warehouse = {
 
 export function useGetWarehouses(token: string) {
   return useQuery({
+    // eslint-disable-next-line
     queryKey: ["warehouses"],
     queryFn: () =>
       fetch(`${API_URL}/Warehouses`, {

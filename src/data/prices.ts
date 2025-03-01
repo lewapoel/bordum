@@ -1,5 +1,3 @@
-// src/data/prices.js
-
 export const PRICES = [
   "zakupu",
   "hurtowa 1",

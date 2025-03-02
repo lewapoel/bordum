@@ -4,7 +4,7 @@ import { OrderContext, OrderItem, OrderView } from "../../models/order.ts";
 import ItemsView from "./components/ItemsView.tsx";
 import ItemView from "./components/ItemView.tsx";
 import { ItemWarehouses } from "../../api/comarch/item.ts";
-import { getCurrentPlacementId } from "../../utils/bitrix24.ts";
+import { getBitrix24, getCurrentPlacementId } from "../../utils/bitrix24.ts";
 import { getOrder, updateOrder } from "../../api/bitrix24/order.ts";
 
 export default function Order() {
@@ -48,6 +48,8 @@ export default function Order() {
       alert("Nie można pobrać ID aktualnej oferty");
       return;
     }
+
+    getBitrix24().reloadWindow();
 
     getOrder(placementId).then((res) => {
       if (res) {

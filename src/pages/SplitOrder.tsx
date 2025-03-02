@@ -10,7 +10,7 @@ function SplitOrder() {
   const [subOrder, setSubOrder] = useState<Array<OrderItem>>([]);
   const [firstLoad, setFirstLoad] = useState(false);
 
-  const firstQuantityRef = useRef<HTMLInputElement>(null);
+  const quantitiesRef = useRef<Array<HTMLInputElement | null>>([]);
 
   const reduceQuantity = useCallback(
     (o: Array<OrderItem>) =>
@@ -135,6 +135,31 @@ function SplitOrder() {
     bx24.callMethod("crm.quote.get", { id: placementId }, getEstimateCallback);
   };
 
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    switch (e.key) {
+      case "Tab":
+        e.preventDefault();
+
+        if (quantitiesRef.current) {
+          const currentIdx = quantitiesRef.current.findIndex(
+            (quantityRef) => quantityRef === document.activeElement,
+          );
+
+          let nextIdx = 0;
+          if (currentIdx !== -1) {
+            nextIdx = (currentIdx + 1) % quantitiesRef.current.length;
+          }
+
+          quantitiesRef.current[nextIdx]?.focus();
+        }
+
+        break;
+
+      default:
+        break;
+    }
+  }, []);
+
   useEffect(() => {
     if (!placementId) {
       return;
@@ -148,6 +173,13 @@ function SplitOrder() {
       }
     });
   }, [placementId]);
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleKeyDown]);
 
   return (
     <>
@@ -217,7 +249,9 @@ function SplitOrder() {
                     <td>{item.productName}</td>
                     <td>
                       <input
-                        ref={idx === 0 ? firstQuantityRef : null}
+                        ref={(el) => {
+                          quantitiesRef.current[idx] = el;
+                        }}
                         type="number"
                         min="0"
                         max={order[idx].quantity} // can't exceed original quantity
@@ -225,11 +259,6 @@ function SplitOrder() {
                         onChange={(e) =>
                           updateSubOrderItem(idx, e.target.value)
                         }
-                        onBlur={() => {
-                          if (idx === subOrder.length - 1) {
-                            firstQuantityRef.current?.focus();
-                          }
-                        }}
                       />
                     </td>
                     <td>{item.unit}</td>

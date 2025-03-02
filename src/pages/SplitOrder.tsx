@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getBitrix24, getCurrentPlacementId } from "../utils/bitrix24";
 import { OrderItem } from "../models/order.ts";
 import { getOrder, updateOrder } from "../api/bitrix24/order.ts";
@@ -9,6 +9,8 @@ function SplitOrder() {
   const [order, setOrder] = useState<Array<OrderItem>>([]);
   const [subOrder, setSubOrder] = useState<Array<OrderItem>>([]);
   const [firstLoad, setFirstLoad] = useState(false);
+
+  const firstQuantity = useRef<HTMLInputElement>(null);
 
   const reduceQuantity = useCallback(
     (o: Array<OrderItem>) =>
@@ -215,6 +217,7 @@ function SplitOrder() {
                     <td>{item.productName}</td>
                     <td>
                       <input
+                        ref={idx === 0 ? firstQuantity : null}
                         type="number"
                         min="0"
                         max={order[idx].quantity} // can't exceed original quantity
@@ -222,6 +225,11 @@ function SplitOrder() {
                         onChange={(e) =>
                           updateSubOrderItem(idx, e.target.value)
                         }
+                        onBlur={() => {
+                          if (idx === subOrder.length - 1) {
+                            firstQuantity.current?.focus();
+                          }
+                        }}
                       />
                     </td>
                     <td>{item.unit}</td>

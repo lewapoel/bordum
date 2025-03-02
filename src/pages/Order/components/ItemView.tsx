@@ -23,6 +23,7 @@ export default function ItemView() {
     }
 
     ctx.saveItem({
+      id: ctx.currentItem.id,
       productName: ctx.currentItem.name,
       quantity: +quantity,
       unit: ctx.currentItem.unit,

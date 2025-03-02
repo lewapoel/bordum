@@ -29,7 +29,7 @@ function SummaryRow({
       onMouseEnter={() => setSelectedItem(index)}
       onClick={() => setCurrentView(OrderView.Items)}
       className={clsx(
-        selectedItem === index ? "bg-blue-500" : "",
+        selectedItem === index ? "bg-gray-300" : "",
         "cursor-pointer",
         className,
       )}

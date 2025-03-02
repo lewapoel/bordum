@@ -144,7 +144,7 @@ export default function ItemsView() {
               key={item.id}
               onClick={() => selectItem(item)}
               className={clsx(
-                selectedItem === idx ? "bg-blue-500" : "",
+                selectedItem === idx ? "bg-gray-300" : "",
                 "cursor-pointer",
               )}
               onMouseEnter={() => setSelectedItem(idx)}

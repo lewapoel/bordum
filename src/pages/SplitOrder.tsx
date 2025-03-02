@@ -105,8 +105,9 @@ function SplitOrder() {
         console.error(result.error());
         alert("Nie udało się utworzyć oferty. Szczegóły w konsoli");
       } else {
-        alert("Nowa oferta utworzone pomyślnie");
-        void updateOrder(result.data(), subOrderResult, false);
+        updateOrder(result.data(), subOrderResult, false, false).then(() =>
+          alert("Zamówienie podzielone pomyślnie"),
+        );
       }
     };
 
@@ -125,7 +126,7 @@ function SplitOrder() {
           addEstimateCallback,
         );
 
-        void updateOrder(placementId, orderResult, false);
+        void updateOrder(placementId, orderResult, false, false);
       }
     };
 

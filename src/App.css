@@ -8,7 +8,7 @@ h1 {
 }
 
 table, th, td {
-  border: 2px solid white;
+  border: 2px solid black;
   border-collapse: collapse;
 }
 
@@ -17,14 +17,14 @@ th, td {
 }
 
 .App-header {
-  background-color: #282c34;
+  background-color: white;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
-  color: white;
+  color: black;
 }
 
 .App-link {
@@ -42,6 +42,7 @@ th, td {
   margin-bottom: 20px;
   padding: 10px 20px;
   font-size: 16px;
+  border: 2px solid black;
 }
 
 .prices {

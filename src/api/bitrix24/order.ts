@@ -46,6 +46,7 @@ export async function updateOrder(
   placementId: number,
   order: Array<OrderItem>,
   ensureMeasures: boolean,
+  showAlertOnSuccess: boolean = true,
 ) {
   const bx24 = getBitrix24();
   if (!bx24) {
@@ -74,7 +75,10 @@ export async function updateOrder(
         alert("Nie udało się zapisać produktów oferty. Szczegóły w konsoli");
         reject();
       } else {
-        alert("Produkty oferty zapisane pomyślnie");
+        if (showAlertOnSuccess) {
+          alert("Produkty oferty zapisane pomyślnie");
+        }
+
         resolve(true);
       }
     };

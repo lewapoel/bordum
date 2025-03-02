@@ -10,7 +10,7 @@ function SplitOrder() {
   const [subOrder, setSubOrder] = useState<Array<OrderItem>>([]);
   const [firstLoad, setFirstLoad] = useState(false);
 
-  const firstQuantity = useRef<HTMLInputElement>(null);
+  const firstQuantityRef = useRef<HTMLInputElement>(null);
 
   const reduceQuantity = useCallback(
     (o: Array<OrderItem>) =>
@@ -217,7 +217,7 @@ function SplitOrder() {
                     <td>{item.productName}</td>
                     <td>
                       <input
-                        ref={idx === 0 ? firstQuantity : null}
+                        ref={idx === 0 ? firstQuantityRef : null}
                         type="number"
                         min="0"
                         max={order[idx].quantity} // can't exceed original quantity
@@ -227,7 +227,7 @@ function SplitOrder() {
                         }
                         onBlur={() => {
                           if (idx === subOrder.length - 1) {
-                            firstQuantity.current?.focus();
+                            firstQuantityRef.current?.focus();
                           }
                         }}
                       />

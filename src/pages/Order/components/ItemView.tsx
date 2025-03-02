@@ -1,11 +1,21 @@
 import { PRICES } from "../../../data/prices.ts";
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { OrderContext, OrderView } from "../../../models/order.ts";
 
 export default function ItemView() {
   const ctx = useContext(OrderContext);
   const [selectedPrice, setSelectedPrice] = useState("zakupu");
   const [quantity, setQuantity] = useState("0");
+
+  const quantityRef = useRef<HTMLInputElement>(null);
+  const pricesRef = useRef<HTMLSelectElement>(null);
 
   const price = useMemo(
     () => ctx?.currentItem?.prices[selectedPrice],
@@ -42,6 +52,16 @@ export default function ItemView() {
           if (ctx) {
             ctx.setCurrentView(OrderView.Items);
           }
+          break;
+        case "Tab":
+          e.preventDefault();
+
+          if (document.activeElement === pricesRef.current) {
+            quantityRef.current?.focus();
+          } else {
+            pricesRef.current?.focus();
+          }
+
           break;
         default:
           break;
@@ -84,6 +104,7 @@ export default function ItemView() {
             <td>{ctx.currentItem.name}</td>
             <td>
               <input
+                ref={quantityRef}
                 type="number"
                 min={0}
                 // max={} TODO
@@ -94,6 +115,7 @@ export default function ItemView() {
             <td>{ctx.currentItem.unit}</td>
             <td>
               <select
+                ref={pricesRef}
                 className="prices"
                 value={selectedPrice}
                 onChange={(e) => setSelectedPrice(e.target.value)}

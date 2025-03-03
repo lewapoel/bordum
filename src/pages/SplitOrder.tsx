@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getBitrix24, getCurrentPlacementId } from "../utils/bitrix24";
 import { OrderItem } from "../models/order.ts";
 import { getOrder, updateOrder } from "../api/bitrix24/order.ts";
+import { MAIN_ORDER_LINK_FIELD } from "../api/bitrix24/field.ts";
 
 function SplitOrder() {
   const placementId = getCurrentPlacementId();
@@ -121,12 +122,18 @@ function SplitOrder() {
         const estimateData = result.data();
         delete estimateData.ID; // Not needed for creating new estimate
 
+        let quoteData = {
+          fields: {
+            ...estimateData,
+            TITLE: `${estimateData.TITLE} - podzamówienie`,
+          },
+        };
+
+        quoteData.fields[MAIN_ORDER_LINK_FIELD] =
+          `https://bordum.bitrix24.pl/crm/type/7/details/${estimateData.ID}/`;
+
         // Add new estimate
-        bx24.callMethod(
-          "crm.quote.add",
-          { fields: estimateData },
-          addEstimateCallback,
-        );
+        bx24.callMethod("crm.quote.add", quoteData, addEstimateCallback);
 
         void updateOrder(placementId, orderResult, false, false);
       }

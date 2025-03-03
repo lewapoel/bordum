@@ -120,6 +120,8 @@ function SplitOrder() {
         alert("Nie udało się pobrać danych oferty. Szczegóły w konsoli");
       } else {
         const estimateData = result.data();
+        const id = estimateData.ID;
+
         delete estimateData.ID; // Not needed for creating new estimate
 
         let quoteData = {
@@ -130,7 +132,7 @@ function SplitOrder() {
         };
 
         quoteData.fields[MAIN_ORDER_LINK_FIELD] =
-          `https://bordum.bitrix24.pl/crm/type/7/details/${estimateData.ID}/`;
+          `https://bordum.bitrix24.pl/crm/type/7/details/${id}/`;
 
         // Add new estimate
         bx24.callMethod("crm.quote.add", quoteData, addEstimateCallback);

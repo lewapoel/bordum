@@ -4,6 +4,7 @@ import Order from "./pages/Order/Order.tsx";
 import { AuthProvider } from "./components/AuthProvider.tsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import Packaging from "./pages/Packaging.tsx";
 import "./App.css";
 
 const queryClient = new QueryClient({
@@ -27,6 +28,7 @@ function App() {
               <Routes>
                 <Route path="/split-order" element={<SplitOrder />} />
                 <Route path="/order" element={<Order />} />
+                <Route path="/packaging" element={<Packaging />} />
               </Routes>
             </header>
           </div>

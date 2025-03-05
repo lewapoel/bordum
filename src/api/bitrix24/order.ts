@@ -1,6 +1,35 @@
 import { getBitrix24 } from "../../utils/bitrix24.ts";
-import { OrderItem } from "../../models/order.ts";
+import { Order, OrderItem } from "../../models/order.ts";
 import { ensureMeasure, getMeasures } from "./measure.ts";
+
+export async function getOrderMetadata(
+  placementId: number,
+): Promise<Order | null> {
+  const bx24 = getBitrix24();
+
+  if (!bx24) {
+    return null;
+  }
+
+  return new Promise((resolve, reject) => {
+    const getOrderCallback = (result: any) => {
+      if (result.error()) {
+        console.error(result.error());
+        alert("Nie udało się pobrać oferty. Szczegóły w konsoli");
+        reject();
+      } else {
+        const data = result.data();
+
+        resolve({
+          dealId: data["DEAL_ID"] ?? undefined,
+          leadId: data["LEAD_ID"] ?? undefined,
+        });
+      }
+    };
+
+    bx24.callMethod("crm.quote.get", { id: placementId }, getOrderCallback);
+  });
+}
 
 export async function getOrder(
   placementId: number,

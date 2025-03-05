@@ -1,6 +1,11 @@
 import { createContext } from "react";
 import { ItemWarehouses } from "../api/comarch/item.ts";
 
+export type Order = {
+  dealId?: number;
+  leadId?: number;
+};
+
 export type OrderItem = {
   id: number;
   productName: string;

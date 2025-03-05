@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getBitrix24, getCurrentPlacementId } from "../utils/bitrix24";
 import { OrderItem } from "../models/order.ts";
-import { getOrder, updateOrder } from "../api/bitrix24/order.ts";
+import {
+  getOrder,
+  getOrderMetadata,
+  updateOrder,
+} from "../api/bitrix24/order.ts";
 import { MAIN_ORDER_LINK_FIELD } from "../api/bitrix24/field.ts";
 
 function SplitOrder() {
@@ -10,6 +14,7 @@ function SplitOrder() {
   const [order, setOrder] = useState<Array<OrderItem>>([]);
   const [subOrder, setSubOrder] = useState<Array<OrderItem>>([]);
   const [firstLoad, setFirstLoad] = useState(false);
+  const [isDeal, setIsDeal] = useState<boolean>(false);
 
   const quantitiesRef = useRef<Array<HTMLInputElement | null>>([]);
 
@@ -174,6 +179,12 @@ function SplitOrder() {
       return;
     }
 
+    getOrderMetadata(placementId).then((res) => {
+      if (res) {
+        setIsDeal(!!res.dealId);
+      }
+    });
+
     getOrder(placementId).then((res) => {
       if (res) {
         setOrder(res);
@@ -193,95 +204,99 @@ function SplitOrder() {
   return (
     <>
       {firstLoad ? (
-        <>
-          <h1 className="mb-5">Zamówienie</h1>
-          <p className="font-bold mb-2">
-            Łączna kwota zamówienia: {orderSum.toFixed(2)}
-          </p>
-          <table>
-            <thead>
-              <tr>
-                <th>Lp.</th>
-                <th>Nazwa towaru</th>
-                <th>Ilość</th>
-                <th>Jedn. miary</th>
-                <th>Cena jedn.</th>
-                <th>Wartość</th>
-              </tr>
-            </thead>
-            <tbody>
-              {order.length === 0 ? (
+        isDeal ? (
+          <>
+            <h1 className="mb-5">Zamówienie</h1>
+            <p className="font-bold mb-2">
+              Łączna kwota zamówienia: {orderSum.toFixed(2)}
+            </p>
+            <table>
+              <thead>
                 <tr>
-                  <td colSpan={6}>Brak wybranych produktów.</td>
+                  <th>Lp.</th>
+                  <th>Nazwa towaru</th>
+                  <th>Ilość</th>
+                  <th>Jedn. miary</th>
+                  <th>Cena jedn.</th>
+                  <th>Wartość</th>
                 </tr>
-              ) : (
-                order.map((item, idx) => (
-                  <tr key={item.id}>
-                    <td>{idx + 1}</td>
-                    <td>{item.productName}</td>
-                    <td>{item.quantity}</td>
-                    <td>{item.unit}</td>
-                    <td>{item.unitPrice}</td>
-                    <td>{(item.unitPrice * item.quantity).toFixed(2)}</td>
+              </thead>
+              <tbody>
+                {order.length === 0 ? (
+                  <tr>
+                    <td colSpan={6}>Brak wybranych produktów.</td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  order.map((item, idx) => (
+                    <tr key={item.id}>
+                      <td>{idx + 1}</td>
+                      <td>{item.productName}</td>
+                      <td>{item.quantity}</td>
+                      <td>{item.unit}</td>
+                      <td>{item.unitPrice}</td>
+                      <td>{(item.unitPrice * item.quantity).toFixed(2)}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
 
-          <hr />
+            <hr />
 
-          <h1 className="mb-5">Podzamówienie</h1>
-          <p className="font-bold mb-2">
-            Łączna kwota podzamówienia: {subOrderSum.toFixed(2)}
-          </p>
-          <table>
-            <thead>
-              <tr>
-                <th>Lp.</th>
-                <th>Nazwa towaru</th>
-                <th>Ilość</th>
-                <th>Jedn. miary</th>
-                <th>Cena jedn.</th>
-                <th>Wartość</th>
-              </tr>
-            </thead>
-            <tbody>
-              {subOrder.length === 0 ? (
+            <h1 className="mb-5">Podzamówienie</h1>
+            <p className="font-bold mb-2">
+              Łączna kwota podzamówienia: {subOrderSum.toFixed(2)}
+            </p>
+            <table>
+              <thead>
                 <tr>
-                  <td colSpan={6}>Brak produktów do podziału.</td>
+                  <th>Lp.</th>
+                  <th>Nazwa towaru</th>
+                  <th>Ilość</th>
+                  <th>Jedn. miary</th>
+                  <th>Cena jedn.</th>
+                  <th>Wartość</th>
                 </tr>
-              ) : (
-                subOrder.map((item, idx) => (
-                  <tr key={item.id}>
-                    <td>{idx + 1}</td>
-                    <td>{item.productName}</td>
-                    <td>
-                      <input
-                        ref={(el) => {
-                          quantitiesRef.current[idx] = el;
-                        }}
-                        type="number"
-                        min="0"
-                        max={order[idx].quantity} // can't exceed original quantity
-                        value={item.quantity}
-                        onChange={(e) =>
-                          updateSubOrderItem(idx, e.target.value)
-                        }
-                      />
-                    </td>
-                    <td>{item.unit}</td>
-                    <td>{item.unitPrice}</td>
-                    <td>{(item.unitPrice * item.quantity).toFixed(2)}</td>
+              </thead>
+              <tbody>
+                {subOrder.length === 0 ? (
+                  <tr>
+                    <td colSpan={6}>Brak produktów do podziału.</td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-          <button className="place-order mt-5" onClick={handleSplitOrder}>
-            Podziel zamówienie
-          </button>
-        </>
+                ) : (
+                  subOrder.map((item, idx) => (
+                    <tr key={item.id}>
+                      <td>{idx + 1}</td>
+                      <td>{item.productName}</td>
+                      <td>
+                        <input
+                          ref={(el) => {
+                            quantitiesRef.current[idx] = el;
+                          }}
+                          type="number"
+                          min="0"
+                          max={order[idx].quantity} // can't exceed original quantity
+                          value={item.quantity}
+                          onChange={(e) =>
+                            updateSubOrderItem(idx, e.target.value)
+                          }
+                        />
+                      </td>
+                      <td>{item.unit}</td>
+                      <td>{item.unitPrice}</td>
+                      <td>{(item.unitPrice * item.quantity).toFixed(2)}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+            <button className="place-order mt-5" onClick={handleSplitOrder}>
+              Podziel zamówienie
+            </button>
+          </>
+        ) : (
+          <h1>Dzielenie zamówienia dostępne tylko dla ofert z deali</h1>
+        )
       ) : (
         <h1>Ładowanie danych zamówienia...</h1>
       )}

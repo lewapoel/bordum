@@ -1,8 +1,9 @@
-import { isDev } from "./dev.ts";
+import { isDev } from './dev.ts';
 import {
   CRM_MEASURE_LIST,
+  CRM_QUOTE_GET,
   CRM_QUOTE_PRODUCTROWS_GET,
-} from "../data/mockBitrix.ts";
+} from '../data/mockBitrix.ts';
 
 type MockBitrixResult = {
   error: () => any;
@@ -19,22 +20,22 @@ const mockBX24 = {
     let data = null;
 
     switch (method) {
-      case "crm.measure.list":
+      case 'crm.measure.list':
         data = CRM_MEASURE_LIST;
         break;
 
-      case "crm.quote.add":
-      case "crm.measure.add":
+      case 'crm.quote.add':
+      case 'crm.measure.add':
         data = 1;
         break;
 
-      case "crm.quote.productrows.get":
+      case 'crm.quote.productrows.get':
         data = CRM_QUOTE_PRODUCTROWS_GET;
         break;
 
-      case "crm.quote.productrows.set":
-      case "crm.quote.get":
-        data = {};
+      case 'crm.quote.productrows.set':
+      case 'crm.quote.get':
+        data = CRM_QUOTE_GET;
         break;
 
       default:
@@ -57,7 +58,7 @@ export function getBitrix24() {
 
   // @ts-ignore
   if (!window.BX24) {
-    alert("Brak dostępnego API Bitrix24");
+    alert('Brak dostępnego API Bitrix24');
     return null;
   }
 

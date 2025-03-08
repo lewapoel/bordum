@@ -1,5 +1,5 @@
-import { API_URL } from "./const.ts";
-import { useQuery } from "@tanstack/react-query";
+import { API_URL } from './const.ts';
+import { useQuery } from '@tanstack/react-query';
 
 export type Warehouse = {
   id: number;
@@ -9,7 +9,7 @@ export type Warehouse = {
 export function useGetWarehouses(token: string) {
   return useQuery({
     // eslint-disable-next-line
-    queryKey: ["warehouses"],
+    queryKey: ['warehouses'],
     queryFn: () =>
       fetch(`${API_URL}/Warehouses`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -18,13 +18,13 @@ export function useGetWarehouses(token: string) {
           const data = await response.json();
 
           return data.map((warehouse: any) => ({
-            id: warehouse["id"],
-            name: warehouse["name"],
+            id: warehouse['id'],
+            name: warehouse['name'],
           }));
         })
         .catch((error) => {
           console.error(error);
-          alert("Nie udało się pobrać magazynów");
+          alert('Nie udało się pobrać magazynów');
           return null;
         }),
     enabled: !!token,

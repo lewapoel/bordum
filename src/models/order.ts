@@ -1,5 +1,5 @@
-import { createContext } from "react";
-import { ItemWarehouses } from "../api/comarch/item.ts";
+import { createContext } from 'react';
+import { ItemWarehouses } from '../api/comarch/item.ts';
 
 export type Order = {
   dealId?: number;

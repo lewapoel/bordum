@@ -1,6 +1,6 @@
-import { getBitrix24 } from "../../utils/bitrix24.ts";
-import { Order, OrderItem } from "../../models/order.ts";
-import { ensureMeasure, getMeasures } from "./measure.ts";
+import { getBitrix24 } from '../../utils/bitrix24.ts';
+import { Order, OrderItem } from '../../models/order.ts';
+import { ensureMeasure, getMeasures } from './measure.ts';
 
 export async function getOrderMetadata(
   placementId: number,
@@ -15,19 +15,19 @@ export async function getOrderMetadata(
     const getOrderCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert("Nie udało się pobrać oferty. Szczegóły w konsoli");
+        alert('Nie udało się pobrać oferty. Szczegóły w konsoli');
         reject();
       } else {
         const data = result.data();
 
         resolve({
-          dealId: data["DEAL_ID"] ?? undefined,
-          leadId: data["LEAD_ID"] ?? undefined,
+          dealId: data['DEAL_ID'] ?? undefined,
+          leadId: data['LEAD_ID'] ?? undefined,
         });
       }
     };
 
-    bx24.callMethod("crm.quote.get", { id: placementId }, getOrderCallback);
+    bx24.callMethod('crm.quote.get', { id: placementId }, getOrderCallback);
   });
 }
 
@@ -44,7 +44,7 @@ export async function getOrder(
     const getProductRowsCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert("Nie udało się pobrać produktów oferty. Szczegóły w konsoli");
+        alert('Nie udało się pobrać produktów oferty. Szczegóły w konsoli');
         reject();
       } else {
         const data = result.data();
@@ -52,11 +52,11 @@ export async function getOrder(
         resolve(
           data.map(
             (item: any): OrderItem => ({
-              id: item["ID"],
-              productName: item["PRODUCT_NAME"],
-              quantity: item["QUANTITY"],
-              unit: item["MEASURE_NAME"],
-              unitPrice: item["PRICE"],
+              id: item['ID'],
+              productName: item['PRODUCT_NAME'],
+              quantity: item['QUANTITY'],
+              unit: item['MEASURE_NAME'],
+              unitPrice: item['PRICE'],
             }),
           ),
         );
@@ -64,7 +64,7 @@ export async function getOrder(
     };
 
     bx24.callMethod(
-      "crm.quote.productrows.get",
+      'crm.quote.productrows.get',
       { id: placementId },
       getProductRowsCallback,
     );
@@ -101,11 +101,11 @@ export async function updateOrder(
     const setProductRowsCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert("Nie udało się zapisać produktów oferty. Szczegóły w konsoli");
+        alert('Nie udało się zapisać produktów oferty. Szczegóły w konsoli');
         reject();
       } else {
         if (showAlertOnSuccess) {
-          alert("Produkty oferty zapisane pomyślnie");
+          alert('Produkty oferty zapisane pomyślnie');
         }
 
         resolve(true);
@@ -126,7 +126,7 @@ export async function updateOrder(
     };
 
     bx24.callMethod(
-      "crm.quote.productrows.set",
+      'crm.quote.productrows.set',
       updateBody,
       setProductRowsCallback,
     );

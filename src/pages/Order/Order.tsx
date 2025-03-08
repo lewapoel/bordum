@@ -1,11 +1,11 @@
-import SummaryView from "./components/SummaryView.tsx";
-import { useCallback, useEffect, useState } from "react";
-import { OrderContext, OrderItem, OrderView } from "../../models/order.ts";
-import ItemsView from "./components/ItemsView.tsx";
-import ItemView from "./components/ItemView.tsx";
-import { ItemWarehouses } from "../../api/comarch/item.ts";
-import { getCurrentPlacementId } from "../../utils/bitrix24.ts";
-import { getOrder, updateOrder } from "../../api/bitrix24/order.ts";
+import SummaryView from './components/SummaryView.tsx';
+import { useCallback, useEffect, useState } from 'react';
+import { OrderContext, OrderItem, OrderView } from '../../models/order.ts';
+import ItemsView from './components/ItemsView.tsx';
+import ItemView from './components/ItemView.tsx';
+import { ItemWarehouses } from '../../api/comarch/item.ts';
+import { getCurrentPlacementId } from '../../utils/bitrix24.ts';
+import { getOrder, updateOrder } from '../../api/bitrix24/order.ts';
 
 export default function Order() {
   const placementId = getCurrentPlacementId();
@@ -45,7 +45,7 @@ export default function Order() {
 
   useEffect(() => {
     if (!placementId) {
-      alert("Nie można pobrać ID aktualnej oferty");
+      alert('Nie można pobrać ID aktualnej oferty');
       return;
     }
 

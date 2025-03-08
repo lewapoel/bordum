@@ -1,7 +1,7 @@
-import { API_URL } from "./const.ts";
-import { Stock, Stocks, getStocks } from "./stock.ts";
-import { Warehouse } from "./warehouse.ts";
-import { useQuery } from "@tanstack/react-query";
+import { API_URL } from './const.ts';
+import { Stock, Stocks, getStocks } from './stock.ts';
+import { Warehouse } from './warehouse.ts';
+import { useQuery } from '@tanstack/react-query';
 
 export type Price = {
   value: number;
@@ -20,7 +20,7 @@ export type Item = {
 export function useGetItems(token: string) {
   return useQuery({
     // eslint-disable-next-line
-    queryKey: ["items"],
+    queryKey: ['items'],
     queryFn: () =>
       fetch(`${API_URL}/Items`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -29,13 +29,13 @@ export function useGetItems(token: string) {
           const data = await response.json();
 
           return data.map((item: any) => ({
-            id: item["id"],
-            name: item["name"],
-            unit: item["unit"],
-            prices: item["prices"].reduce((prices: any, price: any) => {
-              prices[price["name"]] = {
-                value: price["value"],
-                currency: price["currency"],
+            id: item['id'],
+            name: item['name'],
+            unit: item['unit'],
+            prices: item['prices'].reduce((prices: any, price: any) => {
+              prices[price['name']] = {
+                value: price['value'],
+                currency: price['currency'],
               };
 
               return prices;
@@ -44,7 +44,7 @@ export function useGetItems(token: string) {
         })
         .catch((error) => {
           console.error(error);
-          alert("Nie udało się pobrać przedmiotów");
+          alert('Nie udało się pobrać przedmiotów');
           return null;
         }),
     enabled: !!token,
@@ -86,7 +86,7 @@ export function useGetItemsWarehouses(
 ) {
   return useQuery({
     // eslint-disable-next-line
-    queryKey: ["itemsWarehouses", items?.length, warehouses?.length],
+    queryKey: ['itemsWarehouses', items?.length, warehouses?.length],
     queryFn: async () => {
       if (!items || !warehouses) {
         return null;

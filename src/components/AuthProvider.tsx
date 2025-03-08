@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { AuthContext, useGetToken } from "../api/comarch/auth.ts";
+import { useEffect, useState } from 'react';
+import { AuthContext, useGetToken } from '../api/comarch/auth.ts';
 
 export function AuthProvider({ children }: any) {
   const [token, setToken] = useState(null);

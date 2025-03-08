@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
-import { OrderItem } from "../models/order.ts";
-import { getCurrentPlacementId } from "../utils/bitrix24.ts";
-import { getOrder } from "../api/bitrix24/order.ts";
-import update from "immutability-helper";
-import moment from "moment";
+import { useEffect, useState } from 'react';
+import { OrderItem } from '../models/order.ts';
+import { getCurrentPlacementId } from '../utils/bitrix24.ts';
+import { getOrder } from '../api/bitrix24/order.ts';
+import update from 'immutability-helper';
+import moment from 'moment';
 
 type PackagingData = {
   quality: number;
@@ -25,7 +25,7 @@ export default function Packaging() {
 
   useEffect(() => {
     if (!placementId) {
-      alert("Nie można pobrać ID aktualnej oferty");
+      alert('Nie można pobrać ID aktualnej oferty');
       return;
     }
 
@@ -35,8 +35,8 @@ export default function Packaging() {
         setPackagingData(
           Array(res.length).fill({
             quality: 1,
-            packer: "",
-            date: moment().format("YYYY-MM-DD"),
+            packer: '',
+            date: moment().format('YYYY-MM-DD'),
           }),
         );
         setFirstLoad(true);
@@ -48,7 +48,7 @@ export default function Packaging() {
     <div>
       {firstLoad ? (
         <>
-          <h1 className="mb-5">Pakowanie</h1>
+          <h1 className='mb-5'>Pakowanie</h1>
 
           <table>
             <thead>
@@ -87,8 +87,8 @@ export default function Packaging() {
                   </td>
                   <td>
                     <input
-                      type="text"
-                      placeholder="Imię i nazwisko"
+                      type='text'
+                      placeholder='Imię i nazwisko'
                       value={packagingData[idx].packer}
                       onChange={(e) => {
                         setPackagingData((prev) =>
@@ -101,7 +101,7 @@ export default function Packaging() {
                   </td>
                   <td>
                     <input
-                      type="date"
+                      type='date'
                       value={packagingData[idx].date}
                       onChange={(e) => {
                         setPackagingData((prev) =>

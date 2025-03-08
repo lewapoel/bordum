@@ -1,12 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getBitrix24, getCurrentPlacementId } from "../utils/bitrix24";
-import { OrderItem } from "../models/order.ts";
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { getBitrix24, getCurrentPlacementId } from '../utils/bitrix24';
+import { OrderItem } from '../models/order.ts';
 import {
   getOrder,
   getOrderMetadata,
   updateOrder,
-} from "../api/bitrix24/order.ts";
-import { MAIN_ORDER_LINK_FIELD } from "../api/bitrix24/field.ts";
+} from '../api/bitrix24/order.ts';
+import { MAIN_ORDER_LINK_FIELD } from '../api/bitrix24/field.ts';
 
 function SplitOrder() {
   const placementId = getCurrentPlacementId();
@@ -86,20 +86,20 @@ function SplitOrder() {
   const handleSplitOrder = () => {
     if (subOrderQuantity === 0) {
       alert(
-        "Nie można podzielić zamówienia, podzamówienie musi mieć minimum jedną ilość produktu",
+        'Nie można podzielić zamówienia, podzamówienie musi mieć minimum jedną ilość produktu',
       );
       return;
     }
 
     if (subOrderQuantity === orderQuantity) {
       alert(
-        "Nie można podzielić zamówienia, podzamówienie ma taką samą wartość jak zamówienie główne",
+        'Nie można podzielić zamówienia, podzamówienie ma taką samą wartość jak zamówienie główne',
       );
       return;
     }
 
     if (!placementId) {
-      alert("Nie można pobrać ID aktualnej oferty");
+      alert('Nie można pobrać ID aktualnej oferty');
       return;
     }
 
@@ -111,10 +111,10 @@ function SplitOrder() {
     const addEstimateCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert("Nie udało się utworzyć oferty. Szczegóły w konsoli");
+        alert('Nie udało się utworzyć oferty. Szczegóły w konsoli');
       } else {
         updateOrder(result.data(), subOrderResult, false, false).then(() =>
-          alert("Zamówienie podzielone pomyślnie"),
+          alert('Zamówienie podzielone pomyślnie'),
         );
       }
     };
@@ -122,14 +122,14 @@ function SplitOrder() {
     const getEstimateCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert("Nie udało się pobrać danych oferty. Szczegóły w konsoli");
+        alert('Nie udało się pobrać danych oferty. Szczegóły w konsoli');
       } else {
         const estimateData = result.data();
         const id = estimateData.ID;
 
         delete estimateData.ID; // Not needed for creating new estimate
 
-        let quoteData = {
+        const quoteData = {
           fields: {
             ...estimateData,
             TITLE: `${estimateData.TITLE} - podzamówienie`,
@@ -140,18 +140,18 @@ function SplitOrder() {
           `https://bordum.bitrix24.pl/crm/type/7/details/${id}/`;
 
         // Add new estimate
-        bx24.callMethod("crm.quote.add", quoteData, addEstimateCallback);
+        bx24.callMethod('crm.quote.add', quoteData, addEstimateCallback);
 
         void updateOrder(placementId, orderResult, false, false);
       }
     };
 
-    bx24.callMethod("crm.quote.get", { id: placementId }, getEstimateCallback);
+    bx24.callMethod('crm.quote.get', { id: placementId }, getEstimateCallback);
   };
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     switch (e.key) {
-      case "Tab":
+      case 'Tab':
         e.preventDefault();
 
         if (quantitiesRef.current) {
@@ -195,9 +195,9 @@ function SplitOrder() {
   }, [placementId]);
 
   useEffect(() => {
-    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [handleKeyDown]);
 
@@ -206,8 +206,8 @@ function SplitOrder() {
       {firstLoad ? (
         isDeal ? (
           <>
-            <h1 className="mb-5">Zamówienie</h1>
-            <p className="font-bold mb-2">
+            <h1 className='mb-5'>Zamówienie</h1>
+            <p className='font-bold mb-2'>
               Łączna kwota zamówienia: {orderSum.toFixed(2)}
             </p>
             <table>
@@ -243,8 +243,8 @@ function SplitOrder() {
 
             <hr />
 
-            <h1 className="mb-5">Podzamówienie</h1>
-            <p className="font-bold mb-2">
+            <h1 className='mb-5'>Podzamówienie</h1>
+            <p className='font-bold mb-2'>
               Łączna kwota podzamówienia: {subOrderSum.toFixed(2)}
             </p>
             <table>
@@ -273,8 +273,8 @@ function SplitOrder() {
                           ref={(el) => {
                             quantitiesRef.current[idx] = el;
                           }}
-                          type="number"
-                          min="0"
+                          type='number'
+                          min='0'
                           max={order[idx].quantity} // can't exceed original quantity
                           value={item.quantity}
                           onChange={(e) =>
@@ -290,7 +290,10 @@ function SplitOrder() {
                 )}
               </tbody>
             </table>
-            <button className="place-order mt-5" onClick={handleSplitOrder}>
+            <button
+              className='place-order mt-5 confirm'
+              onClick={handleSplitOrder}
+            >
               Podziel zamówienie
             </button>
           </>

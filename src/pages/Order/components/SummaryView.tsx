@@ -1,11 +1,11 @@
-import clsx from "clsx";
+import clsx from 'clsx';
 import {
   OrderContext,
   OrderItem,
   OrderItems,
   OrderView,
-} from "../../../models/order.ts";
-import { useCallback, useContext, useEffect, useMemo } from "react";
+} from '../../../models/order.ts';
+import { useCallback, useContext, useEffect, useMemo } from 'react';
 
 interface SummaryRowProps {
   index: number;
@@ -29,8 +29,8 @@ function SummaryRow({
       onMouseEnter={() => setSelectedItem(index)}
       onClick={() => setCurrentView(OrderView.Items)}
       className={clsx(
-        selectedItem === index ? "bg-gray-300" : "",
-        "cursor-pointer",
+        selectedItem === index ? 'bg-gray-300' : '',
+        'cursor-pointer',
         className,
       )}
     >
@@ -63,28 +63,28 @@ export default function SummaryView({ order }: SummaryViewProps) {
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       switch (e.key) {
-        case "ArrowUp":
+        case 'ArrowUp':
           if (ctx) {
             ctx.setSelectedItem(Math.max(0, ctx.selectedItem - 1));
           }
           break;
-        case "ArrowDown":
+        case 'ArrowDown':
           if (ctx) {
             // Max index is order.length, because there is an additional empty item for adding new rows
             ctx.setSelectedItem(Math.min(order.length, ctx.selectedItem + 1));
           }
           break;
-        case "Enter":
+        case 'Enter':
           if (ctx) {
             ctx.setCurrentView(OrderView.Items);
           }
           break;
-        case "Insert":
+        case 'Insert':
           if (ctx) {
             void ctx.saveOrder();
           }
           break;
-        case "Delete":
+        case 'Delete':
           if (ctx) {
             ctx.removeItem();
           }
@@ -97,29 +97,31 @@ export default function SummaryView({ order }: SummaryViewProps) {
   );
 
   useEffect(() => {
-    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [handleKeyDown]);
 
   return ctx ? (
-    <div className="flex flex-col items-center">
-      <h1 className="mb-5">Zamówienie</h1>
+    <div className='flex flex-col items-center'>
+      <h1 className='mb-5'>Zamówienie</h1>
 
-      <div className="justify-center flex items-center gap-2 mb-10">
-        <button onClick={ctx.saveOrder}>Potwierdź (INSERT)</button>
-        <button onClick={ctx.removeItem}>
+      <div className='justify-center flex items-center gap-2 mb-10'>
+        <button className='confirm' onClick={ctx.saveOrder}>
+          Potwierdź (INSERT)
+        </button>
+        <button className='delete' onClick={ctx.removeItem}>
           Usuń zaznaczoną pozycję (DELETE)
         </button>
       </div>
 
-      <div className="text-[20px] justify-center flex items-center gap-4 mb-10">
+      <div className='text-[20px] justify-center flex items-center gap-4 mb-10'>
         <p>Zmień zaznaczoną pozycję (↑/↓)</p>
         <p>Dodaj/modyfikuj pozycję (ENTER)</p>
       </div>
 
-      <h2 className="mb-5 font-bold">Wartość całkowita: {sum.toFixed(2)}</h2>
+      <h2 className='mb-5 font-bold'>Wartość całkowita: {sum.toFixed(2)}</h2>
       <table>
         <thead>
           <tr>

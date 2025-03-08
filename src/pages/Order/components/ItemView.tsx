@@ -1,4 +1,4 @@
-import { PRICES } from "../../../data/prices.ts";
+import { PRICES } from '../../../data/prices.ts';
 import {
   useCallback,
   useContext,
@@ -6,13 +6,13 @@ import {
   useMemo,
   useRef,
   useState,
-} from "react";
-import { OrderContext, OrderView } from "../../../models/order.ts";
+} from 'react';
+import { OrderContext, OrderView } from '../../../models/order.ts';
 
 export default function ItemView() {
   const ctx = useContext(OrderContext);
-  const [selectedPrice, setSelectedPrice] = useState("zakupu");
-  const [quantity, setQuantity] = useState("0");
+  const [selectedPrice, setSelectedPrice] = useState('zakupu');
+  const [quantity, setQuantity] = useState('0');
 
   const quantityRef = useRef<HTMLInputElement>(null);
   const pricesRef = useRef<HTMLSelectElement>(null);
@@ -28,7 +28,7 @@ export default function ItemView() {
     }
 
     if (isNaN(+quantity) || +quantity <= 0) {
-      alert("Nieprawidłowa ilość");
+      alert('Nieprawidłowa ilość');
       return;
     }
 
@@ -45,15 +45,15 @@ export default function ItemView() {
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       switch (e.key) {
-        case "Enter":
+        case 'Enter':
           addItem();
           break;
-        case "Escape":
+        case 'Escape':
           if (ctx) {
             ctx.setCurrentView(OrderView.Items);
           }
           break;
-        case "Tab":
+        case 'Tab':
           e.preventDefault();
 
           if (document.activeElement === pricesRef.current) {
@@ -71,19 +71,24 @@ export default function ItemView() {
   );
 
   useEffect(() => {
-    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [handleKeyDown]);
 
   return ctx?.currentItem && price ? (
     <div>
-      <h1 className="mb-5">Towar</h1>
+      <h1 className='mb-5'>Towar</h1>
 
-      <div className="justify-center flex items-center gap-2 mb-10">
-        <button onClick={() => addItem()}>Potwierdź (ENTER)</button>
-        <button onClick={() => ctx.setCurrentView(OrderView.Items)}>
+      <div className='justify-center flex items-center gap-2 mb-10'>
+        <button className='confirm' onClick={() => addItem()}>
+          Potwierdź (ENTER)
+        </button>
+        <button
+          className='delete'
+          onClick={() => ctx.setCurrentView(OrderView.Items)}
+        >
           Anuluj (ESC)
         </button>
       </div>
@@ -105,7 +110,7 @@ export default function ItemView() {
             <td>
               <input
                 ref={quantityRef}
-                type="number"
+                type='number'
                 min={0}
                 // max={} TODO
                 value={quantity}
@@ -116,7 +121,7 @@ export default function ItemView() {
             <td>
               <select
                 ref={pricesRef}
-                className="prices"
+                className='prices'
                 value={selectedPrice}
                 onChange={(e) => setSelectedPrice(e.target.value)}
               >

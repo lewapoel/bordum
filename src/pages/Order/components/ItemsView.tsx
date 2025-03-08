@@ -5,18 +5,18 @@ import {
   useMemo,
   useRef,
   useState,
-} from "react";
-import { AuthContext } from "../../../api/comarch/auth.ts";
-import { useGetWarehouses } from "../../../api/comarch/warehouse.ts";
+} from 'react';
+import { AuthContext } from '../../../api/comarch/auth.ts';
+import { useGetWarehouses } from '../../../api/comarch/warehouse.ts';
 import {
   ItemWarehouses,
   useGetItems,
   useGetItemsWarehouses,
-} from "../../../api/comarch/item.ts";
-import { OrderContext, OrderView } from "../../../models/order.ts";
-import { useFuzzySearchList, Highlight } from "@nozbe/microfuzz/react";
-import clsx from "clsx";
-import { HighlightRanges } from "@nozbe/microfuzz";
+} from '../../../api/comarch/item.ts';
+import { OrderContext, OrderView } from '../../../models/order.ts';
+import { useFuzzySearchList, Highlight } from '@nozbe/microfuzz/react';
+import clsx from 'clsx';
+import { HighlightRanges } from '@nozbe/microfuzz';
 
 type Match = {
   item: ItemWarehouses;
@@ -44,7 +44,7 @@ export default function ItemsView() {
     [itemsWarehousesQuery.data],
   );
 
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [selectedItem, setSelectedItem] = useState(0);
 
   const searchBarRef = useRef<HTMLInputElement>(null);
@@ -52,7 +52,7 @@ export default function ItemsView() {
   const filteredList = useFuzzySearchList<ItemWarehouses, Match>({
     list: itemsWarehouses ?? [],
     queryText: searchTerm,
-    key: "name",
+    key: 'name',
     mapResultItem: ({ item, matches: [highlightRanges] }) => ({
       item,
       highlightRanges,
@@ -72,21 +72,21 @@ export default function ItemsView() {
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       switch (e.key) {
-        case "ArrowUp":
+        case 'ArrowUp':
           setSelectedItem(Math.max(0, selectedItem - 1));
           break;
-        case "ArrowDown":
+        case 'ArrowDown':
           setSelectedItem(Math.min(filteredList.length - 1, selectedItem + 1));
           break;
-        case "Enter":
+        case 'Enter':
           if (selectedItem >= 0 && selectedItem < filteredList.length) {
             selectItem(filteredList[selectedItem].item);
           }
           break;
-        case "Insert":
+        case 'Insert':
           searchBarRef.current?.focus();
           break;
-        case "Escape":
+        case 'Escape':
           if (ctx) {
             ctx.setCurrentView(OrderView.Summary);
           }
@@ -99,23 +99,26 @@ export default function ItemsView() {
   );
 
   useEffect(() => {
-    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [handleKeyDown]);
 
   return ctx && warehouses && itemsWarehouses ? (
     <div>
-      <h1 className="mb-5">Wybór towaru</h1>
+      <h1 className='mb-5'>Wybór towaru</h1>
 
-      <div className="justify-center flex items-center gap-2 mb-10">
-        <button onClick={() => ctx.setCurrentView(OrderView.Summary)}>
+      <div className='justify-center flex items-center gap-2 mb-10'>
+        <button
+          className='delete'
+          onClick={() => ctx.setCurrentView(OrderView.Summary)}
+        >
           Anuluj (ESC)
         </button>
       </div>
 
-      <div className="text-[20px] justify-center flex items-center gap-4 mb-10">
+      <div className='text-[20px] justify-center flex items-center gap-4 mb-10'>
         <p>Zmień zaznaczoną pozycję (↑/↓)</p>
         <p>Wybierz pozycję (ENTER)</p>
         <p>Przejdź do wyszukiwarki (INSERT)</p>
@@ -123,11 +126,11 @@ export default function ItemsView() {
 
       <input
         ref={searchBarRef}
-        type="text"
-        placeholder="Wyszukaj towar..."
+        type='text'
+        placeholder='Wyszukaj towar...'
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        className="searchbar w-full"
+        className='searchbar w-full'
       />
       <table>
         <thead>
@@ -144,8 +147,8 @@ export default function ItemsView() {
               key={item.id}
               onClick={() => selectItem(item)}
               className={clsx(
-                selectedItem === idx ? "bg-gray-300" : "",
-                "cursor-pointer",
+                selectedItem === idx ? 'bg-gray-300' : '',
+                'cursor-pointer',
               )}
               onMouseEnter={() => setSelectedItem(idx)}
             >

@@ -1,5 +1,5 @@
-import { getHashCode } from "../../utils/hash.ts";
-import { getBitrix24 } from "../../utils/bitrix24.ts";
+import { getHashCode } from '../../utils/hash.ts';
+import { getBitrix24 } from '../../utils/bitrix24.ts';
 
 type Measure = {
   code: string;
@@ -19,16 +19,16 @@ export async function getMeasures(): Promise<Measures | null> {
     const getMeasuresCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert("Nie udało się pobrać danych jednostek. Szczegóły w konsoli");
+        alert('Nie udało się pobrać danych jednostek. Szczegóły w konsoli');
         reject();
       } else {
         const data = result.data();
         const measures: Measures = {};
 
         data.forEach((measure: any) => {
-          measures[measure["SYMBOL_RUS"]] = {
-            code: measure["CODE"],
-            symbol: measure["SYMBOL_RUS"],
+          measures[measure['SYMBOL_RUS']] = {
+            code: measure['CODE'],
+            symbol: measure['SYMBOL_RUS'],
           };
         });
 
@@ -36,7 +36,7 @@ export async function getMeasures(): Promise<Measures | null> {
       }
     };
 
-    bx24.callMethod("crm.measure.list", {}, getMeasuresCallback);
+    bx24.callMethod('crm.measure.list', {}, getMeasuresCallback);
   });
 }
 
@@ -62,7 +62,7 @@ export async function ensureMeasure(symbol: string) {
       const addMeasureCallback = (result: any) => {
         if (result.error()) {
           console.error(result.error());
-          alert("Nie udało się dodać jednostki. Szczegóły w konsoli");
+          alert('Nie udało się dodać jednostki. Szczegóły w konsoli');
           reject();
         } else {
           resolve(true);
@@ -70,7 +70,7 @@ export async function ensureMeasure(symbol: string) {
       };
 
       bx24.callMethod(
-        "crm.measure.add",
+        'crm.measure.add',
         { fields: { CODE: code, MEASURE_TITLE: symbol, SYMBOL_RUS: symbol } },
         addMeasureCallback,
       );

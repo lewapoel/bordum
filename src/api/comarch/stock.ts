@@ -1,5 +1,5 @@
-import { API_URL } from "./const.ts";
-import { useQuery } from "@tanstack/react-query";
+import { API_URL } from './const.ts';
+import { useQuery } from '@tanstack/react-query';
 
 export type Stock = {
   itemId: number;
@@ -27,7 +27,7 @@ export async function getStocks(
         (result: Stocks, [itemId, stocks]: [string, any]) => {
           result[+itemId] = {
             itemId: +itemId,
-            quantity: stocks[0]["quantity"],
+            quantity: stocks[0]['quantity'],
             warehouseId: warehouseId,
           };
 
@@ -38,14 +38,14 @@ export async function getStocks(
     })
     .catch((error) => {
       console.error(error);
-      alert("Nie udało się pobrać zasobów");
+      alert('Nie udało się pobrać zasobów');
       return null;
     });
 }
 
 export function useGetStocks(token: string, warehouseId?: number) {
   return useQuery({
-    queryKey: ["stocks", warehouseId],
+    queryKey: ['stocks', warehouseId],
     queryFn: () => {
       if (warehouseId) {
         return getStocks(token, warehouseId);

@@ -91,11 +91,11 @@ export default function SummaryView({ order }: SummaryViewProps) {
             ctx.removeItem();
           }
           break;
-        case 'Home':
+        /*case 'Home':
           if (ctx) {
             void ctx.addReleaseDocument();
           }
-          break;
+          break;*/
         default:
           break;
       }

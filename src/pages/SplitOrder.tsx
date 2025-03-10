@@ -79,7 +79,7 @@ function SplitOrder() {
     [order],
   );
 
-  const handleSplitOrder = () => {
+  const handleSplitOrder = useCallback(() => {
     if (subOrderQuantity === 0) {
       alert(
         'Nie można podzielić zamówienia, podzamówienie musi mieć minimum jedną ilość produktu',
@@ -143,33 +143,45 @@ function SplitOrder() {
     };
 
     bx24.callMethod('crm.quote.get', { id: placementId }, getEstimateCallback);
-  };
+  }, [
+    orderQuantity,
+    orderResult,
+    placementId,
+    subOrderQuantity,
+    subOrderResult,
+  ]);
 
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    switch (e.key) {
-      case 'Tab':
-        e.preventDefault();
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      switch (e.key) {
+        case 'Enter':
+          handleSplitOrder();
+          break;
+        case 'Tab':
+          e.preventDefault();
 
-        if (quantitiesRef.current) {
-          const currentIdx = quantitiesRef.current.findIndex(
-            (quantityRef) => quantityRef === document.activeElement,
-          );
+          if (quantitiesRef.current) {
+            const currentIdx = quantitiesRef.current.findIndex(
+              (quantityRef) => quantityRef === document.activeElement,
+            );
 
-          let nextIdx = 0;
-          if (currentIdx !== -1) {
-            nextIdx = (currentIdx + 1) % quantitiesRef.current.length;
+            let nextIdx = 0;
+            if (currentIdx !== -1) {
+              nextIdx = (currentIdx + 1) % quantitiesRef.current.length;
+            }
+
+            quantitiesRef.current[nextIdx]?.focus();
+            quantitiesRef.current[nextIdx]?.select();
           }
 
-          quantitiesRef.current[nextIdx]?.focus();
-          quantitiesRef.current[nextIdx]?.select();
-        }
+          break;
 
-        break;
-
-      default:
-        break;
-    }
-  }, []);
+        default:
+          break;
+      }
+    },
+    [handleSplitOrder],
+  );
 
   useEffect(() => {
     if (!placementId) {
@@ -239,6 +251,20 @@ function SplitOrder() {
             <p className='font-bold mb-2'>
               Łączna kwota podzamówienia: {subOrderSum.toFixed(2)}
             </p>
+
+            <div className='justify-center flex items-center gap-2 mb-10'>
+              <button
+                className='place-order mt-5 confirm'
+                onClick={handleSplitOrder}
+              >
+                Podziel zamówienie (ENTER)
+              </button>
+            </div>
+
+            <div className='text-[20px] justify-center flex items-center gap-4 mb-10'>
+              <p>Zmień pole (TAB)</p>
+            </div>
+
             <table>
               <thead>
                 <tr>
@@ -282,12 +308,6 @@ function SplitOrder() {
                 )}
               </tbody>
             </table>
-            <button
-              className='place-order mt-5 confirm'
-              onClick={handleSplitOrder}
-            >
-              Podziel zamówienie
-            </button>
           </>
         ) : (
           <h1>Dzielenie zamówienia dostępne tylko dla ofert z deali</h1>

@@ -95,6 +95,10 @@ export default function ItemView() {
         </button>
       </div>
 
+      <div className='text-[20px] justify-center flex items-center gap-4 mb-10'>
+        <p>Zmień pole (TAB)</p>
+      </div>
+
       <table>
         <thead>
           <tr>

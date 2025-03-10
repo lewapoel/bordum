@@ -3,6 +3,7 @@ import {
   CRM_MEASURE_LIST,
   CRM_QUOTE_GET,
   CRM_QUOTE_PRODUCTROWS_GET,
+  USER_GET,
 } from '../data/mockBitrix.ts';
 
 type MockBitrixResult = {
@@ -36,6 +37,10 @@ const mockBX24 = {
       case 'crm.quote.productrows.set':
       case 'crm.quote.get':
         data = CRM_QUOTE_GET;
+        break;
+
+      case 'user.get':
+        data = USER_GET;
         break;
 
       default:

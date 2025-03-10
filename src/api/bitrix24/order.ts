@@ -3,9 +3,13 @@ import {
   OrderAdditionalData,
   OrderData,
   OrderItem,
+  PackagingData,
 } from '../../models/order.ts';
 import { ensureMeasure, getMeasures } from './measure.ts';
-import { ORDER_ADDITIONAL_DATA_FIELD } from './field.ts';
+import {
+  ORDER_ADDITIONAL_DATA_FIELD,
+  ORDER_PACKAGING_DATA_FIELD,
+} from './field.ts';
 
 export async function getOrder(placementId: number): Promise<OrderData | null> {
   const bx24 = getBitrix24();
@@ -51,18 +55,22 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
         reject();
       } else {
         const data = result.data();
+
         let additionalData = {};
+        let packagingData = [];
 
         try {
           additionalData = JSON.parse(data[ORDER_ADDITIONAL_DATA_FIELD]);
-        } catch {
-          console.log('getOrder: Empty additional data');
+          packagingData = JSON.parse(data[ORDER_PACKAGING_DATA_FIELD]);
+        } catch (e) {
+          void e;
         }
 
         orderData = {
           dealId: data['DEAL_ID'] ?? undefined,
           leadId: data['LEAD_ID'] ?? undefined,
           additionalData: additionalData,
+          packagingData: packagingData,
           items: [],
         };
 
@@ -147,6 +155,7 @@ export async function updateOrder(
     };
 
     const updateBody = {
+      id: placementId,
       fields: {
         [ORDER_ADDITIONAL_DATA_FIELD]: JSON.stringify(
           order.reduce((acc: OrderAdditionalData, item) => {
@@ -158,6 +167,38 @@ export async function updateOrder(
             return acc;
           }, {}),
         ),
+      },
+    };
+
+    bx24.callMethod('crm.quote.set', updateBody, setEstimateCallback);
+  });
+}
+
+export async function updateOrderPackagingData(
+  placementId: number,
+  packagingData: Array<PackagingData>,
+) {
+  const bx24 = getBitrix24();
+  if (!bx24) {
+    return null;
+  }
+
+  return new Promise((resolve, reject) => {
+    const setEstimateCallback = (result: any) => {
+      if (result.error()) {
+        console.error(result.error());
+        alert('Nie udało się zapisać oferty. Szczegóły w konsoli');
+        reject();
+      } else {
+        alert('Dane pakowania zapisane pomyślnie');
+        resolve(true);
+      }
+    };
+
+    const updateBody = {
+      id: placementId,
+      fields: {
+        [ORDER_PACKAGING_DATA_FIELD]: JSON.stringify(packagingData),
       },
     };
 

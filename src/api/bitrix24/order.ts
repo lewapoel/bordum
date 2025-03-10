@@ -55,11 +55,7 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
         orderData = {
           dealId: data['DEAL_ID'] ?? undefined,
           leadId: data['LEAD_ID'] ?? undefined,
-          additionalData: {
-            warehouseCodes: JSON.parse(
-              data[ORDER_ADDITIONAL_DATA_FIELD] ?? null,
-            ),
-          },
+          additionalData: JSON.parse(data[ORDER_ADDITIONAL_DATA_FIELD] ?? '{}'),
           items: [],
         };
 

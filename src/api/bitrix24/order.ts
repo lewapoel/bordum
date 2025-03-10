@@ -10,6 +10,7 @@ import {
   ORDER_ADDITIONAL_DATA_FIELD,
   ORDER_PACKAGING_DATA_FIELD,
 } from './field.ts';
+import moment from 'moment';
 
 export async function getOrder(placementId: number): Promise<OrderData | null> {
   const bx24 = getBitrix24();
@@ -30,6 +31,37 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
         reject();
       } else {
         const data = result.data();
+
+        orderData.items = data.map(
+          (item: any): OrderItem => ({
+            id: item['ID'],
+            warehouseCode:
+              orderData.additionalData?.warehouseCodes?.[item['ID']] ?? '',
+            productName: item['PRODUCT_NAME'],
+            quantity: item['QUANTITY'],
+            unit: item['MEASURE_NAME'],
+            unitPrice: item['PRICE'],
+          }),
+        );
+
+        orderData.packagingData = orderData.items.reduce(
+          (acc: PackagingData, item) => {
+            if (orderData.packagingData?.[item.id]) {
+              acc[item.id] = orderData.packagingData[item.id];
+            } else {
+              acc[item.id] = {
+                itemId: item.id,
+                quality: 1,
+                comment: '',
+                date: moment().format('YYYY-MM-DD'),
+                packerId: 0,
+              };
+            }
+
+            return acc;
+          },
+          {},
+        );
 
         resolve({
           ...orderData,
@@ -61,6 +93,11 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
 
         try {
           additionalData = JSON.parse(data[ORDER_ADDITIONAL_DATA_FIELD]);
+        } catch (e) {
+          void e;
+        }
+
+        try {
           packagingData = JSON.parse(data[ORDER_PACKAGING_DATA_FIELD]);
         } catch (e) {
           void e;
@@ -176,7 +213,7 @@ export async function updateOrder(
 
 export async function updateOrderPackagingData(
   placementId: number,
-  packagingData: Array<PackagingData>,
+  packagingData: PackagingData,
 ) {
   const bx24 = getBitrix24();
   if (!bx24) {

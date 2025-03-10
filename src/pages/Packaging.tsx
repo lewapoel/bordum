@@ -4,7 +4,6 @@ import { getOrder, updateOrderPackagingData } from '../api/bitrix24/order.ts';
 import update from 'immutability-helper';
 import { OrderData, PackagingData } from '../models/order.ts';
 import { getUsers, User } from '../api/bitrix24/user.ts';
-import moment from 'moment';
 
 type RowElements = {
   quality: HTMLSelectElement | null;
@@ -32,7 +31,7 @@ export default function Packaging() {
     .fill(0)
     .map((_, i) => i + 1);
 
-  const [packagingData, setPackagingData] = useState<Array<PackagingData>>();
+  const [packagingData, setPackagingData] = useState<PackagingData>();
   const [users, setUsers] = useState<Array<User>>();
 
   const saveData = useCallback(() => {
@@ -40,14 +39,14 @@ export default function Packaging() {
       return;
     }
 
-    if (!packagingData.every((data) => data.packerId > 0)) {
+    if (!Object.values(packagingData).every((data) => data.packerId > 0)) {
       alert('Brakujące dane w kolumnie: Osoba pakująca');
       return;
     }
 
     // Check if all allowed comment fields are filled
     if (
-      !packagingData.every(
+      !Object.values(packagingData).every(
         (data) => data.quality >= 8 || data.comment?.length > 0,
       )
     ) {
@@ -57,10 +56,15 @@ export default function Packaging() {
 
     void updateOrderPackagingData(
       placementId,
-      packagingData.map((data) => ({
-        ...data,
-        comment: data.quality < 8 ? data.comment : '', // make sure unnecessary comments don't get saved
-      })),
+      Object.fromEntries(
+        Object.entries(packagingData).map(([key, item]) => [
+          key,
+          {
+            ...item,
+            comment: item.quality < 8 ? item.comment : '', // make sure unnecessary comments don't get saved
+          },
+        ]),
+      ),
     );
   }, [packagingData, placementId]);
 
@@ -146,16 +150,7 @@ export default function Packaging() {
             comment: null,
           }));
 
-          if (res.packagingData?.length === 0) {
-            setPackagingData(
-              Array.from({ length: res.items.length }, () => ({
-                quality: 1,
-                comment: '',
-                date: moment().format('YYYY-MM-DD'),
-                packerId: 0,
-              })),
-            );
-          } else {
+          if (res.packagingData) {
             setPackagingData(res.packagingData);
           }
         }
@@ -251,11 +246,11 @@ export default function Packaging() {
                           rowsRef.current[idx].quality = el;
                         }
                       }}
-                      value={packagingData[idx].quality}
+                      value={packagingData[item.id].quality}
                       onChange={(e) => {
                         setPackagingData((prev) =>
                           update(prev, {
-                            [idx]: {
+                            [item.id]: {
                               quality: { $set: +e.target.value },
                             },
                           }),
@@ -276,11 +271,11 @@ export default function Packaging() {
                           rowsRef.current[idx].packer = el;
                         }
                       }}
-                      value={packagingData[idx].packerId}
+                      value={packagingData[item.id].packerId}
                       onChange={(e) => {
                         setPackagingData((prev) =>
                           update(prev, {
-                            [idx]: {
+                            [item.id]: {
                               packerId: { $set: +e.target.value },
                             },
                           }),
@@ -305,11 +300,11 @@ export default function Packaging() {
                         }
                       }}
                       type='date'
-                      value={packagingData[idx].date}
+                      value={packagingData[item.id].date}
                       onChange={(e) => {
                         setPackagingData((prev) =>
                           update(prev, {
-                            [idx]: { date: { $set: e.target.value } },
+                            [item.id]: { date: { $set: e.target.value } },
                           }),
                         );
                       }}
@@ -325,16 +320,16 @@ export default function Packaging() {
                       type='text'
                       placeholder='Komentarz'
                       className='disabled:cursor-not-allowed'
-                      disabled={packagingData[idx].quality >= 8}
+                      disabled={packagingData[item.id].quality >= 8}
                       value={
-                        packagingData[idx].quality >= 8
+                        packagingData[item.id].quality >= 8
                           ? 'n/d'
-                          : packagingData[idx].comment
+                          : packagingData[item.id].comment
                       }
                       onChange={(e) => {
                         setPackagingData((prev) =>
                           update(prev, {
-                            [idx]: { comment: { $set: e.target.value } },
+                            [item.id]: { comment: { $set: e.target.value } },
                           }),
                         );
                       }}

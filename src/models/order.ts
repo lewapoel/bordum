@@ -16,12 +16,15 @@ export type OrderItems = Array<OrderItem>;
 // Item ID -> Warehouse code
 export type WarehouseCodes = { [key: number]: string };
 
-export type PackagingData = {
+export type PackagingDataItem = {
+  itemId: number;
   quality: number;
   packerId: number;
   date: string;
   comment: string;
 };
+
+export type PackagingData = { [key: number]: PackagingDataItem };
 
 export type OrderAdditionalData = {
   warehouseCodes?: WarehouseCodes;
@@ -31,7 +34,7 @@ export type OrderData = {
   dealId?: number;
   leadId?: number;
   additionalData?: OrderAdditionalData;
-  packagingData?: Array<PackagingData>;
+  packagingData?: PackagingData;
   items: OrderItems;
 };
 

@@ -170,7 +170,7 @@ export async function updateOrder(
       },
     };
 
-    bx24.callMethod('crm.quote.set', updateBody, setEstimateCallback);
+    bx24.callMethod('crm.quote.update', updateBody, setEstimateCallback);
   });
 }
 
@@ -202,6 +202,6 @@ export async function updateOrderPackagingData(
       },
     };
 
-    bx24.callMethod('crm.quote.set', updateBody, setEstimateCallback);
+    bx24.callMethod('crm.quote.update', updateBody, setEstimateCallback);
   });
 }

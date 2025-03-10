@@ -115,7 +115,7 @@ export default function SummaryView({ order }: SummaryViewProps) {
       <h1 className='mb-5'>Zamówienie</h1>
 
       <div className='justify-center flex items-center gap-2 mb-10'>
-        <button onClick={ctx.addReleaseDocument}>
+        <button disabled className='disabled' onClick={ctx.addReleaseDocument}>
           Utwórz dokument WZ (HOME)
         </button>
 

@@ -55,7 +55,9 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
 
         try {
           additionalData = JSON.parse(data[ORDER_ADDITIONAL_DATA_FIELD]);
-        } catch (e) {}
+        } catch {
+          console.log('getOrder: Empty additional data');
+        }
 
         orderData = {
           dealId: data['DEAL_ID'] ?? undefined,

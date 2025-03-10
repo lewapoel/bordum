@@ -81,6 +81,10 @@ button.delete {
   @apply bg-red-500;
 }
 
+button.disabled {
+  @apply cursor-not-allowed opacity-50;
+}
+
 hr {
   width: 100%;
   height: 2px;

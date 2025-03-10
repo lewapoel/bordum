@@ -1,12 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getBitrix24, getCurrentPlacementId } from '../utils/bitrix24';
 import { OrderItem } from '../models/order.ts';
-import {
-  getOrder,
-  getOrderMetadata,
-  updateOrder,
-} from '../api/bitrix24/order.ts';
-import { MAIN_ORDER_LINK_FIELD } from '../api/bitrix24/field.ts';
+import { getOrder, updateOrder } from '../api/bitrix24/order.ts';
+import { ORDER_MAIN_LINK_FIELD } from '../api/bitrix24/field.ts';
 
 function SplitOrder() {
   const placementId = getCurrentPlacementId();
@@ -136,7 +132,7 @@ function SplitOrder() {
           },
         };
 
-        quoteData.fields[MAIN_ORDER_LINK_FIELD] =
+        quoteData.fields[ORDER_MAIN_LINK_FIELD] =
           `https://bordum.bitrix24.pl/crm/type/7/details/${id}/`;
 
         // Add new estimate
@@ -179,16 +175,11 @@ function SplitOrder() {
       return;
     }
 
-    getOrderMetadata(placementId).then((res) => {
-      if (res) {
-        setIsDeal(!!res.dealId);
-      }
-    });
-
     getOrder(placementId).then((res) => {
       if (res) {
-        setOrder(res);
-        setSubOrder(res.map((item) => ({ ...item, quantity: 0 })));
+        setOrder(res.items);
+        setSubOrder(res.items.map((item) => ({ ...item, quantity: 0 })));
+        setIsDeal(!!res.dealId);
         setFirstLoad(true);
       }
     });

@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { OrderItem } from '../models/order.ts';
 import { getCurrentPlacementId } from '../utils/bitrix24.ts';
 import { getOrder } from '../api/bitrix24/order.ts';
 import update from 'immutability-helper';
 import moment from 'moment';
+import { OrderData } from '../models/order.ts';
 
 type PackagingData = {
   quality: number;
@@ -13,7 +13,7 @@ type PackagingData = {
 
 export default function Packaging() {
   const placementId = getCurrentPlacementId();
-  const [order, setOrder] = useState<Array<OrderItem>>([]);
+  const [order, setOrder] = useState<OrderData>();
   const [firstLoad, setFirstLoad] = useState(false);
 
   // Range of [1, 10]
@@ -33,7 +33,7 @@ export default function Packaging() {
       if (res) {
         setOrder(res);
         setPackagingData(
-          Array(res.length).fill({
+          Array(res.items.length).fill({
             quality: 1,
             packer: '',
             date: moment().format('YYYY-MM-DD'),
@@ -46,7 +46,7 @@ export default function Packaging() {
 
   return (
     <div>
-      {firstLoad ? (
+      {firstLoad && order ? (
         <>
           <h1 className='mb-5'>Pakowanie</h1>
 
@@ -62,7 +62,7 @@ export default function Packaging() {
               </tr>
             </thead>
             <tbody>
-              {order.map((item, idx) => (
+              {order.items.map((item, idx) => (
                 <tr key={item.id}>
                   <td>{item.productName}</td>
                   <td>{item.quantity}</td>

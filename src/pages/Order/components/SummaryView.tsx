@@ -1,8 +1,8 @@
 import clsx from 'clsx';
 import {
   OrderContext,
+  OrderData,
   OrderItem,
-  OrderItems,
   OrderView,
 } from '../../../models/order.ts';
 import { useCallback, useContext, useEffect, useMemo } from 'react';
@@ -45,7 +45,7 @@ function SummaryRow({
 }
 
 interface SummaryViewProps {
-  order: OrderItems;
+  order: OrderData;
 }
 
 export default function SummaryView({ order }: SummaryViewProps) {
@@ -53,7 +53,7 @@ export default function SummaryView({ order }: SummaryViewProps) {
 
   const sum = useMemo(
     () =>
-      order.reduce((acc, item) => {
+      order.items.reduce((acc, item) => {
         acc += item.unitPrice * item.quantity;
         return acc;
       }, 0),
@@ -71,7 +71,9 @@ export default function SummaryView({ order }: SummaryViewProps) {
         case 'ArrowDown':
           if (ctx) {
             // Max index is order.length, because there is an additional empty item for adding new rows
-            ctx.setSelectedItem(Math.min(order.length, ctx.selectedItem + 1));
+            ctx.setSelectedItem(
+              Math.min(order.items.length, ctx.selectedItem + 1),
+            );
           }
           break;
         case 'Enter':
@@ -87,6 +89,11 @@ export default function SummaryView({ order }: SummaryViewProps) {
         case 'Delete':
           if (ctx) {
             ctx.removeItem();
+          }
+          break;
+        case 'Home':
+          if (ctx) {
+            void ctx.addReleaseDocument();
           }
           break;
         default:
@@ -108,6 +115,10 @@ export default function SummaryView({ order }: SummaryViewProps) {
       <h1 className='mb-5'>Zamówienie</h1>
 
       <div className='justify-center flex items-center gap-2 mb-10'>
+        <button onClick={ctx.addReleaseDocument}>
+          Utwórz dokument WZ (HOME)
+        </button>
+
         <button className='confirm' onClick={ctx.saveOrder}>
           Potwierdź (INSERT)
         </button>
@@ -134,7 +145,7 @@ export default function SummaryView({ order }: SummaryViewProps) {
           </tr>
         </thead>
         <tbody>
-          {order.map((item, idx) => (
+          {order.items.map((item, idx) => (
             <SummaryRow
               setCurrentView={ctx.setCurrentView}
               key={idx}
@@ -148,7 +159,7 @@ export default function SummaryView({ order }: SummaryViewProps) {
             setCurrentView={ctx.setCurrentView}
             setSelectedItem={ctx.setSelectedItem}
             selectedItem={ctx.selectedItem}
-            index={order.length}
+            index={order.items.length}
           />
         </tbody>
       </table>

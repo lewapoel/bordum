@@ -1,47 +1,64 @@
 import SummaryView from './components/SummaryView.tsx';
-import { useCallback, useEffect, useState } from 'react';
-import { OrderContext, OrderItem, OrderView } from '../../models/order.ts';
+import { useCallback, useContext, useEffect, useState } from 'react';
+import {
+  OrderContext,
+  OrderData,
+  OrderItem,
+  OrderView,
+} from '../../models/order.ts';
 import ItemsView from './components/ItemsView.tsx';
 import ItemView from './components/ItemView.tsx';
 import { ItemWarehouses } from '../../api/comarch/item.ts';
 import { getCurrentPlacementId } from '../../utils/bitrix24.ts';
 import { getOrder, updateOrder } from '../../api/bitrix24/order.ts';
+import update from 'immutability-helper';
+import { useAddReleaseDocument } from '../../api/comarch/document.ts';
+import { AuthContext } from '../../api/comarch/auth.ts';
 
 export default function Order() {
+  const { token } = useContext(AuthContext);
   const placementId = getCurrentPlacementId();
-  const [order, setOrder] = useState<Array<OrderItem>>([]);
+  const [order, setOrder] = useState<OrderData>();
   const [selectedItem, setSelectedItem] = useState(0);
   const [currentView, setCurrentView] = useState<OrderView>(OrderView.Summary);
   const [currentItem, setCurrentItem] = useState<ItemWarehouses>();
   const [firstLoad, setFirstLoad] = useState(false);
 
+  const releaseDocumentMutation = useAddReleaseDocument(token);
+
   const saveItem = useCallback(
     (item: OrderItem) => {
       // Adding new item when `selectedItem` is out of range
-      if (selectedItem === order.length) {
-        setOrder([...order, item]);
+      if (selectedItem === order?.items.length) {
+        setOrder((prev) => update(prev, { items: { $push: [item] } }));
       } else {
-        const newOrder = [...order];
-        newOrder[selectedItem] = item;
-
-        setOrder(newOrder);
+        setOrder((prev) =>
+          update(prev, { items: { [selectedItem]: { $set: item } } }),
+        );
       }
     },
     [selectedItem, order],
   );
 
   const removeItem = useCallback(() => {
-    if (selectedItem < order.length) {
-      const newOrder = [...order];
-      newOrder.splice(selectedItem, 1);
-
-      setOrder(newOrder);
+    if (order && selectedItem < order.items.length) {
+      setOrder((prev) =>
+        update(prev, { items: { $splice: [[selectedItem, 1]] } }),
+      );
     }
   }, [selectedItem, order]);
 
   const saveOrder = useCallback(async () => {
-    void updateOrder(placementId, order, true);
+    if (order) {
+      void updateOrder(placementId, order.items, true);
+    }
   }, [placementId, order]);
+
+  const addReleaseDocument = useCallback(async () => {
+    if (order) {
+      void releaseDocumentMutation.mutate({ items: order.items });
+    }
+  }, [order, releaseDocumentMutation]);
 
   useEffect(() => {
     if (!placementId) {
@@ -68,9 +85,10 @@ export default function Order() {
         selectedItem,
         setSelectedItem,
         saveOrder,
+        addReleaseDocument,
       }}
     >
-      {firstLoad ? (
+      {firstLoad && order ? (
         <>
           {currentView === OrderView.Summary && <SummaryView order={order} />}
           {currentView === OrderView.Items && <ItemsView />}

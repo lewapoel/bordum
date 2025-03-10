@@ -16,8 +16,13 @@ export function useGetWarehouses(token: string) {
       })
         .then(async (response): Promise<Array<Warehouse>> => {
           const data = await response.json();
+          let warehouses: Array<Warehouse> = data;
 
-          return data.map((warehouse: any) => ({
+          if (typeof data === 'object') {
+            warehouses = [data];
+          }
+
+          return warehouses.map((warehouse: any) => ({
             id: warehouse['id'],
             name: warehouse['name'],
           }));

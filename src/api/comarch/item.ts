@@ -12,6 +12,7 @@ export type Prices = { [key: string]: Price };
 
 export type Item = {
   id: number;
+  code: string;
   name: string;
   unit: string;
   prices: Prices;
@@ -28,19 +29,22 @@ export function useGetItems(token: string) {
         .then(async (response): Promise<Array<Item>> => {
           const data = await response.json();
 
-          return data.map((item: any) => ({
-            id: item['id'],
-            name: item['name'],
-            unit: item['unit'],
-            prices: item['prices'].reduce((prices: any, price: any) => {
-              prices[price['name']] = {
-                value: price['value'],
-                currency: price['currency'],
-              };
+          return data.map(
+            (item: any): Item => ({
+              id: item['id'],
+              code: item['code'],
+              name: item['name'],
+              unit: item['unit'],
+              prices: item['prices'].reduce((prices: any, price: any) => {
+                prices[price['name']] = {
+                  value: price['value'],
+                  currency: price['currency'],
+                };
 
-              return prices;
-            }, {}),
-          }));
+                return prices;
+              }, {}),
+            }),
+          );
         })
         .catch((error) => {
           console.error(error);

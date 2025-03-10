@@ -1,93 +1,89 @@
 @import "tailwindcss";
 
 body {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+  Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+  sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 code {
-    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+  monospace;
 }
 
-.App {
-    text-align: center;
+.app {
+  text-align: center;
 }
 
 h1 {
-    font-size: 2em;
-    font-weight: bold;
+  font-size: 2em;
+  font-weight: bold;
 }
 
 table, th, td {
-    border: 2px solid black;
-    border-collapse: collapse;
+  border: 2px solid black;
+  border-collapse: collapse;
 }
 
 th, td {
-    padding: 5px;
+  padding: 5px;
 }
 
-.App-header {
-    background-color: white;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: black;
-}
-
-.App-link {
-    color: #61dafb;
+.app-header {
+  background-color: white;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: black;
 }
 
 .warehouses {
-    display: flex;
-    flex-direction: row;
-    gap: 10px;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
 }
 
 .searchbar {
-    margin-top: 20px;
-    margin-bottom: 20px;
-    padding: 10px 20px;
-    font-size: 16px;
-    border: 2px solid black;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  padding: 10px 20px;
+  font-size: 16px;
+  border: 2px solid black;
 }
 
 .prices {
-    text-transform: capitalize;
-    padding: 10px 20px;
+  text-transform: capitalize;
+  padding: 10px 20px;
 }
 
 button {
-    cursor: pointer;
-    font-size: 18px;
-    font-weight: bold;
-    padding: 10px 20px;
-    background-color: darkgray;
-    border-radius: 5px;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
+  padding: 10px 20px;
+  background-color: darkgray;
+  border-radius: 5px;
 }
 
 button.confirm {
-    @apply bg-green-500;
+  @apply bg-green-500;
 }
 
 button.delete {
-    @apply bg-red-500;
+  @apply bg-red-500;
 }
 
 hr {
-    width: 100%;
-    height: 2px;
-    background-color: white;
-    margin: 30px 0;
+  width: 100%;
+  height: 2px;
+  background-color: white;
+  margin: 30px 0;
 }

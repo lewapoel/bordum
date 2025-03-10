@@ -1,13 +1,9 @@
 import { createContext } from 'react';
 import { ItemWarehouses } from '../api/comarch/item.ts';
 
-export type Order = {
-  dealId?: number;
-  leadId?: number;
-};
-
 export type OrderItem = {
   id: number;
+  warehouseCode: string;
   productName: string;
   quantity: number;
   unit: string;
@@ -17,13 +13,27 @@ export type OrderItem = {
 
 export type OrderItems = Array<OrderItem>;
 
+// Item ID -> Warehouse code
+export type WarehouseCodes = { [key: number]: string };
+
+export type OrderAdditionalData = {
+  warehouseCodes?: WarehouseCodes;
+};
+
+export type OrderData = {
+  dealId?: number;
+  leadId?: number;
+  additionalData?: OrderAdditionalData;
+  items: OrderItems;
+};
+
 export enum OrderView {
   Summary,
   Items,
   Item,
 }
 
-export type OrderData = {
+export type OrderStore = {
   setCurrentView: (view: OrderView) => void;
   currentItem?: ItemWarehouses;
   setCurrentItem: (item: ItemWarehouses) => void;
@@ -32,5 +42,6 @@ export type OrderData = {
   selectedItem: number;
   setSelectedItem: (item: number) => void;
   saveOrder: () => Promise<void>;
+  addReleaseDocument: () => Promise<void>;
 };
-export const OrderContext = createContext<OrderData | null>(null);
+export const OrderContext = createContext<OrderStore | null>(null);

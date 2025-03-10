@@ -51,11 +51,16 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
         reject();
       } else {
         const data = result.data();
+        let additionalData = {};
+
+        try {
+          additionalData = JSON.parse(data[ORDER_ADDITIONAL_DATA_FIELD]);
+        } catch (e) {}
 
         orderData = {
           dealId: data['DEAL_ID'] ?? undefined,
           leadId: data['LEAD_ID'] ?? undefined,
-          additionalData: JSON.parse(data[ORDER_ADDITIONAL_DATA_FIELD] ?? '{}'),
+          additionalData: additionalData,
           items: [],
         };
 

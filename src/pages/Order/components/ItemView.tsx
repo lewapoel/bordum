@@ -59,6 +59,7 @@ export default function ItemView() {
 
           if (document.activeElement === pricesRef.current) {
             quantityRef.current?.focus();
+            quantityRef.current?.select();
           } else {
             pricesRef.current?.focus();
           }

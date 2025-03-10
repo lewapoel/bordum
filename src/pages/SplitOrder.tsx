@@ -161,6 +161,7 @@ function SplitOrder() {
           }
 
           quantitiesRef.current[nextIdx]?.focus();
+          quantitiesRef.current[nextIdx]?.select();
         }
 
         break;

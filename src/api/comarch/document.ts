@@ -61,8 +61,8 @@ export function useAddReleaseDocument(token: string) {
           elements: order.items.map((item) => ({
             code: item.warehouseCode,
             quantity: item.quantity,
-            unitGrossPrice: item.unitPrice,
-            setCustomValue: false,
+            totalNetValue: item.unitPrice * item.quantity,
+            setCustomValue: true,
           })),
           payer: buyer,
           recipient: buyer,

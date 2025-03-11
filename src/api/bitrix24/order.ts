@@ -9,6 +9,7 @@ import {
   ORDER_ADDITIONAL_DATA_FIELD,
   ORDER_BUYER_NIP_FIELD,
   ORDER_PACKAGING_DATA_FIELD,
+  ORDER_RELEASE_DOCUMENT_FIELD,
 } from './field.ts';
 import moment from 'moment';
 
@@ -221,6 +222,37 @@ export async function updateOrderPackagingData(
       id: placementId,
       fields: {
         [ORDER_PACKAGING_DATA_FIELD]: JSON.stringify(packagingData),
+      },
+    };
+
+    bx24.callMethod('crm.quote.update', updateBody, setEstimateCallback);
+  });
+}
+
+export async function updateOrderReleaseDocument(
+  placementId: number,
+  data: string,
+) {
+  const bx24 = getBitrix24();
+  if (!bx24) {
+    return null;
+  }
+
+  return new Promise((resolve, reject) => {
+    const setEstimateCallback = (result: any) => {
+      if (result.error()) {
+        console.error(result.error());
+        alert('Nie udało się zapisać oferty. Szczegóły w konsoli');
+        reject();
+      } else {
+        resolve(true);
+      }
+    };
+
+    const updateBody = {
+      id: placementId,
+      fields: {
+        [ORDER_RELEASE_DOCUMENT_FIELD]: ['dokument_wz.pdf', data],
       },
     };
 

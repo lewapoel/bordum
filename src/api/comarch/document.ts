@@ -5,15 +5,17 @@ import { getCompany } from '../bitrix24/company.ts';
 import { getContact } from '../bitrix24/contact.ts';
 import { getAddress } from '../bitrix24/address.ts';
 import { BitrixType } from '../../models/bitrix/type.ts';
+import { updateOrderReleaseDocument } from '../bitrix24/order.ts';
 
 export type ReleaseDocument = {
+  placementId: number;
   order: OrderData;
 };
 
 export function useAddReleaseDocument(token: string) {
   return useMutation({
     mutationKey: ['add-release-document'],
-    mutationFn: async ({ order }: ReleaseDocument) => {
+    mutationFn: async ({ order, placementId }: ReleaseDocument) => {
       if (!order.companyId || !order.contactId) {
         throw new Error('MISSING_BUYER_ID');
       }
@@ -47,7 +49,7 @@ export function useAddReleaseDocument(token: string) {
         phone1: contact.phone,
       };
 
-      const response = await fetch(`${API_URL}/Documents`, {
+      let response = await fetch(`${API_URL}/Documents`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -76,7 +78,20 @@ export function useAddReleaseDocument(token: string) {
         throw new Error(error);
       }
 
-      return response.json();
+      const data = await response.json();
+      const documentId = data['id'];
+
+      response = await fetch(`${API_URL}/DocumentsExport?id=${documentId}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const fileBuffer = await response.arrayBuffer();
+      const fileData = Buffer.from(fileBuffer).toString('base64');
+
+      await updateOrderReleaseDocument(placementId, fileData);
     },
     onSuccess: () => alert('Utworzono dokument WZ pomyślnie'),
     onError: (error) => {

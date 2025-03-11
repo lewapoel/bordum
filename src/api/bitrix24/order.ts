@@ -252,7 +252,7 @@ export async function updateOrderReleaseDocument(
     const updateBody = {
       id: placementId,
       fields: {
-        [ORDER_RELEASE_DOCUMENT_FIELD]: ['dokument_wz.pdf', data],
+        [ORDER_RELEASE_DOCUMENT_FIELD]: { fileData: ['dokument_wz.pdf', data] },
       },
     };
 

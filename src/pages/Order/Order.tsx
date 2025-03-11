@@ -52,7 +52,7 @@ export default function Order() {
 
   const addReleaseDocument = useCallback(async () => {
     if (order) {
-      void releaseDocumentMutation.mutate({ order: order });
+      void releaseDocumentMutation.mutate({ order: order, placementId });
     }
   }, [order, releaseDocumentMutation]);
 

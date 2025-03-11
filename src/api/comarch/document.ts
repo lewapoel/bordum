@@ -15,20 +15,18 @@ export function useAddReleaseDocument(token: string) {
     mutationKey: ['add-release-document'],
     mutationFn: async ({ order }: ReleaseDocument) => {
       if (!order.companyId || !order.contactId) {
-        alert('Brakujące dane nabywcy');
-        return;
+        throw new Error('MISSING_BUYER_ID');
       }
 
       if (!order.buyerNip) {
-        alert('Brakujące pole NIP/PESEL');
-        return;
+        throw new Error('MISSING_NIP');
       }
 
       const company = await getCompany(order.companyId);
       const contact = await getContact(order.contactId);
 
       if (!company || !contact) {
-        return;
+        throw new Error('MISSING_DATA');
       }
 
       const contactAddress = await getAddress(
@@ -36,8 +34,7 @@ export function useAddReleaseDocument(token: string) {
         order.contactId,
       );
       if (!contactAddress) {
-        alert('Brakujący adres nabywcy');
-        return;
+        throw new Error('MISSING_ADDRESS');
       }
 
       const buyer = {
@@ -87,6 +84,12 @@ export function useAddReleaseDocument(token: string) {
         alert(
           'Brakujące dane kodów magazynowych, dodaj wszystkie produkty od nowa',
         );
+      } else if (error.message === 'MISSING_BUYER_ID') {
+        alert('Brakujące dane nabywcy');
+      } else if (error.message === 'MISSING_NIP') {
+        alert('Brakujące pole NIP/PESEL');
+      } else if (error.message === 'MISSING_ADDRESS') {
+        alert('Brakujący adres nabywcy');
       } else {
         console.error(error.message);
         alert('Wystąpił błąd przy dodawaniu dokumentu WZ. Sprawdź konsolę');

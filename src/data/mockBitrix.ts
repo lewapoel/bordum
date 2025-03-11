@@ -117,7 +117,7 @@ export const CRM_QUOTE_PRODUCTROWS_GET = [
 
 export const CRM_QUOTE_GET = {
   ID: '62',
-  TITLE: 'oferta#Ogrodzenie Betonowe - Łódź\/ test 20.11.2024',
+  TITLE: 'oferta#Ogrodzenie Betonowe - Łódź/ test 20.11.2024',
   STATUS_ID: 'DRAFT',
   CURRENCY_ID: 'PLN',
   OPPORTUNITY: '3391.77',
@@ -138,7 +138,7 @@ export const CRM_QUOTE_GET = {
   COMMENTS: null,
   LEAD_ID: null,
   DEAL_ID: '92',
-  QUOTE_NUMBER: '6\/02\/2025\/',
+  QUOTE_NUMBER: '6/02/2025/',
   CONTENT: null,
   TERMS: null,
   PERSON_TYPE_ID: '2',

@@ -176,36 +176,6 @@ export default function Packaging() {
         <>
           <h1 className='mb-5'>Pakowanie (szczegółowa kontrola jakości)</h1>
 
-          <div className='mb-10'>
-            <p className='mb-3 font-bold'>Legenda jakości</p>
-            <table className='mx-auto'>
-              <thead>
-                <tr>
-                  <th>Zakres jakości</th>
-                  <th>Znaczenie</th>
-                  <th>Wymagany komentarz</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>8 - 10</td>
-                  <td>produkt bez wad</td>
-                  <td>nie</td>
-                </tr>
-                <tr>
-                  <td>4 - 8</td>
-                  <td>elementy z wadami lecz nadają się do sprzedaży</td>
-                  <td>tak</td>
-                </tr>
-                <tr>
-                  <td>1 - 4</td>
-                  <td>elementy drugiego sortu które muszą być zrabatowane</td>
-                  <td>tak</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
           <div className='justify-center flex items-center gap-2 mb-10'>
             <button className='confirm' onClick={() => saveData()}>
               Zapisz (ENTER)
@@ -339,6 +309,36 @@ export default function Packaging() {
               ))}
             </tbody>
           </table>
+
+          <div className='mt-10'>
+            <p className='mb-3 font-bold'>Legenda jakości</p>
+            <table className='mx-auto text-2xl'>
+              <thead>
+                <tr>
+                  <th>Zakres jakości</th>
+                  <th>Znaczenie</th>
+                  <th>Wymagany komentarz</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>8 - 10</td>
+                  <td>produkt bez wad</td>
+                  <td>nie</td>
+                </tr>
+                <tr>
+                  <td>4 - 8</td>
+                  <td>elementy z wadami lecz nadają się do sprzedaży</td>
+                  <td>tak</td>
+                </tr>
+                <tr>
+                  <td>1 - 4</td>
+                  <td>elementy drugiego sortu które muszą być zrabatowane</td>
+                  <td>tak</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </>
       ) : (
         <>

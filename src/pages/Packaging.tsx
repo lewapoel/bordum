@@ -312,7 +312,7 @@ export default function Packaging() {
 
           <div className='mt-10'>
             <p className='mb-3 font-bold'>Legenda jakości</p>
-            <table className='mx-auto text-2xl'>
+            <table className='mx-auto text-xl'>
               <thead>
                 <tr>
                   <th>Zakres jakości</th>

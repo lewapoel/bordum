@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getBitrix24, getCurrentPlacementId } from '../utils/bitrix24';
-import { OrderItem } from '../models/order.ts';
+import { OrderItem } from '../models/bitrix/order.ts';
 import { getOrder, updateOrder } from '../api/bitrix24/order.ts';
 import { ORDER_MAIN_LINK_FIELD } from '../api/bitrix24/field.ts';
 

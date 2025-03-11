@@ -4,10 +4,11 @@ import {
   OrderData,
   OrderItem,
   PackagingData,
-} from '../../models/order.ts';
+} from '../../models/bitrix/order.ts';
 import { ensureMeasure, getMeasures } from './measure.ts';
 import {
   ORDER_ADDITIONAL_DATA_FIELD,
+  ORDER_BUYER_NIP_FIELD,
   ORDER_PACKAGING_DATA_FIELD,
 } from './field.ts';
 import moment from 'moment';
@@ -106,6 +107,9 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
         orderData = {
           dealId: data['DEAL_ID'] ?? undefined,
           leadId: data['LEAD_ID'] ?? undefined,
+          buyerNip: data[ORDER_BUYER_NIP_FIELD] ?? undefined,
+          companyId: data['COMPANY_ID'] ?? undefined,
+          contactId: data['CONTACT_ID'] ?? undefined,
           additionalData: additionalData,
           packagingData: packagingData,
           items: [],

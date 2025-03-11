@@ -2,8 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { getCurrentPlacementId } from '../utils/bitrix24.ts';
 import { getOrder, updateOrderPackagingData } from '../api/bitrix24/order.ts';
 import update from 'immutability-helper';
-import { OrderData, PackagingData } from '../models/order.ts';
 import { getUsers, User } from '../api/bitrix24/user.ts';
+import { OrderData, PackagingData } from '../models/bitrix/order.ts';
 
 type RowElements = {
   quality: HTMLSelectElement | null;

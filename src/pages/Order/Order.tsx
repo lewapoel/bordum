@@ -1,11 +1,6 @@
 import SummaryView from './components/SummaryView.tsx';
 import { useCallback, useContext, useEffect, useState } from 'react';
-import {
-  OrderContext,
-  OrderData,
-  OrderItem,
-  OrderView,
-} from '../../models/order.ts';
+import { OrderData, OrderItem } from '../../models/bitrix/order.ts';
 import ItemsView from './components/ItemsView.tsx';
 import ItemView from './components/ItemView.tsx';
 import { ItemWarehouses } from '../../api/comarch/item.ts';
@@ -14,6 +9,7 @@ import { getOrder, updateOrder } from '../../api/bitrix24/order.ts';
 import update from 'immutability-helper';
 import { useAddReleaseDocument } from '../../api/comarch/document.ts';
 import { AuthContext } from '../../api/comarch/auth.ts';
+import { OrderContext, OrderView } from '../../models/order.ts';
 
 export default function Order() {
   const { token } = useContext(AuthContext);
@@ -56,7 +52,7 @@ export default function Order() {
 
   const addReleaseDocument = useCallback(async () => {
     if (order) {
-      void releaseDocumentMutation.mutate({ items: order.items });
+      void releaseDocumentMutation.mutate({ order: order });
     }
   }, [order, releaseDocumentMutation]);
 

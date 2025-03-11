@@ -1,15 +1,55 @@
 import { API_URL } from './const.ts';
 import { useMutation } from '@tanstack/react-query';
-import { OrderItem } from '../../models/order.ts';
+import { OrderData } from '../../models/bitrix/order.ts';
+import { getCompany } from '../bitrix24/company.ts';
+import { getContact } from '../bitrix24/contact.ts';
+import { getAddress } from '../bitrix24/address.ts';
+import { BitrixType } from '../../models/bitrix/type.ts';
 
 export type ReleaseDocument = {
-  items: Array<OrderItem>;
+  order: OrderData;
 };
 
 export function useAddReleaseDocument(token: string) {
   return useMutation({
     mutationKey: ['add-release-document'],
-    mutationFn: async (document: ReleaseDocument) => {
+    mutationFn: async ({ order }: ReleaseDocument) => {
+      if (!order.companyId || !order.contactId) {
+        alert('Brakujące dane nabywcy');
+        return;
+      }
+
+      if (!order.buyerNip) {
+        alert('Brakujące pole NIP/PESEL');
+        return;
+      }
+
+      const company = await getCompany(order.companyId);
+      const contact = await getContact(order.contactId);
+
+      if (!company || !contact) {
+        return;
+      }
+
+      const contactAddress = await getAddress(
+        BitrixType.CONTACT,
+        order.contactId,
+      );
+      if (!contactAddress) {
+        alert('Brakujący adres nabywcy');
+        return;
+      }
+
+      const buyer = {
+        code: order.buyerNip,
+        name1: company.title,
+        name2: `${contact.name} ${contact.lastName}`,
+        email: contact.email,
+        city: contactAddress.address1,
+        street: contactAddress.address2,
+        phone1: contact.phone,
+      };
+
       const response = await fetch(`${API_URL}/Documents`, {
         method: 'POST',
         headers: {
@@ -21,12 +61,14 @@ export function useAddReleaseDocument(token: string) {
           calculatedOn: 1,
           paymentMethod: 'przelew',
           currency: 'PLN',
-          elements: document.items.map((item) => ({
+          elements: order.items.map((item) => ({
             code: item.warehouseCode,
             quantity: item.quantity,
             unitGrossPrice: item.unitPrice,
             setCustomValue: false,
           })),
+          payer: buyer,
+          recipient: buyer,
           status: 1,
           sourceWarehouseId: 1,
         }),

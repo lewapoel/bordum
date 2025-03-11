@@ -1,11 +1,7 @@
 import clsx from 'clsx';
-import {
-  OrderContext,
-  OrderData,
-  OrderItem,
-  OrderView,
-} from '../../../models/order.ts';
+import { OrderData, OrderItem } from '../../../models/bitrix/order.ts';
 import { useCallback, useContext, useEffect, useMemo } from 'react';
+import { OrderContext, OrderView } from '../../../models/order.ts';
 
 interface SummaryRowProps {
   index: number;
@@ -91,11 +87,11 @@ export default function SummaryView({ order }: SummaryViewProps) {
             ctx.removeItem();
           }
           break;
-        /*case 'Home':
+        case 'Home':
           if (ctx) {
             void ctx.addReleaseDocument();
           }
-          break;*/
+          break;
         default:
           break;
       }
@@ -115,7 +111,7 @@ export default function SummaryView({ order }: SummaryViewProps) {
       <h1 className='mb-5'>Zamówienie</h1>
 
       <div className='justify-center flex items-center gap-2 mb-10'>
-        <button disabled className='disabled' onClick={ctx.addReleaseDocument}>
+        <button onClick={ctx.addReleaseDocument}>
           Utwórz dokument WZ (HOME)
         </button>
 

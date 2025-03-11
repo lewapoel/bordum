@@ -246,11 +246,11 @@ export default function Packaging() {
                           rowsRef.current[idx].quality = el;
                         }
                       }}
-                      value={packagingData[item.id].quality}
+                      value={packagingData[item.id!].quality}
                       onChange={(e) => {
                         setPackagingData((prev) =>
                           update(prev, {
-                            [item.id]: {
+                            [item.id!]: {
                               quality: { $set: +e.target.value },
                             },
                           }),
@@ -271,11 +271,11 @@ export default function Packaging() {
                           rowsRef.current[idx].packer = el;
                         }
                       }}
-                      value={packagingData[item.id].packerId}
+                      value={packagingData[item.id!].packerId}
                       onChange={(e) => {
                         setPackagingData((prev) =>
                           update(prev, {
-                            [item.id]: {
+                            [item.id!]: {
                               packerId: { $set: +e.target.value },
                             },
                           }),
@@ -300,11 +300,11 @@ export default function Packaging() {
                         }
                       }}
                       type='date'
-                      value={packagingData[item.id].date}
+                      value={packagingData[item.id!].date}
                       onChange={(e) => {
                         setPackagingData((prev) =>
                           update(prev, {
-                            [item.id]: { date: { $set: e.target.value } },
+                            [item.id!]: { date: { $set: e.target.value } },
                           }),
                         );
                       }}
@@ -320,16 +320,16 @@ export default function Packaging() {
                       type='text'
                       placeholder='Komentarz'
                       className='disabled:cursor-not-allowed'
-                      disabled={packagingData[item.id].quality >= 8}
+                      disabled={packagingData[item.id!].quality >= 8}
                       value={
-                        packagingData[item.id].quality >= 8
+                        packagingData[item.id!].quality >= 8
                           ? 'n/d'
-                          : packagingData[item.id].comment
+                          : packagingData[item.id!].comment
                       }
                       onChange={(e) => {
                         setPackagingData((prev) =>
                           update(prev, {
-                            [item.id]: { comment: { $set: e.target.value } },
+                            [item.id!]: { comment: { $set: e.target.value } },
                           }),
                         );
                       }}

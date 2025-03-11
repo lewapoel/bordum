@@ -1,5 +1,8 @@
 import { isDev } from './dev.ts';
 import {
+  CRM_ADDRESS_LIST,
+  CRM_COMPANY_GET,
+  CRM_CONTACT_GET,
   CRM_MEASURE_LIST,
   CRM_QUOTE_GET,
   CRM_QUOTE_PRODUCTROWS_GET,
@@ -37,6 +40,18 @@ const mockBX24 = {
       case 'crm.quote.productrows.set':
       case 'crm.quote.get':
         data = CRM_QUOTE_GET;
+        break;
+
+      case 'crm.company.get':
+        data = CRM_COMPANY_GET;
+        break;
+
+      case 'crm.contact.get':
+        data = CRM_CONTACT_GET;
+        break;
+
+      case 'crm.address.list':
+        data = CRM_ADDRESS_LIST;
         break;
 
       case 'user.get':

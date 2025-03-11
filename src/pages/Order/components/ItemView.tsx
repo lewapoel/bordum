@@ -33,7 +33,6 @@ export default function ItemView() {
     }
 
     ctx.saveItem({
-      id: ctx.currentItem.id,
       warehouseCode: ctx.currentItem.code,
       productName: ctx.currentItem.name,
       quantity: +quantity,

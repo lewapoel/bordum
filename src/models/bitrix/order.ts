@@ -1,5 +1,5 @@
 export type OrderItem = {
-  id: number;
+  id?: number;
   warehouseCode: string;
   productName: string;
   quantity: number;
@@ -9,9 +9,6 @@ export type OrderItem = {
 };
 
 export type OrderItems = Array<OrderItem>;
-
-// Item ID -> Warehouse code
-export type WarehouseCodes = { [key: number]: string };
 
 export type PackagingDataItem = {
   itemId: number;
@@ -24,7 +21,8 @@ export type PackagingDataItem = {
 export type PackagingData = { [key: number]: PackagingDataItem };
 
 export type OrderAdditionalData = {
-  warehouseCodes?: WarehouseCodes;
+  // Meant for internal use only, use `OrderItem.warehouseCode` instead
+  warehouseCodes?: Array<string>;
 };
 
 export type OrderData = {

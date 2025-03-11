@@ -1,6 +1,5 @@
 import { getBitrix24 } from '../../utils/bitrix24.ts';
 import {
-  OrderAdditionalData,
   OrderData,
   OrderItem,
   PackagingData,
@@ -34,10 +33,10 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
         const data = result.data();
 
         orderData.items = data.map(
-          (item: any): OrderItem => ({
+          (item: any, idx: number): OrderItem => ({
             id: item['ID'],
             warehouseCode:
-              orderData.additionalData?.warehouseCodes?.[item['ID']] ?? '',
+              orderData.additionalData?.warehouseCodes?.[idx] ?? '',
             productName: item['PRODUCT_NAME'],
             quantity: item['QUANTITY'],
             unit: item['MEASURE_NAME'],
@@ -47,16 +46,18 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
 
         orderData.packagingData = orderData.items.reduce(
           (acc: PackagingData, item) => {
-            if (orderData.packagingData?.[item.id]) {
-              acc[item.id] = orderData.packagingData[item.id];
-            } else {
-              acc[item.id] = {
-                itemId: item.id,
-                quality: 1,
-                comment: '',
-                date: moment().format('YYYY-MM-DD'),
-                packerId: 0,
-              };
+            if (item.id) {
+              if (orderData.packagingData?.[item.id]) {
+                acc[item.id] = orderData.packagingData[item.id];
+              } else {
+                acc[item.id] = {
+                  itemId: item.id,
+                  quality: 1,
+                  comment: '',
+                  date: moment().format('YYYY-MM-DD'),
+                  packerId: 0,
+                };
+              }
             }
 
             return acc;
@@ -64,20 +65,7 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
           {},
         );
 
-        resolve({
-          ...orderData,
-          items: data.map(
-            (item: any): OrderItem => ({
-              id: item['ID'],
-              warehouseCode:
-                orderData.additionalData?.warehouseCodes?.[item['ID']] ?? '',
-              productName: item['PRODUCT_NAME'],
-              quantity: item['QUANTITY'],
-              unit: item['MEASURE_NAME'],
-              unitPrice: item['PRICE'],
-            }),
-          ),
-        });
+        resolve(orderData);
       }
     };
 
@@ -198,16 +186,9 @@ export async function updateOrder(
     const updateBody = {
       id: placementId,
       fields: {
-        [ORDER_ADDITIONAL_DATA_FIELD]: JSON.stringify(
-          order.reduce((acc: OrderAdditionalData, item) => {
-            if (!acc.warehouseCodes) {
-              acc.warehouseCodes = {};
-            }
-
-            acc.warehouseCodes[item.id] = item.warehouseCode;
-            return acc;
-          }, {}),
-        ),
+        [ORDER_ADDITIONAL_DATA_FIELD]: JSON.stringify({
+          warehouseCodes: order.map((item) => item.warehouseCode),
+        }),
       },
     };
 

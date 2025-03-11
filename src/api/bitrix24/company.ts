@@ -21,14 +21,10 @@ export async function getCompany(companyId: number): Promise<Company | null> {
       } else {
         const data = result.data();
 
-        resolve(
-          data.map(
-            (item: any): Company => ({
-              id: +item['ID'],
-              title: item['TITLE'],
-            }),
-          ),
-        );
+        resolve({
+          id: +data['ID'],
+          title: data['TITLE'],
+        });
       }
     };
 

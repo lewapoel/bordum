@@ -24,17 +24,13 @@ export async function getContact(contactId: number): Promise<Contact | null> {
       } else {
         const data = result.data();
 
-        resolve(
-          data.map(
-            (item: any): Contact => ({
-              id: +item['ID'],
-              name: item['NAME'],
-              lastName: item['LAST_NAME'],
-              phone: item['PHONE']?.[0]?.['VALUE'],
-              email: item['EMAIL']?.[0]?.['VALUE'],
-            }),
-          ),
-        );
+        resolve({
+          id: +data['ID'],
+          name: data['NAME'],
+          lastName: data['LAST_NAME'],
+          phone: data['PHONE']?.[0]?.['VALUE'],
+          email: data['EMAIL']?.[0]?.['VALUE'],
+        });
       }
     };
 

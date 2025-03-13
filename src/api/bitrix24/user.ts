@@ -37,3 +37,33 @@ export async function getUsers(): Promise<Array<User> | null> {
     bx24.callMethod('user.get', {}, getUsersCallback);
   });
 }
+
+export async function getCurrentUser(): Promise<User | null> {
+  const bx24 = getBitrix24();
+
+  if (!bx24) {
+    return null;
+  }
+
+  return new Promise((resolve, reject) => {
+    const getUserCallback = (result: any) => {
+      if (result.error()) {
+        console.error(result.error());
+        alert(
+          'Nie udało się pobrać aktualnego użytkownika. Szczegóły w konsoli',
+        );
+        reject();
+      } else {
+        const data = result.data();
+
+        resolve({
+          id: +data['ID'],
+          firstName: data['NAME'],
+          lastName: data['LAST_NAME'],
+        });
+      }
+    };
+
+    bx24.callMethod('user.current', {}, getUserCallback);
+  });
+}

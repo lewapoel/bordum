@@ -18,7 +18,7 @@ export type PackagingDataItem = {
   comment: string;
 };
 
-export type PackagingData = { [key: number]: PackagingDataItem };
+export type PackagingData = { [key: string]: PackagingDataItem };
 
 export type OrderAdditionalData = {
   // Meant for internal use only, use `OrderItem.warehouseCode` instead

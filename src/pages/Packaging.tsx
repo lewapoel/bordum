@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { getCurrentPlacementId } from '../utils/bitrix24.ts';
 import { getOrder, updateOrderPackagingData } from '../api/bitrix24/order.ts';
 import update from 'immutability-helper';
-import { getUsers, User } from '../api/bitrix24/user.ts';
+import { getCurrentUser, getUsers, User } from '../api/bitrix24/user.ts';
 import { OrderData, PackagingData } from '../models/bitrix/order.ts';
 
 type RowElements = {
@@ -12,6 +12,8 @@ type RowElements = {
   comment: HTMLInputElement | null;
 };
 
+type RowsElements = { [key: string]: RowElements };
+
 enum Status {
   LOADING,
   EMPTY,
@@ -20,71 +22,96 @@ enum Status {
 
 export default function Packaging() {
   const placementId = getCurrentPlacementId();
+  const [currentUserId, setCurrentUserId] = useState<number>();
   const [order, setOrder] = useState<OrderData>();
   const [status, setStatus] = useState<Status>(Status.LOADING);
-  const [selectedItem, setSelectedItem] = useState(0);
+  const [selectedItem, setSelectedItem] = useState('0');
 
-  const rowsRef = useRef<Array<RowElements>>(null);
+  const rowsRef = useRef<RowsElements>(null);
 
   // Range of [1, 10]
   const qualities = Array(10)
     .fill(0)
     .map((_, i) => i + 1);
 
+  const [originalPackagingData, setOriginalPackagingData] =
+    useState<PackagingData>();
   const [packagingData, setPackagingData] = useState<PackagingData>();
   const [users, setUsers] = useState<Array<User>>();
 
-  const saveData = useCallback(() => {
-    if (!packagingData) {
-      return;
-    }
+  const saveData = useCallback(
+    (itemId: string) => {
+      if (!packagingData || !originalPackagingData) {
+        return;
+      }
 
-    if (!Object.values(packagingData).every((data) => data.packerId > 0)) {
-      alert('Brakujące dane w kolumnie: Osoba pakująca');
-      return;
-    }
+      const data = packagingData[itemId];
+      if (!data) {
+        return;
+      }
 
-    // Check if all allowed comment fields are filled
-    if (
-      !Object.values(packagingData).every(
-        (data) => data.quality >= 8 || data.comment?.length > 0,
-      )
-    ) {
-      alert('Brakujące dane w kolumnie: Komentarz');
-      return;
-    }
+      if (!data.packerId) {
+        alert('Brakujące dane w kolumnie: Osoba pakująca');
+        return;
+      }
 
-    void updateOrderPackagingData(
-      placementId,
-      Object.fromEntries(
-        Object.entries(packagingData).map(([key, item]) => [
-          key,
-          {
-            ...item,
-            comment: item.quality < 8 ? item.comment : '', // make sure unnecessary comments don't get saved
-          },
-        ]),
-      ),
-    );
-  }, [packagingData, placementId]);
+      // Check if all allowed comment fields are filled
+      if (data.quality < 8 && data.comment?.length === 0) {
+        alert('Brakujące dane w kolumnie: Komentarz');
+        return;
+      }
+
+      void updateOrderPackagingData(
+        placementId,
+        Object.fromEntries(
+          Object.entries(originalPackagingData).map(([key, item]) => {
+            const packageItem = key === itemId ? data : item;
+
+            return [
+              key,
+              {
+                ...packageItem,
+                comment: packageItem.quality < 8 ? packageItem.comment : '', // make sure unnecessary comments don't get saved
+              },
+            ];
+          }),
+        ),
+      );
+    },
+    [packagingData, placementId, originalPackagingData],
+  );
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       switch (e.key) {
         case 'ArrowUp':
           e.preventDefault();
-          setSelectedItem((prev) => Math.max(0, prev - 1));
+          setSelectedItem((prev) => {
+            if (packagingData) {
+              const keys = Object.keys(packagingData);
+              const current = keys.indexOf(prev);
+
+              return keys[Math.max(0, current - 1)];
+            }
+
+            return prev;
+          });
           break;
         case 'ArrowDown':
           e.preventDefault();
-          if (order) {
-            setSelectedItem((prev) =>
-              Math.min(order.items.length - 1, prev + 1),
-            );
-          }
+          setSelectedItem((prev) => {
+            if (packagingData) {
+              const keys = Object.keys(packagingData);
+              const current = keys.indexOf(prev);
+
+              return keys[Math.min(keys.length - 1, current + 1)];
+            }
+
+            return prev;
+          });
           break;
         case 'Enter':
-          saveData();
+          saveData(selectedItem);
           break;
         case 'Tab':
           e.preventDefault();
@@ -143,14 +170,19 @@ export default function Packaging() {
         if (res.items.length === 0) {
           setStatus(Status.EMPTY);
         } else {
-          rowsRef.current = Array.from({ length: res.items.length }, () => ({
-            quality: null,
-            packer: null,
-            date: null,
-            comment: null,
-          }));
+          rowsRef.current = res.items.reduce((acc: RowsElements, item) => {
+            acc[item.id!.toString()] = {
+              quality: null,
+              packer: null,
+              date: null,
+              comment: null,
+            };
+
+            return acc;
+          }, {});
 
           if (res.packagingData) {
+            setOriginalPackagingData(res.packagingData);
             setPackagingData(res.packagingData);
           }
         }
@@ -162,6 +194,12 @@ export default function Packaging() {
         setUsers(res);
       }
     });
+
+    getCurrentUser().then((res) => {
+      if (res) {
+        setCurrentUserId(res.id);
+      }
+    });
   }, [placementId]);
 
   useEffect(() => {
@@ -170,17 +208,35 @@ export default function Packaging() {
     }
   }, [order, users, packagingData]);
 
+  useEffect(() => {
+    if (currentUserId) {
+      setPackagingData((prev) => {
+        if (prev) {
+          const keys = Object.keys(prev);
+
+          keys.forEach((key) => {
+            console.log(key);
+            prev = update(prev, {
+              [key]: {
+                $apply: (item) => ({
+                  ...item,
+                  packerId: item.packerId === 0 ? currentUserId : item.packerId,
+                }),
+              },
+            });
+          });
+        }
+
+        return prev;
+      });
+    }
+  }, [currentUserId]);
+
   return (
     <div>
       {status === Status.LOADED && packagingData && order && users ? (
         <>
           <h1 className='mb-5'>Pakowanie (szczegółowa kontrola jakości)</h1>
-
-          <div className='justify-center flex items-center gap-2 mb-10'>
-            <button className='confirm' onClick={() => saveData()}>
-              Zapisz (ENTER)
-            </button>
-          </div>
 
           <div className='text-[20px] justify-center flex items-center gap-4 mb-10'>
             <p>Zmień zaznaczoną pozycję (↑/↓)</p>
@@ -197,13 +253,16 @@ export default function Packaging() {
                 <th>Osoba pakująca</th>
                 <th>Data zapakowania</th>
                 <th>Komentarz</th>
+                <th>Akcje</th>
               </tr>
             </thead>
             <tbody>
-              {order.items.map((item, idx) => (
+              {order.items.map((item) => (
                 <tr
-                  onMouseEnter={() => setSelectedItem(idx)}
-                  className={selectedItem === idx ? 'bg-gray-300' : ''}
+                  onMouseEnter={() => setSelectedItem(item.id!.toString())}
+                  className={
+                    selectedItem === item.id!.toString() ? 'bg-gray-300' : ''
+                  }
                   key={item.id}
                 >
                   <td>{item.productName}</td>
@@ -213,10 +272,10 @@ export default function Packaging() {
                     <select
                       ref={(el) => {
                         if (rowsRef.current) {
-                          rowsRef.current[idx].quality = el;
+                          rowsRef.current[item.id!.toString()].quality = el;
                         }
                       }}
-                      value={packagingData[item.id!].quality}
+                      value={packagingData[item.id!.toString()].quality}
                       onChange={(e) => {
                         setPackagingData((prev) =>
                           update(prev, {
@@ -238,7 +297,7 @@ export default function Packaging() {
                     <select
                       ref={(el) => {
                         if (rowsRef.current) {
-                          rowsRef.current[idx].packer = el;
+                          rowsRef.current[item.id!].packer = el;
                         }
                       }}
                       value={packagingData[item.id!].packerId}
@@ -266,7 +325,7 @@ export default function Packaging() {
                     <input
                       ref={(el) => {
                         if (rowsRef.current) {
-                          rowsRef.current[idx].date = el;
+                          rowsRef.current[item.id!].date = el;
                         }
                       }}
                       type='date'
@@ -284,7 +343,7 @@ export default function Packaging() {
                     <input
                       ref={(el) => {
                         if (rowsRef.current) {
-                          rowsRef.current[idx].comment = el;
+                          rowsRef.current[item.id!].comment = el;
                         }
                       }}
                       type='text'
@@ -304,6 +363,14 @@ export default function Packaging() {
                         );
                       }}
                     />
+                  </td>
+                  <td>
+                    <button
+                      className='confirm'
+                      onClick={() => saveData(item.id!.toString())}
+                    >
+                      Zapisz (ENTER)
+                    </button>
                   </td>
                 </tr>
               ))}

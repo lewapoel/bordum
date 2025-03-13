@@ -6,6 +6,7 @@ import {
   CRM_MEASURE_LIST,
   CRM_QUOTE_GET,
   CRM_QUOTE_PRODUCTROWS_GET,
+  USER_CURRENT,
   USER_GET,
 } from '../data/mockBitrix.ts';
 
@@ -56,6 +57,10 @@ const mockBX24 = {
 
       case 'user.get':
         data = USER_GET;
+        break;
+
+      case 'user.current':
+        data = USER_CURRENT;
         break;
 
       default:

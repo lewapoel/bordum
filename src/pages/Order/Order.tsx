@@ -54,7 +54,7 @@ export default function Order() {
     if (order) {
       void releaseDocumentMutation.mutate({ order: order, placementId });
     }
-  }, [order, releaseDocumentMutation]);
+  }, [order, releaseDocumentMutation, placementId]);
 
   useEffect(() => {
     if (!placementId) {

@@ -26,6 +26,7 @@ export type OrderAdditionalData = {
 };
 
 export type OrderData = {
+  id?: number;
   dealId?: number;
   leadId?: number;
   buyerNip?: string;

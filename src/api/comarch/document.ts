@@ -1,5 +1,5 @@
 import { API_URL } from './const.ts';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { OrderData } from '../../models/bitrix/order.ts';
 import { getCompany } from '../bitrix24/company.ts';
 import { getContact } from '../bitrix24/contact.ts';
@@ -7,7 +7,7 @@ import { getAddress } from '../bitrix24/address.ts';
 import { BitrixType } from '../../models/bitrix/type.ts';
 import { updateOrderReleaseDocument } from '../bitrix24/order.ts';
 
-export type ReleaseDocument = {
+export type AddReleaseDocument = {
   placementId: number;
   order: OrderData;
 };
@@ -15,7 +15,7 @@ export type ReleaseDocument = {
 export function useAddReleaseDocument(token: string) {
   return useMutation({
     mutationKey: ['add-release-document'],
-    mutationFn: async ({ order, placementId }: ReleaseDocument) => {
+    mutationFn: async ({ order, placementId }: AddReleaseDocument) => {
       if (!order.companyId || !order.contactId) {
         throw new Error('MISSING_BUYER_ID');
       }
@@ -70,6 +70,7 @@ export function useAddReleaseDocument(token: string) {
           recipient: buyer,
           status: 1,
           sourceWarehouseId: 1,
+          description: order.id,
         }),
       });
 
@@ -110,5 +111,65 @@ export function useAddReleaseDocument(token: string) {
         alert('Wystąpił błąd przy dodawaniu dokumentu WZ. Sprawdź konsolę');
       }
     },
+  });
+}
+
+export type ReleaseDocumentEntity = {
+  id: number;
+  code: string;
+  name1: string;
+  name2: string;
+};
+
+export type ReleaseDocument = {
+  id: number;
+  fullNumber: string;
+  payer: ReleaseDocumentEntity;
+  recipient: ReleaseDocumentEntity;
+  description: string;
+};
+
+export function useGetReleaseDocuments(token: string) {
+  return useQuery({
+    // eslint-disable-next-line
+    queryKey: ['release-documents'],
+    queryFn: () =>
+      fetch(`${API_URL}/Documents?type=306`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then(async (response): Promise<Array<ReleaseDocument>> => {
+          const data = await response.json();
+          let releaseDocuments: Array<ReleaseDocument> = data;
+
+          if (typeof data === 'object') {
+            releaseDocuments = [data];
+          }
+
+          return releaseDocuments.map(
+            (document: any): ReleaseDocument => ({
+              id: +document['id'],
+              description: document['description'],
+              fullNumber: document['fullNumber'],
+              payer: {
+                id: +document['payer']['id'],
+                code: document['payer']['code'],
+                name1: document['payer']['name1'],
+                name2: document['payer']['name2'],
+              },
+              recipient: {
+                id: +document['recipient']['id'],
+                code: document['recipient']['code'],
+                name1: document['recipient']['name1'],
+                name2: document['recipient']['name2'],
+              },
+            }),
+          );
+        })
+        .catch((error) => {
+          console.error(error);
+          alert('Nie udało się pobrać dokumentów WZ');
+          return null;
+        }),
+    enabled: !!token,
   });
 }

@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import Packaging from './pages/Packaging.tsx';
 import './App.css';
+import ReleaseDocuments from './pages/ReleaseDocuments.tsx';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,6 +30,10 @@ function App() {
                 <Route path='/split-order' element={<SplitOrder />} />
                 <Route path='/order' element={<Order />} />
                 <Route path='/packaging' element={<Packaging />} />
+                <Route
+                  path='/release-documents'
+                  element={<ReleaseDocuments />}
+                />
               </Routes>
             </header>
           </div>

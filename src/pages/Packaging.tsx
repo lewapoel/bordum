@@ -147,7 +147,7 @@ export default function Packaging() {
           break;
       }
     },
-    [order, selectedItem, saveData],
+    [selectedItem, saveData, packagingData],
   );
 
   useEffect(() => {

@@ -94,6 +94,7 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
         }
 
         orderData = {
+          id: data['ID'] ?? undefined,
           dealId: data['DEAL_ID'] ?? undefined,
           leadId: data['LEAD_ID'] ?? undefined,
           buyerNip: data[ORDER_BUYER_NIP_FIELD] ?? undefined,

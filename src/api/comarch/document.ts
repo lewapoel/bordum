@@ -141,7 +141,7 @@ export function useGetReleaseDocuments(token: string) {
           const data = await response.json();
           let releaseDocuments: Array<ReleaseDocument> = data;
 
-          if (typeof data === 'object') {
+          if (!Array.isArray(data)) {
             releaseDocuments = [data];
           }
 

@@ -18,7 +18,7 @@ export function useGetWarehouses(token: string) {
           const data = await response.json();
           let warehouses: Array<Warehouse> = data;
 
-          if (typeof data === 'object') {
+          if (!Array.isArray(data)) {
             warehouses = [data];
           }
 

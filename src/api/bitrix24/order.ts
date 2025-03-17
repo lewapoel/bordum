@@ -276,7 +276,7 @@ export async function updateOrderReleaseDocument(
 
         const releaseDocumentId = data[ORDER_RELEASE_DOCUMENT_ID_FIELD];
         if (releaseDocumentId) {
-          fetch(`${API_URL}/Documents?type=306&id=${documentId}`, {
+          fetch(`${API_URL}/Documents?type=306&id=${releaseDocumentId}`, {
             method: 'DELETE',
             headers: {
               Authorization: `Bearer ${token}`,

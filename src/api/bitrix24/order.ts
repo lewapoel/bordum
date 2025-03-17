@@ -286,7 +286,7 @@ export async function updateOrderReleaseDocument(
         [ORDER_RELEASE_DOCUMENT_FIELD]: {
           fileData: ['dokument_wz.pdf', documentData],
         },
-        [ORDER_RELEASE_DOCUMENT_ID_FIELD]: { fileData: documentId },
+        [ORDER_RELEASE_DOCUMENT_ID_FIELD]: documentId,
       },
     };
 

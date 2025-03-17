@@ -54,7 +54,7 @@ export function useAddReleaseDocument(token: string) {
 
       const oldReleaseDocumentId = await getOrderReleaseDocument(placementId);
       if (oldReleaseDocumentId && +oldReleaseDocumentId) {
-        let response = await fetch(
+        const response = await fetch(
           `${API_URL}/Documents?type=306&id=${oldReleaseDocumentId}`,
           {
             method: 'DELETE',

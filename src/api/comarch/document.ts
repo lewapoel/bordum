@@ -5,7 +5,10 @@ import { getCompany } from '../bitrix24/company.ts';
 import { getContact } from '../bitrix24/contact.ts';
 import { getAddress } from '../bitrix24/address.ts';
 import { BitrixType } from '../../models/bitrix/type.ts';
-import { updateOrderReleaseDocument } from '../bitrix24/order.ts';
+import {
+  getOrderReleaseDocument,
+  updateOrderReleaseDocument,
+} from '../bitrix24/order.ts';
 
 export type AddReleaseDocument = {
   placementId: number;
@@ -48,6 +51,24 @@ export function useAddReleaseDocument(token: string) {
         street: contactAddress.address2,
         phone1: contact.phone,
       };
+
+      const oldReleaseDocumentId = await getOrderReleaseDocument(placementId);
+      if (oldReleaseDocumentId && +oldReleaseDocumentId) {
+        let response = await fetch(
+          `${API_URL}/Documents?type=306&id=${oldReleaseDocumentId}`,
+          {
+            method: 'DELETE',
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        if (!response.ok) {
+          const error = await response.text();
+          throw new Error(error);
+        }
+      }
 
       let response = await fetch(`${API_URL}/Documents`, {
         method: 'POST',
@@ -92,8 +113,7 @@ export function useAddReleaseDocument(token: string) {
       const fileBuffer = await response.arrayBuffer();
       const fileData = Buffer.from(fileBuffer).toString('base64');
 
-      await updateOrderReleaseDocument(
-        token,
+      return await updateOrderReleaseDocument(
         placementId,
         documentId,
         fileData,

@@ -260,6 +260,20 @@ export async function updateOrderReleaseDocument(
       } else {
         const data = result.data();
 
+        const updateEstimate = () => {
+          const updateBody = {
+            id: placementId,
+            fields: {
+              [ORDER_RELEASE_DOCUMENT_FIELD]: {
+                fileData: ['dokument_wz.pdf', documentData],
+              },
+              [ORDER_RELEASE_DOCUMENT_ID_FIELD]: { fileData: documentId },
+            },
+          };
+
+          bx24.callMethod('crm.quote.update', updateBody, setEstimateCallback);
+        };
+
         const releaseDocumentId = data[ORDER_RELEASE_DOCUMENT_ID_FIELD];
         if (releaseDocumentId) {
           fetch(`${API_URL}/Documents?type=306&id=${documentId}`, {
@@ -270,21 +284,7 @@ export async function updateOrderReleaseDocument(
           })
             .then(async (res) => {
               if (res.ok) {
-                const updateBody = {
-                  id: placementId,
-                  fields: {
-                    [ORDER_RELEASE_DOCUMENT_FIELD]: {
-                      fileData: ['dokument_wz.pdf', documentData],
-                    },
-                    [ORDER_RELEASE_DOCUMENT_ID_FIELD]: { fileData: documentId },
-                  },
-                };
-
-                bx24.callMethod(
-                  'crm.quote.update',
-                  updateBody,
-                  setEstimateCallback,
-                );
+                updateEstimate();
               } else {
                 console.error(await res.text());
                 reject();
@@ -294,6 +294,8 @@ export async function updateOrderReleaseDocument(
               console.error(err);
               reject();
             });
+        } else {
+          updateEstimate();
         }
       }
     };

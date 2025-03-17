@@ -114,18 +114,11 @@ export function useAddReleaseDocument(token: string) {
   });
 }
 
-export type ReleaseDocumentEntity = {
-  id: number;
-  code: string;
-  name1: string;
-  name2: string;
-};
-
 export type ReleaseDocument = {
   id: number;
   fullNumber: string;
-  payer: ReleaseDocumentEntity;
-  recipient: ReleaseDocumentEntity;
+  recipientCode: string;
+  recipientName: string;
   description: string;
 };
 
@@ -150,18 +143,8 @@ export function useGetReleaseDocuments(token: string) {
               id: +document['id'],
               description: document['description'],
               fullNumber: document['fullNumber'],
-              payer: {
-                id: +document['payer']['id'],
-                code: document['payer']['code'],
-                name1: document['payer']['name1'],
-                name2: document['payer']['name2'],
-              },
-              recipient: {
-                id: +document['recipient']['id'],
-                code: document['recipient']['code'],
-                name1: document['recipient']['name1'],
-                name2: document['recipient']['name2'],
-              },
+              recipientName: `${document['recipient']['name1']} (${document['recipient']['name2']})`,
+              recipientCode: document['recipient']['code'],
             }),
           );
         })

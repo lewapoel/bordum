@@ -92,7 +92,12 @@ export function useAddReleaseDocument(token: string) {
       const fileBuffer = await response.arrayBuffer();
       const fileData = Buffer.from(fileBuffer).toString('base64');
 
-      await updateOrderReleaseDocument(placementId, fileData);
+      await updateOrderReleaseDocument(
+        token,
+        placementId,
+        documentId,
+        fileData,
+      );
     },
     onSuccess: () => alert('Utworzono dokument WZ pomyślnie'),
     onError: (error) => {

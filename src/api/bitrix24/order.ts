@@ -10,8 +10,10 @@ import {
   ORDER_BUYER_NIP_FIELD,
   ORDER_PACKAGING_DATA_FIELD,
   ORDER_RELEASE_DOCUMENT_FIELD,
+  ORDER_RELEASE_DOCUMENT_ID_FIELD,
 } from './field.ts';
 import moment from 'moment';
+import { API_URL } from '../comarch/const.ts';
 
 export async function getOrder(placementId: number): Promise<OrderData | null> {
   const bx24 = getBitrix24();
@@ -231,8 +233,10 @@ export async function updateOrderPackagingData(
 }
 
 export async function updateOrderReleaseDocument(
+  token: string,
   placementId: number,
-  data: string,
+  documentId: string,
+  documentData: string,
 ) {
   const bx24 = getBitrix24();
   if (!bx24) {
@@ -243,20 +247,63 @@ export async function updateOrderReleaseDocument(
     const setEstimateCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert('Nie udało się zapisać oferty. Szczegóły w konsoli');
         reject();
       } else {
         resolve(true);
       }
     };
 
-    const updateBody = {
-      id: placementId,
-      fields: {
-        [ORDER_RELEASE_DOCUMENT_FIELD]: { fileData: ['dokument_wz.pdf', data] },
-      },
+    const getEstimateCallback = (result: any) => {
+      if (result.error()) {
+        console.error(result.error());
+        reject();
+      } else {
+        const data = result.data();
+
+        const releaseDocumentId = data[ORDER_RELEASE_DOCUMENT_ID_FIELD];
+        if (releaseDocumentId) {
+          fetch(`${API_URL}/Documents?type=306&id=${documentId}`, {
+            method: 'DELETE',
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+            .then(async (res) => {
+              if (res.ok) {
+                const updateBody = {
+                  id: placementId,
+                  fields: {
+                    [ORDER_RELEASE_DOCUMENT_FIELD]: {
+                      fileData: ['dokument_wz.pdf', documentData],
+                    },
+                    [ORDER_RELEASE_DOCUMENT_ID_FIELD]: { fileData: documentId },
+                  },
+                };
+
+                bx24.callMethod(
+                  'crm.quote.update',
+                  updateBody,
+                  setEstimateCallback,
+                );
+              } else {
+                console.error(await res.text());
+                reject();
+              }
+            })
+            .catch((err) => {
+              console.error(err);
+              reject();
+            });
+        }
+      }
     };
 
-    bx24.callMethod('crm.quote.update', updateBody, setEstimateCallback);
+    bx24.callMethod(
+      'crm.quote.get',
+      {
+        id: placementId,
+      },
+      getEstimateCallback,
+    );
   });
 }

@@ -19,7 +19,7 @@ type MultiMatch = {
   highlights: {
     document?: HighlightRanges | null;
     offer?: HighlightRanges | null;
-    nip?: HighlightRanges | null;
+    vatNumber?: HighlightRanges | null;
     recipient?: HighlightRanges | null;
   };
 };
@@ -27,7 +27,7 @@ type MultiMatch = {
 type SearchRef = {
   document: HTMLInputElement | null;
   offer: HTMLInputElement | null;
-  nip: HTMLInputElement | null;
+  vatNumber: HTMLInputElement | null;
   recipient: HTMLInputElement | null;
 };
 
@@ -55,13 +55,13 @@ export default function ReleaseDocuments() {
   const [searchTerm, setSearchTerm] = useState({
     document: '',
     offer: '',
-    nip: '',
+    vatNumber: '',
     recipient: '',
   });
   const searchBarRef = useRef<SearchRef>({
     document: null,
     offer: null,
-    nip: null,
+    vatNumber: null,
     recipient: null,
   });
 
@@ -83,9 +83,11 @@ export default function ReleaseDocuments() {
     (item) => [item.recipientName],
   );
 
-  const filteredByNip = useFilterBy(documents ?? [], searchTerm.nip, (item) => [
-    item.recipientCode,
-  ]);
+  const filteredByNip = useFilterBy(
+    documents ?? [],
+    searchTerm.vatNumber,
+    (item) => [item.recipientVAT],
+  );
 
   const filteredDocuments: Array<MultiMatch> = useMemo(() => {
     const result: { [key: string]: MultiMatch } = {};
@@ -196,14 +198,14 @@ export default function ReleaseDocuments() {
               <p>NIP kontrahenta</p>
               <input
                 ref={(el) => {
-                  searchBarRef.current.nip = el;
+                  searchBarRef.current.vatNumber = el;
                 }}
                 type='text'
                 placeholder='Szukaj...'
-                value={searchTerm.nip}
+                value={searchTerm.vatNumber}
                 onChange={(e) =>
                   setSearchTerm((prev) =>
-                    update(prev, { nip: { $set: e.target.value } }),
+                    update(prev, { vatNumber: { $set: e.target.value } }),
                   )
                 }
                 className='searchbar w-full max-w-[1000px]'
@@ -240,7 +242,10 @@ export default function ReleaseDocuments() {
                 />
               </td>
               <td>
-                <Highlight text={item.recipientCode} ranges={highlights.nip!} />
+                <Highlight
+                  text={item.recipientVAT}
+                  ranges={highlights.vatNumber!}
+                />
               </td>
             </tr>
           ))}

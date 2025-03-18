@@ -52,6 +52,7 @@ export function useAddDocument(token: string) {
 
       const buyer = {
         code: order.buyerNip,
+        vatNumber: order.buyerNip,
         name1: company.title,
         name2: `${contact.name} ${contact.lastName}`,
         email: contact.email,
@@ -158,7 +159,7 @@ export function useAddDocument(token: string) {
 export type ReleaseDocument = {
   id: number;
   fullNumber: string;
-  recipientCode: string;
+  recipientVAT: string;
   recipientName: string;
   description: string;
 };
@@ -185,7 +186,7 @@ export function useGetReleaseDocuments(token: string) {
               description: document['description'],
               fullNumber: document['fullNumber'],
               recipientName: `${document['recipient']['name1']} (${document['recipient']['name2']})`,
-              recipientCode: document['recipient']['code'],
+              recipientVAT: document['recipient']['vatNumber'],
             }),
           );
         })

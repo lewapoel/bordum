@@ -1,5 +1,6 @@
 import { createContext } from 'react';
 import { ItemWarehouses } from '../api/comarch/item.ts';
+import { DocumentType } from '../api/comarch/document.ts';
 import { OrderItem } from './bitrix/order.ts';
 
 export enum OrderView {
@@ -17,8 +18,8 @@ export type OrderStore = {
   selectedItem: number;
   setSelectedItem: (item: number) => void;
   saveOrder: () => Promise<void>;
-  addReleaseDocument: {
-    mutation: () => Promise<void>;
+  addDocument: {
+    mutation: (documentType: DocumentType) => Promise<void>;
     pending: boolean;
   };
 };

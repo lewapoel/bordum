@@ -8,11 +8,13 @@ import { ensureMeasure, getMeasures } from './measure.ts';
 import {
   ORDER_ADDITIONAL_DATA_FIELD,
   ORDER_BUYER_NIP_FIELD,
+  ORDER_DOCUMENTS_ID_FIELD,
   ORDER_PACKAGING_DATA_FIELD,
+  ORDER_PROFORMA_DOCUMENT_FIELD,
   ORDER_RELEASE_DOCUMENT_FIELD,
-  ORDER_RELEASE_DOCUMENT_ID_FIELD,
 } from './field.ts';
 import moment from 'moment';
+import { DOCUMENT_NAMES, DocumentType } from '../comarch/document.ts';
 
 export async function getOrder(placementId: number): Promise<OrderData | null> {
   const bx24 = getBitrix24();
@@ -231,9 +233,12 @@ export async function updateOrderPackagingData(
   });
 }
 
-export async function getOrderReleaseDocument(
+// Document type -> Created document ID
+export type OrderDocuments = { [key: string]: string };
+
+export async function getOrderDocuments(
   placementId: number,
-): Promise<string | null> {
+): Promise<OrderDocuments | null> {
   const bx24 = getBitrix24();
   if (!bx24) {
     return null;
@@ -246,7 +251,16 @@ export async function getOrderReleaseDocument(
         reject();
       } else {
         const data = result.data();
-        resolve(data[ORDER_RELEASE_DOCUMENT_ID_FIELD]);
+
+        let orderDocuments = {};
+
+        try {
+          orderDocuments = JSON.parse(data[ORDER_DOCUMENTS_ID_FIELD]);
+        } catch (e) {
+          void e;
+        }
+
+        resolve(orderDocuments);
       }
     };
 
@@ -260,8 +274,10 @@ export async function getOrderReleaseDocument(
   });
 }
 
-export async function updateOrderReleaseDocument(
+export async function updateOrderDocument(
   placementId: number,
+  documentType: DocumentType,
+  orderDocuments: OrderDocuments,
   documentId: string,
   documentData: string,
 ) {
@@ -280,13 +296,37 @@ export async function updateOrderReleaseDocument(
       }
     };
 
+    let fieldId: string;
+
+    switch (documentType) {
+      case DocumentType.RELEASE_DOCUMENT:
+        fieldId = ORDER_RELEASE_DOCUMENT_FIELD;
+        break;
+
+      case DocumentType.PROFORMA_DOCUMENT:
+        fieldId = ORDER_PROFORMA_DOCUMENT_FIELD;
+        break;
+    }
+
+    if (!fieldId) {
+      console.error('Invalid order document type provided');
+      reject();
+      return;
+    }
+
     const updateBody = {
       id: placementId,
       fields: {
-        [ORDER_RELEASE_DOCUMENT_FIELD]: {
-          fileData: ['dokument_wz.pdf', documentData],
+        [fieldId]: {
+          fileData: [
+            `Dokument-${DOCUMENT_NAMES[documentType]}.pdf`,
+            documentData,
+          ],
         },
-        [ORDER_RELEASE_DOCUMENT_ID_FIELD]: documentId,
+        [ORDER_DOCUMENTS_ID_FIELD]: {
+          ...orderDocuments,
+          [documentType.valueOf()]: documentId,
+        },
       },
     };
 

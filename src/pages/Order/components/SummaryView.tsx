@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import { OrderData, OrderItem } from '../../../models/bitrix/order.ts';
 import { useCallback, useContext, useEffect, useMemo } from 'react';
 import { OrderContext, OrderView } from '../../../models/order.ts';
+import { DocumentType } from '../../../api/comarch/document.ts';
 
 interface SummaryRowProps {
   index: number;
@@ -89,7 +90,7 @@ export default function SummaryView({ order }: SummaryViewProps) {
           break;
         case 'Home':
           if (ctx) {
-            void ctx.addReleaseDocument.mutation();
+            void ctx.addDocument.mutation(DocumentType.RELEASE_DOCUMENT);
           }
           break;
         default:
@@ -112,13 +113,13 @@ export default function SummaryView({ order }: SummaryViewProps) {
 
       <div className='justify-center flex items-center gap-2 mb-5'>
         <button
-          className={clsx(ctx.addReleaseDocument.pending ? 'disabled' : '')}
-          disabled={ctx.addReleaseDocument.pending}
-          onClick={ctx.addReleaseDocument.mutation}
+          className={clsx(ctx.addDocument.pending ? 'disabled' : '')}
+          disabled={ctx.addDocument.pending}
+          onClick={() =>
+            ctx.addDocument.mutation(DocumentType.RELEASE_DOCUMENT)
+          }
         >
-          {ctx.addReleaseDocument.pending
-            ? 'Czekaj...'
-            : 'Utwórz dokument WZ (HOME)'}
+          {ctx.addDocument.pending ? 'Czekaj...' : 'Utwórz dokument WZ (HOME)'}
         </button>
       </div>
 

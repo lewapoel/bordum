@@ -7,7 +7,7 @@ import { ItemWarehouses } from '../../api/comarch/item.ts';
 import { getCurrentPlacementId } from '../../utils/bitrix24.ts';
 import { getOrder, updateOrder } from '../../api/bitrix24/order.ts';
 import update from 'immutability-helper';
-import { useAddReleaseDocument } from '../../api/comarch/document.ts';
+import { useAddDocument, DocumentType } from '../../api/comarch/document.ts';
 import { AuthContext } from '../../api/comarch/auth.ts';
 import { OrderContext, OrderView } from '../../models/order.ts';
 
@@ -20,7 +20,7 @@ export default function Order() {
   const [currentItem, setCurrentItem] = useState<ItemWarehouses>();
   const [firstLoad, setFirstLoad] = useState(false);
 
-  const releaseDocumentMutation = useAddReleaseDocument(token);
+  const addDocumentMutation = useAddDocument(token);
 
   const saveItem = useCallback(
     (item: OrderItem) => {
@@ -50,11 +50,18 @@ export default function Order() {
     }
   }, [placementId, order]);
 
-  const addReleaseDocument = useCallback(async () => {
-    if (order) {
-      void releaseDocumentMutation.mutate({ order: order, placementId });
-    }
-  }, [order, releaseDocumentMutation, placementId]);
+  const addDocument = useCallback(
+    async (documentType: DocumentType) => {
+      if (order) {
+        void addDocumentMutation.mutate({
+          order: order,
+          placementId,
+          documentType,
+        });
+      }
+    },
+    [order, addDocumentMutation, placementId],
+  );
 
   useEffect(() => {
     if (!placementId) {
@@ -81,9 +88,9 @@ export default function Order() {
         selectedItem,
         setSelectedItem,
         saveOrder,
-        addReleaseDocument: {
-          mutation: addReleaseDocument,
-          pending: releaseDocumentMutation.isPending,
+        addDocument: {
+          mutation: addDocument,
+          pending: addDocumentMutation.isPending,
         },
       }}
     >

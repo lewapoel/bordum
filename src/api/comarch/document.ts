@@ -5,20 +5,28 @@ import { getCompany } from '../bitrix24/company.ts';
 import { getContact } from '../bitrix24/contact.ts';
 import { getAddress } from '../bitrix24/address.ts';
 import { BitrixType } from '../../models/bitrix/type.ts';
-import {
-  getOrderReleaseDocument,
-  updateOrderReleaseDocument,
-} from '../bitrix24/order.ts';
+import { getOrderDocuments, updateOrderDocument } from '../bitrix24/order.ts';
 
-export type AddReleaseDocument = {
+export type AddDocument = {
   placementId: number;
   order: OrderData;
+  documentType: DocumentType;
 };
 
-export function useAddReleaseDocument(token: string) {
+export enum DocumentType {
+  RELEASE_DOCUMENT = 302,
+  PROFORMA_DOCUMENT = 320,
+}
+
+export const DOCUMENT_NAMES = {
+  [DocumentType.RELEASE_DOCUMENT]: 'WZ',
+  [DocumentType.PROFORMA_DOCUMENT]: 'PROFORMA',
+} as const;
+
+export function useAddDocument(token: string) {
   return useMutation({
-    mutationKey: ['add-release-document'],
-    mutationFn: async ({ order, placementId }: AddReleaseDocument) => {
+    mutationKey: ['add-document'],
+    mutationFn: async ({ order, placementId, documentType }: AddDocument) => {
       if (!order.companyId || !order.contactId) {
         throw new Error('MISSING_BUYER_ID');
       }
@@ -52,10 +60,14 @@ export function useAddReleaseDocument(token: string) {
         phone1: contact.phone,
       };
 
-      const oldReleaseDocumentId = await getOrderReleaseDocument(placementId);
-      if (oldReleaseDocumentId && +oldReleaseDocumentId) {
+      const orderDocuments = await getOrderDocuments(placementId);
+      if (!orderDocuments) {
+        throw new Error('MISSING_ORDER_DOCUMENTS');
+      }
+
+      if (orderDocuments[documentType]) {
         const response = await fetch(
-          `${API_URL}/Documents?type=306&id=${oldReleaseDocumentId}`,
+          `${API_URL}/Documents?type=${documentType}&id=${orderDocuments[documentType]}`,
           {
             method: 'DELETE',
             headers: {
@@ -77,7 +89,7 @@ export function useAddReleaseDocument(token: string) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          type: 306,
+          type: documentType,
           calculatedOn: 1,
           paymentMethod: 'przelew',
           currency: 'PLN',
@@ -113,8 +125,10 @@ export function useAddReleaseDocument(token: string) {
       const fileBuffer = await response.arrayBuffer();
       const fileData = Buffer.from(fileBuffer).toString('base64');
 
-      return await updateOrderReleaseDocument(
+      return await updateOrderDocument(
         placementId,
+        documentType,
+        orderDocuments,
         documentId,
         fileData,
       );
@@ -131,6 +145,8 @@ export function useAddReleaseDocument(token: string) {
         alert('Brakujące pole NIP/PESEL');
       } else if (error.message === 'MISSING_ADDRESS') {
         alert('Brakujący adres nabywcy');
+      } else if (error.message === 'MISSING_ORDER_DOCUMENTS') {
+        alert('Nieprawidłowe dane dokumentów zamówienia');
       } else {
         console.error(error.message);
         alert('Wystąpił błąd przy dodawaniu dokumentu WZ. Sprawdź konsolę');

@@ -133,7 +133,7 @@ export function useAddDocument(token: string) {
         fileData,
       );
     },
-    onSuccess: () => alert('Utworzono dokument WZ pomyślnie'),
+    onSuccess: () => alert('Utworzono dokument pomyślnie'),
     onError: (error) => {
       if (error.message.includes('The code field is required')) {
         alert(
@@ -149,7 +149,7 @@ export function useAddDocument(token: string) {
         alert('Nieprawidłowe dane dokumentów zamówienia');
       } else {
         console.error(error.message);
-        alert('Wystąpił błąd przy dodawaniu dokumentu WZ. Sprawdź konsolę');
+        alert('Wystąpił błąd przy dodawaniu dokumentu. Sprawdź konsolę');
       }
     },
   });

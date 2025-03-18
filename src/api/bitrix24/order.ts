@@ -323,10 +323,10 @@ export async function updateOrderDocument(
             documentData,
           ],
         },
-        [ORDER_DOCUMENTS_ID_FIELD]: {
+        [ORDER_DOCUMENTS_ID_FIELD]: JSON.stringify({
           ...orderDocuments,
           [documentType.valueOf()]: documentId,
-        },
+        }),
       },
     };
 

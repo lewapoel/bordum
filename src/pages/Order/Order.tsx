@@ -81,7 +81,10 @@ export default function Order() {
         selectedItem,
         setSelectedItem,
         saveOrder,
-        addReleaseDocument,
+        addReleaseDocument: {
+          mutation: addReleaseDocument,
+          pending: releaseDocumentMutation.isPending,
+        },
       }}
     >
       {firstLoad && order ? (

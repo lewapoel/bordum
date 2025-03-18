@@ -89,7 +89,7 @@ export default function SummaryView({ order }: SummaryViewProps) {
           break;
         case 'Home':
           if (ctx) {
-            void ctx.addReleaseDocument();
+            void ctx.addReleaseDocument.mutation();
           }
           break;
         default:
@@ -110,13 +110,21 @@ export default function SummaryView({ order }: SummaryViewProps) {
     <div className='flex flex-col items-center'>
       <h1 className='mb-5'>Zamówienie</h1>
 
-      <div className='justify-center flex items-center gap-2 mb-10'>
-        <button onClick={ctx.addReleaseDocument}>
-          Utwórz dokument WZ (HOME)
+      <div className='justify-center flex items-center gap-2 mb-5'>
+        <button
+          className={clsx(ctx.addReleaseDocument.pending ? 'disabled' : '')}
+          disabled={ctx.addReleaseDocument.pending}
+          onClick={ctx.addReleaseDocument.mutation}
+        >
+          {ctx.addReleaseDocument.pending
+            ? 'Czekaj...'
+            : 'Utwórz dokument WZ (HOME)'}
         </button>
+      </div>
 
+      <div className='justify-center flex items-center gap-2 mb-10'>
         <button className='confirm' onClick={ctx.saveOrder}>
-          Potwierdź (INSERT)
+          Zapisz (INSERT)
         </button>
         <button className='delete' onClick={ctx.removeItem}>
           Usuń zaznaczoną pozycję (DELETE)

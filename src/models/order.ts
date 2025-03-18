@@ -17,6 +17,9 @@ export type OrderStore = {
   selectedItem: number;
   setSelectedItem: (item: number) => void;
   saveOrder: () => Promise<void>;
-  addReleaseDocument: () => Promise<void>;
+  addReleaseDocument: {
+    mutation: () => Promise<void>;
+    pending: boolean;
+  };
 };
 export const OrderContext = createContext<OrderStore | null>(null);

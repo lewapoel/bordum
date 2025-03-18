@@ -14,7 +14,7 @@ export type AddDocument = {
 };
 
 export enum DocumentType {
-  RELEASE_DOCUMENT = 302,
+  RELEASE_DOCUMENT = 306,
   PROFORMA_DOCUMENT = 320,
 }
 

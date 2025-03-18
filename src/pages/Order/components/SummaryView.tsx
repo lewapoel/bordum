@@ -131,7 +131,7 @@ export default function SummaryView({ order }: SummaryViewProps) {
           className={clsx(ctx.addDocument.pending ? 'disabled' : '')}
           disabled={ctx.addDocument.pending}
           onClick={() =>
-            ctx.addDocument.mutation(DocumentType.PROFORMA_DOCUMENT)
+            ctx.addDocument.mutation(DocumentType.PROFORMA_DOCUMENT, true)
           }
         >
           {ctx.addDocument.pending

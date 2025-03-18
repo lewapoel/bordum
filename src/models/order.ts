@@ -19,7 +19,10 @@ export type OrderStore = {
   setSelectedItem: (item: number) => void;
   saveOrder: () => Promise<void>;
   addDocument: {
-    mutation: (documentType: DocumentType) => Promise<void>;
+    mutation: (
+      documentType: DocumentType,
+      ignoreDeleteError?: boolean,
+    ) => Promise<void>;
     pending: boolean;
   };
 };

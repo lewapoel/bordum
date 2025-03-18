@@ -11,6 +11,7 @@ export type AddDocument = {
   placementId: number;
   order: OrderData;
   documentType: DocumentType;
+  ignoreDeleteError?: boolean;
 };
 
 export enum DocumentType {
@@ -26,7 +27,12 @@ export const DOCUMENT_NAMES = {
 export function useAddDocument(token: string) {
   return useMutation({
     mutationKey: ['add-document'],
-    mutationFn: async ({ order, placementId, documentType }: AddDocument) => {
+    mutationFn: async ({
+      order,
+      placementId,
+      documentType,
+      ignoreDeleteError,
+    }: AddDocument) => {
       if (!order.companyId || !order.contactId) {
         throw new Error('MISSING_BUYER_ID');
       }
@@ -77,7 +83,7 @@ export function useAddDocument(token: string) {
           },
         );
 
-        if (!response.ok) {
+        if (!response.ok && !ignoreDeleteError) {
           const error = await response.text();
           throw new Error(error);
         }

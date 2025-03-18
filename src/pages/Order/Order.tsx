@@ -51,12 +51,13 @@ export default function Order() {
   }, [placementId, order]);
 
   const addDocument = useCallback(
-    async (documentType: DocumentType) => {
+    async (documentType: DocumentType, ignoreDeleteError = false) => {
       if (order) {
         void addDocumentMutation.mutate({
           order: order,
           placementId,
           documentType,
+          ignoreDeleteError,
         });
       }
     },

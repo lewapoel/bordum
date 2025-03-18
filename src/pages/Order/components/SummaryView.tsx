@@ -93,6 +93,11 @@ export default function SummaryView({ order }: SummaryViewProps) {
             void ctx.addDocument.mutation(DocumentType.RELEASE_DOCUMENT);
           }
           break;
+        case 'PageUp':
+          if (ctx) {
+            void ctx.addDocument.mutation(DocumentType.PROFORMA_DOCUMENT);
+          }
+          break;
         default:
           break;
       }
@@ -120,6 +125,18 @@ export default function SummaryView({ order }: SummaryViewProps) {
           }
         >
           {ctx.addDocument.pending ? 'Czekaj...' : 'Utwórz dokument WZ (HOME)'}
+        </button>
+
+        <button
+          className={clsx(ctx.addDocument.pending ? 'disabled' : '')}
+          disabled={ctx.addDocument.pending}
+          onClick={() =>
+            ctx.addDocument.mutation(DocumentType.PROFORMA_DOCUMENT)
+          }
+        >
+          {ctx.addDocument.pending
+            ? 'Czekaj...'
+            : 'Utwórz fakturę proforma (PAGEUP)'}
         </button>
       </div>
 

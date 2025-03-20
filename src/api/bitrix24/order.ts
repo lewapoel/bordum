@@ -321,7 +321,7 @@ export async function updateOrderDocument(
       fields: {
         [fieldId]: {
           fileData: [
-            `Dokument-${sanitize(documentFullNumber)}.pdf`,
+            `Dokument-${sanitize(documentFullNumber.replace('/', '_'))}.pdf`,
             documentData,
           ],
         },

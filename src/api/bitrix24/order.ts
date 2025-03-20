@@ -14,7 +14,8 @@ import {
   ORDER_RELEASE_DOCUMENT_FIELD,
 } from './field.ts';
 import moment from 'moment';
-import { DOCUMENT_NAMES, DocumentType } from '../comarch/document.ts';
+import { DocumentType } from '../comarch/document.ts';
+import sanitize from 'sanitize-filename';
 
 export async function getOrder(placementId: number): Promise<OrderData | null> {
   const bx24 = getBitrix24();
@@ -279,6 +280,7 @@ export async function updateOrderDocument(
   documentType: DocumentType,
   orderDocuments: OrderDocuments,
   documentId: string,
+  documentFullNumber: string,
   documentData: string,
 ) {
   const bx24 = getBitrix24();
@@ -319,7 +321,7 @@ export async function updateOrderDocument(
       fields: {
         [fieldId]: {
           fileData: [
-            `Dokument-${DOCUMENT_NAMES[documentType]}.pdf`,
+            `Dokument-${sanitize(documentFullNumber)}.pdf`,
             documentData,
           ],
         },

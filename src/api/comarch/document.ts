@@ -121,6 +121,7 @@ export function useAddDocument(token: string) {
 
       const data = await response.json();
       const documentId = data['id'];
+      const documentFullNumber = data['fullNumber'];
 
       response = await fetch(`${API_URL}/DocumentsExport?id=${documentId}`, {
         method: 'GET',
@@ -137,6 +138,7 @@ export function useAddDocument(token: string) {
         documentType,
         orderDocuments,
         documentId,
+        documentFullNumber,
         fileData,
       );
     },

@@ -143,7 +143,7 @@ export async function hasOrderDeals(placementId: number): Promise<boolean> {
 
     bx24.callMethod(
       'crm.deal.list',
-      { filter: { ORDER_ID: placementId } },
+      { filter: { QUOTE_ID: placementId } },
       getDeals,
     );
   });

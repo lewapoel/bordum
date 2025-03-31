@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getBitrix24, getCurrentPlacementId } from '../utils/bitrix24';
 import { OrderItem } from '../models/bitrix/order.ts';
-import { getOrder, updateOrder } from '../api/bitrix24/order.ts';
+import { getOrder, hasOrderDeals, updateOrder } from '../api/bitrix24/order.ts';
 import { ORDER_MAIN_LINK_FIELD } from '../api/bitrix24/field.ts';
 
 function SplitOrder() {
@@ -11,6 +11,7 @@ function SplitOrder() {
   const [subOrder, setSubOrder] = useState<Array<OrderItem>>([]);
   const [firstLoad, setFirstLoad] = useState(false);
   const [isDeal, setIsDeal] = useState<boolean>(false);
+  const [hasDeal, setHasDeal] = useState<boolean>(false);
 
   const quantitiesRef = useRef<Array<HTMLInputElement | null>>([]);
 
@@ -188,6 +189,8 @@ function SplitOrder() {
       return;
     }
 
+    hasOrderDeals(placementId).then((res) => setHasDeal(res));
+
     getOrder(placementId).then((res) => {
       if (res) {
         setOrder(res.items);
@@ -208,7 +211,7 @@ function SplitOrder() {
   return (
     <>
       {firstLoad ? (
-        isDeal ? (
+        isDeal || hasDeal ? (
           <>
             <h1 className='mb-5'>Zamówienie</h1>
             <p className='font-bold mb-2'>

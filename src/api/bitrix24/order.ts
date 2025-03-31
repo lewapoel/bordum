@@ -121,6 +121,34 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
   });
 }
 
+export async function hasOrderDeals(placementId: number): Promise<boolean> {
+  const bx24 = getBitrix24();
+
+  if (!bx24) {
+    return false;
+  }
+
+  return new Promise((resolve, reject) => {
+    const getDeals = (result: any) => {
+      if (result.error()) {
+        console.error(result.error());
+        alert('Nie udało się pobrać deali podanej oferty. Szczegóły w konsoli');
+        reject();
+      } else {
+        const data = result.data();
+
+        resolve(data.length > 0);
+      }
+    };
+
+    bx24.callMethod(
+      'crm.deal.list',
+      { filter: { ORDER_ID: placementId } },
+      getDeals,
+    );
+  });
+}
+
 export async function updateOrder(
   placementId: number,
   order: Array<OrderItem>,

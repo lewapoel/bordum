@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import { OrderData, OrderItem } from '../../../models/bitrix/order.ts';
 import { useCallback, useContext, useEffect, useMemo } from 'react';
-import { OrderContext, OrderView } from '../../../models/order.ts';
+import { OrderContext, OrderType, OrderView } from '../../../models/order.ts';
 import { DocumentType } from '../../../api/comarch/document.ts';
 
 interface SummaryRowProps {
@@ -43,9 +43,10 @@ function SummaryRow({
 
 interface SummaryViewProps {
   order: OrderData;
+  orderType: OrderType;
 }
 
-export default function SummaryView({ order }: SummaryViewProps) {
+export default function SummaryView({ order, orderType }: SummaryViewProps) {
   const ctx = useContext(OrderContext);
 
   const sum = useMemo(
@@ -56,6 +57,19 @@ export default function SummaryView({ order }: SummaryViewProps) {
       }, 0),
     [order],
   );
+
+  const saveOrder = useCallback(() => {
+    if (ctx) {
+      switch (orderType) {
+        case OrderType.Create:
+          void ctx.createOrder();
+          break;
+        case OrderType.Edit:
+          void ctx.saveOrder();
+          break;
+      }
+    }
+  }, [ctx, orderType]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -79,9 +93,7 @@ export default function SummaryView({ order }: SummaryViewProps) {
           }
           break;
         case 'Insert':
-          if (ctx) {
-            void ctx.saveOrder();
-          }
+          saveOrder();
           break;
         case 'Delete':
           if (ctx) {
@@ -89,12 +101,12 @@ export default function SummaryView({ order }: SummaryViewProps) {
           }
           break;
         case 'Home':
-          if (ctx) {
+          if (orderType === OrderType.Edit && ctx) {
             void ctx.addDocument.mutation(DocumentType.RELEASE_DOCUMENT);
           }
           break;
         case 'PageUp':
-          if (ctx) {
+          if (orderType === OrderType.Edit && ctx) {
             void ctx.addDocument.mutation(DocumentType.PROFORMA_DOCUMENT);
           }
           break;
@@ -102,7 +114,7 @@ export default function SummaryView({ order }: SummaryViewProps) {
           break;
       }
     },
-    [ctx, order],
+    [ctx, order, orderType, saveOrder],
   );
 
   useEffect(() => {
@@ -116,32 +128,36 @@ export default function SummaryView({ order }: SummaryViewProps) {
     <div className='flex flex-col items-center'>
       <h1 className='mb-5'>Oferta</h1>
 
-      <div className='justify-center flex items-center gap-2 mb-5'>
-        <button
-          className={clsx(ctx.addDocument.pending ? 'disabled' : '')}
-          disabled={ctx.addDocument.pending}
-          onClick={() =>
-            ctx.addDocument.mutation(DocumentType.RELEASE_DOCUMENT)
-          }
-        >
-          {ctx.addDocument.pending ? 'Czekaj...' : 'Utwórz dokument WZ (HOME)'}
-        </button>
+      {orderType === OrderType.Edit && (
+        <div className='justify-center flex items-center gap-2 mb-5'>
+          <button
+            className={clsx(ctx.addDocument.pending ? 'disabled' : '')}
+            disabled={ctx.addDocument.pending}
+            onClick={() =>
+              ctx.addDocument.mutation(DocumentType.RELEASE_DOCUMENT)
+            }
+          >
+            {ctx.addDocument.pending
+              ? 'Czekaj...'
+              : 'Utwórz dokument WZ (HOME)'}
+          </button>
 
-        <button
-          className={clsx(ctx.addDocument.pending ? 'disabled' : '')}
-          disabled={ctx.addDocument.pending}
-          onClick={() =>
-            ctx.addDocument.mutation(DocumentType.PROFORMA_DOCUMENT, true)
-          }
-        >
-          {ctx.addDocument.pending
-            ? 'Czekaj...'
-            : 'Utwórz fakturę proforma (PAGEUP)'}
-        </button>
-      </div>
+          <button
+            className={clsx(ctx.addDocument.pending ? 'disabled' : '')}
+            disabled={ctx.addDocument.pending}
+            onClick={() =>
+              ctx.addDocument.mutation(DocumentType.PROFORMA_DOCUMENT, true)
+            }
+          >
+            {ctx.addDocument.pending
+              ? 'Czekaj...'
+              : 'Utwórz fakturę proforma (PAGEUP)'}
+          </button>
+        </div>
+      )}
 
       <div className='justify-center flex items-center gap-2 mb-10'>
-        <button className='confirm' onClick={ctx.saveOrder}>
+        <button className='confirm' onClick={saveOrder}>
           Zapisz (INSERT)
         </button>
         <button className='delete' onClick={ctx.removeItem}>

@@ -149,6 +149,33 @@ export async function hasOrderDeals(placementId: number): Promise<boolean> {
   });
 }
 
+export async function createOrder(dealId: number): Promise<number | null> {
+  const bx24 = getBitrix24();
+  if (!bx24) {
+    return null;
+  }
+
+  return new Promise((resolve, reject) => {
+    const addEstimateCallback = (result: any) => {
+      if (result.error()) {
+        console.error(result.error());
+        alert('Nie udało się utworzyć oferty. Szczegóły w konsoli');
+        reject();
+      } else {
+        resolve(result.data());
+      }
+    };
+
+    const updateBody = {
+      fields: {
+        DEAL_ID: dealId,
+      },
+    };
+
+    bx24.callMethod('crm.quote.add', updateBody, addEstimateCallback);
+  });
+}
+
 export async function updateOrder(
   placementId: number,
   order: Array<OrderItem>,

@@ -1,11 +1,11 @@
+import { OrderContext, OrderType, OrderView } from '../../models/order.ts';
 import SummaryView from './components/SummaryView.tsx';
-import { useContext } from 'react';
 import ItemsView from './components/ItemsView.tsx';
 import ItemView from './components/ItemView.tsx';
-import { OrderContext, OrderType, OrderView } from '../../models/order.ts';
 import CtxProvider from './CtxProvider.tsx';
+import { useContext } from 'react';
 
-function OrderCtx() {
+function CreateOrderCtx() {
   const ctx = useContext(OrderContext);
 
   return (
@@ -13,7 +13,7 @@ function OrderCtx() {
       {ctx && ctx.order && (
         <>
           {ctx.currentView === OrderView.Summary && (
-            <SummaryView order={ctx.order} orderType={OrderType.Edit} />
+            <SummaryView order={ctx.order} orderType={OrderType.Create} />
           )}
           {ctx.currentView === OrderView.Items && <ItemsView />}
           {ctx.currentView === OrderView.Item && <ItemView />}
@@ -23,10 +23,10 @@ function OrderCtx() {
   );
 }
 
-export default function Order() {
+export default function CreateOrder() {
   return (
-    <CtxProvider orderType={OrderType.Edit}>
-      <OrderCtx />
+    <CtxProvider orderType={OrderType.Create}>
+      <CreateOrderCtx />
     </CtxProvider>
   );
 }

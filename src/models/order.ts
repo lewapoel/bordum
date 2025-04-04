@@ -1,7 +1,7 @@
 import { createContext } from 'react';
 import { ItemWarehouses } from '../api/comarch/item.ts';
 import { DocumentType } from '../api/comarch/document.ts';
-import { OrderItem } from './bitrix/order.ts';
+import { OrderData, OrderItem } from './bitrix/order.ts';
 
 export enum OrderView {
   Summary,
@@ -9,7 +9,14 @@ export enum OrderView {
   Item,
 }
 
+// Used for showing different UI variations depending on the action that is taken
+export enum OrderType {
+  Create,
+  Edit,
+}
+
 export type OrderStore = {
+  currentView: OrderView;
   setCurrentView: (view: OrderView) => void;
   currentItem?: ItemWarehouses;
   setCurrentItem: (item: ItemWarehouses) => void;
@@ -17,7 +24,9 @@ export type OrderStore = {
   removeItem: () => void;
   selectedItem: number;
   setSelectedItem: (item: number) => void;
+  order?: OrderData;
   saveOrder: () => Promise<void>;
+  createOrder: () => Promise<void>;
   addDocument: {
     mutation: (
       documentType: DocumentType,

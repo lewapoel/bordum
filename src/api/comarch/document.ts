@@ -155,7 +155,7 @@ export function useAddDocument(token: string) {
       } else if (error.message === 'MISSING_ADDRESS') {
         alert('Brakujący adres nabywcy');
       } else if (error.message === 'MISSING_ORDER_DOCUMENTS') {
-        alert('Nieprawidłowe dane dokumentów zamówienia');
+        alert('Nieprawidłowe dane dokumentów oferty');
       } else {
         console.error(error.message);
         alert('Wystąpił błąd przy dodawaniu dokumentu. Sprawdź konsolę');

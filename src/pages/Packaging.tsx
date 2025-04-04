@@ -408,8 +408,8 @@ export default function Packaging() {
         </>
       ) : (
         <>
-          {status === Status.LOADING && <h1>Ładowanie danych zamówienia...</h1>}
-          {status === Status.EMPTY && <h1>Zamówienie jest puste</h1>}
+          {status === Status.LOADING && <h1>Ładowanie danych oferty...</h1>}
+          {status === Status.EMPTY && <h1>Oferta jest pusta</h1>}
         </>
       )}
     </div>

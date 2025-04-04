@@ -83,14 +83,14 @@ function SplitOrder() {
   const handleSplitOrder = useCallback(() => {
     if (subOrderQuantity === 0) {
       alert(
-        'Nie można podzielić zamówienia, podzamówienie musi mieć minimum jedną ilość produktu',
+        'Nie można podzielić oferty, podoferta musi mieć minimum jedną ilość produktu',
       );
       return;
     }
 
     if (subOrderQuantity === orderQuantity) {
       alert(
-        'Nie można podzielić zamówienia, podzamówienie ma taką samą wartość jak zamówienie główne',
+        'Nie można podzielić oferty, podoferta ma taką samą wartość jak oferta główna',
       );
       return;
     }
@@ -111,7 +111,7 @@ function SplitOrder() {
         alert('Nie udało się utworzyć oferty. Szczegóły w konsoli');
       } else {
         updateOrder(result.data(), subOrderResult, false, false).then(() =>
-          alert('Zamówienie podzielone pomyślnie'),
+          alert('Oferta podzielona pomyślnie'),
         );
       }
     };
@@ -129,7 +129,7 @@ function SplitOrder() {
         const quoteData = {
           fields: {
             ...estimateData,
-            TITLE: `${estimateData.TITLE} - podzamówienie`,
+            TITLE: `${estimateData.TITLE} - podoferta`,
           },
         };
 
@@ -213,9 +213,9 @@ function SplitOrder() {
       {firstLoad ? (
         isDeal || hasDeal ? (
           <>
-            <h1 className='mb-5'>Zamówienie</h1>
+            <h1 className='mb-5'>Oferta</h1>
             <p className='font-bold mb-2'>
-              Łączna kwota zamówienia: {orderSum.toFixed(2)}
+              Łączna kwota oferty: {orderSum.toFixed(2)}
             </p>
             <table>
               <thead>
@@ -250,9 +250,9 @@ function SplitOrder() {
 
             <hr />
 
-            <h1 className='mb-5'>Podzamówienie</h1>
+            <h1 className='mb-5'>Podoferta</h1>
             <p className='font-bold mb-2'>
-              Łączna kwota podzamówienia: {subOrderSum.toFixed(2)}
+              Łączna kwota podoferty: {subOrderSum.toFixed(2)}
             </p>
 
             <div className='justify-center flex items-center gap-2 mb-10'>
@@ -260,7 +260,7 @@ function SplitOrder() {
                 className='place-order mt-5 confirm'
                 onClick={handleSplitOrder}
               >
-                Podziel zamówienie (ENTER)
+                Podziel ofertę (ENTER)
               </button>
             </div>
 
@@ -313,10 +313,12 @@ function SplitOrder() {
             </table>
           </>
         ) : (
-          <h1>Dzielenie zamówienia dostępne tylko dla ofert z deali</h1>
+          <h1>
+            Dzielenie oferty dostępne tylko dla ofert powiązanych z dealem
+          </h1>
         )
       ) : (
-        <h1>Ładowanie danych zamówienia...</h1>
+        <h1>Ładowanie danych oferty...</h1>
       )}
     </>
   );

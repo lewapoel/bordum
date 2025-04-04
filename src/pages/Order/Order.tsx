@@ -102,7 +102,7 @@ export default function Order() {
           {currentView === OrderView.Item && <ItemView />}
         </>
       ) : (
-        <h1>Ładowanie danych zamówienia...</h1>
+        <h1>Ładowanie danych oferty...</h1>
       )}
     </OrderContext.Provider>
   );

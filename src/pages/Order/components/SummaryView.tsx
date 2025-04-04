@@ -114,7 +114,7 @@ export default function SummaryView({ order }: SummaryViewProps) {
 
   return ctx ? (
     <div className='flex flex-col items-center'>
-      <h1 className='mb-5'>Zamówienie</h1>
+      <h1 className='mb-5'>Oferta</h1>
 
       <div className='justify-center flex items-center gap-2 mb-5'>
         <button

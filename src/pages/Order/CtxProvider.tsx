@@ -11,6 +11,7 @@ import { OrderContext, OrderType, OrderView } from '../../models/order.ts';
 import { ItemWarehouses } from '../../api/comarch/item.ts';
 import { AuthContext } from '../../api/comarch/auth.ts';
 import { getCurrentPlacementId } from '../../utils/bitrix24.ts';
+import { getDeal } from '../../api/bitrix24/deal.ts';
 
 interface CtxProviderProps {
   children: ReactNode;
@@ -29,8 +30,21 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
   useEffect(() => {
     switch (orderType) {
       case OrderType.Create:
-        setOrder({ items: [] });
-        setFirstLoad(true);
+        if (!placementId) {
+          alert('Nie można pobrać ID aktualnego deala');
+          return;
+        }
+
+        getDeal(placementId).then((res) => {
+          if (res) {
+            setOrder({
+              items: [],
+              contactId: res.contactId,
+              companyId: res.companyId,
+            });
+            setFirstLoad(true);
+          }
+        });
         break;
 
       case OrderType.Edit:

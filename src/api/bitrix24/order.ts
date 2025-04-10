@@ -149,7 +149,11 @@ export async function hasOrderDeals(placementId: number): Promise<boolean> {
   });
 }
 
-export async function createOrder(dealId: number): Promise<number | null> {
+export async function createOrder(
+  dealId: number,
+  contactId?: number,
+  companyId?: number,
+): Promise<number | null> {
   const bx24 = getBitrix24();
   if (!bx24) {
     return null;
@@ -169,6 +173,8 @@ export async function createOrder(dealId: number): Promise<number | null> {
     const updateBody = {
       fields: {
         DEAL_ID: dealId,
+        CONTACT_ID: contactId,
+        COMPANY_ID: companyId,
       },
     };
 

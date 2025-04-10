@@ -81,13 +81,15 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
 
   const newOrder = useCallback(async () => {
     if (order) {
-      createOrder(placementId).then((orderId) => {
-        if (orderId) {
-          void updateOrder(orderId, order.items, true);
-        } else {
-          alert('Utworzona oferta nie ma identyfikatora');
-        }
-      });
+      createOrder(placementId, order.companyId, order.contactId).then(
+        (orderId) => {
+          if (orderId) {
+            void updateOrder(orderId, order.items, true);
+          } else {
+            alert('Utworzona oferta nie ma identyfikatora');
+          }
+        },
+      );
     }
   }, [placementId, order]);
 

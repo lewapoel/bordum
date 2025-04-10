@@ -12,6 +12,17 @@ import { ItemWarehouses } from '../../api/comarch/item.ts';
 import { AuthContext } from '../../api/comarch/auth.ts';
 import { getCurrentPlacementId } from '../../utils/bitrix24.ts';
 import { getDeal } from '../../api/bitrix24/deal.ts';
+import {
+  CustomerDefaultPrice,
+  getCustomerDefaultPriceName,
+} from '../../models/comarch/customer.ts';
+import { getCompany } from '../../api/bitrix24/company.ts';
+import { getContact } from '../../api/bitrix24/contact.ts';
+import {
+  useGetCustomerByName,
+  useGetCustomerByNip,
+} from '../../api/comarch/customer.ts';
+import { CrmData } from '../../models/bitrix/crm.ts';
 
 interface CtxProviderProps {
   children: ReactNode;
@@ -23,9 +34,64 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
   const [selectedItem, setSelectedItem] = useState(0);
   const [currentView, setCurrentView] = useState<OrderView>(OrderView.Summary);
   const [currentItem, setCurrentItem] = useState<ItemWarehouses>();
+
+  // First and last name
+  const [customerName, setCustomerName] = useState<string>();
+  const customer = useGetCustomerByName(token, customerName);
+
+  // NIP
+  const [companyNip, setCompanyNip] = useState<string>();
+  const company = useGetCustomerByNip(token, companyNip);
+
+  const [selectedPrice, setSelectedPrice] = useState<string>();
   const [order, setOrder] = useState<OrderData>();
   const placementId = getCurrentPlacementId();
-  const [firstLoad, setFirstLoad] = useState(false);
+
+  const setClientData = useCallback((crm: CrmData) => {
+    const defaultPriceName = getCustomerDefaultPriceName(
+      CustomerDefaultPrice.Default,
+    );
+
+    if (crm.companyId && +crm.companyId !== 0) {
+      getCompany(crm.companyId).then((res) => {
+        if (res && res.nip) {
+          setCompanyNip(res.nip);
+        } else {
+          setSelectedPrice(defaultPriceName);
+        }
+      });
+    } else if (crm.contactId && +crm.contactId !== 0) {
+      getContact(crm.contactId).then((res) => {
+        if (res) {
+          setCustomerName(`${res.name} ${res.lastName}`);
+        } else {
+          setSelectedPrice(defaultPriceName);
+        }
+      });
+    } else {
+      setSelectedPrice(defaultPriceName);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!company.isPending) {
+      setSelectedPrice(
+        getCustomerDefaultPriceName(
+          company.data
+            ? company.data.defaultPrice
+            : CustomerDefaultPrice.Default,
+        ),
+      );
+    } else if (!customer.isPending) {
+      setSelectedPrice(
+        getCustomerDefaultPriceName(
+          customer.data
+            ? customer.data.defaultPrice
+            : CustomerDefaultPrice.Default,
+        ),
+      );
+    }
+  }, [company.isPending, customer.data, company.data, customer.isPending]);
 
   useEffect(() => {
     switch (orderType) {
@@ -42,7 +108,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
               contactId: res.contactId,
               companyId: res.companyId,
             });
-            setFirstLoad(true);
+            setClientData(res);
           }
         });
         break;
@@ -56,12 +122,12 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
         getOrder(placementId).then((res) => {
           if (res) {
             setOrder(res);
-            setFirstLoad(true);
+            setClientData(res);
           }
         });
         break;
     }
-  }, [placementId, orderType]);
+  }, [placementId, orderType, setClientData]);
 
   const addDocumentMutation = useAddDocument(token);
 
@@ -133,6 +199,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
         selectedItem,
         setSelectedItem,
         order,
+        selectedPrice,
         saveOrder,
         createOrder: newOrder,
         addDocument: {
@@ -141,7 +208,11 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
         },
       }}
     >
-      {firstLoad ? <>{children}</> : <h1>Ładowanie danych oferty...</h1>}
+      {order && selectedPrice ? (
+        <>{children}</>
+      ) : (
+        <h1>Ładowanie danych oferty...</h1>
+      )}
     </OrderContext.Provider>
   );
 }

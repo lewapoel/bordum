@@ -3,6 +3,7 @@ import {
   CRM_ADDRESS_LIST,
   CRM_COMPANY_GET,
   CRM_CONTACT_GET,
+  CRM_DEAL_GET,
   CRM_MEASURE_LIST,
   CRM_QUOTE_GET,
   CRM_QUOTE_PRODUCTROWS_GET,
@@ -61,6 +62,10 @@ const mockBX24 = {
 
       case 'user.current':
         data = USER_CURRENT;
+        break;
+
+      case 'crm.deal.get':
+        data = CRM_DEAL_GET;
         break;
 
       default:

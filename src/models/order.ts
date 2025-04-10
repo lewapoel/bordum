@@ -25,6 +25,7 @@ export type OrderStore = {
   selectedItem: number;
   setSelectedItem: (item: number) => void;
   order?: OrderData;
+  selectedPrice?: string;
   saveOrder: () => Promise<void>;
   createOrder: () => Promise<void>;
   addDocument: {

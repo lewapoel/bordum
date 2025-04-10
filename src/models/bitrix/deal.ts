@@ -1,5 +1,3 @@
-export type DealData = {
-  id?: number;
-  companyId?: number;
-  contactId?: number;
-};
+import { CrmData } from './crm.ts';
+
+export type DealData = CrmData & {};

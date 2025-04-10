@@ -1,4 +1,3 @@
-import { PRICES } from '../../../data/prices.ts';
 import {
   useCallback,
   useContext,
@@ -11,11 +10,10 @@ import { OrderContext, OrderView } from '../../../models/order.ts';
 
 export default function ItemView() {
   const ctx = useContext(OrderContext);
-  const [selectedPrice, setSelectedPrice] = useState('zakupu');
   const [quantity, setQuantity] = useState('0');
+  const selectedPrice = ctx!.selectedPrice!;
 
   const quantityRef = useRef<HTMLInputElement>(null);
-  const pricesRef = useRef<HTMLSelectElement>(null);
 
   const price = useMemo(
     () => ctx?.currentItem?.prices[selectedPrice],
@@ -56,12 +54,8 @@ export default function ItemView() {
         case 'Tab':
           e.preventDefault();
 
-          if (document.activeElement === pricesRef.current) {
-            quantityRef.current?.focus();
-            quantityRef.current?.select();
-          } else {
-            pricesRef.current?.focus();
-          }
+          quantityRef.current?.focus();
+          quantityRef.current?.select();
 
           break;
         default:
@@ -124,18 +118,7 @@ export default function ItemView() {
             </td>
             <td>{ctx.currentItem.unit}</td>
             <td>
-              <select
-                ref={pricesRef}
-                className='prices'
-                value={selectedPrice}
-                onChange={(e) => setSelectedPrice(e.target.value)}
-              >
-                {PRICES.map((price, idx) => (
-                  <option value={price} key={idx}>
-                    {price}
-                  </option>
-                ))}
-              </select>
+              <p>{selectedPrice}</p>
             </td>
             <td>{price.value}</td>
             <td>{(price.value * +quantity).toFixed(2)}</td>

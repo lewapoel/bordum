@@ -1,8 +1,10 @@
 import { getBitrix24 } from '../../utils/bitrix24.ts';
+import { COMPANY_NIP_FIELD } from './field.ts';
 
 export type Company = {
   id: number;
   title: string;
+  nip?: string;
 };
 
 export async function getCompany(companyId: number): Promise<Company | null> {
@@ -24,6 +26,7 @@ export async function getCompany(companyId: number): Promise<Company | null> {
         resolve({
           id: +data['ID'],
           title: data['TITLE'],
+          nip: data[COMPANY_NIP_FIELD] ?? undefined,
         });
       }
     };

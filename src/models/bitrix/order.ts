@@ -1,3 +1,5 @@
+import { CrmData } from './crm.ts';
+
 export type OrderItem = {
   id?: number;
   warehouseCode: string;
@@ -25,13 +27,10 @@ export type OrderAdditionalData = {
   warehouseCodes?: Array<string>;
 };
 
-export type OrderData = {
-  id?: number;
+export type OrderData = CrmData & {
   dealId?: number;
   leadId?: number;
   buyerNip?: string;
-  companyId?: number;
-  contactId?: number;
   additionalData?: OrderAdditionalData;
   packagingData?: PackagingData;
   items: OrderItems;

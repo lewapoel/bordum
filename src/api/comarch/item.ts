@@ -23,7 +23,7 @@ export function useGetItems(token: string) {
     // eslint-disable-next-line
     queryKey: ['items'],
     queryFn: () =>
-      fetch(`${API_URL}/Items`, {
+      fetch(`${API_URL}/Items?limit=999999999`, {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then(async (response): Promise<Array<Item>> => {

@@ -15,6 +15,7 @@ export async function getStocks(
 ): Promise<Stocks | null> {
   const params = new URLSearchParams({
     warehouseId: warehouseId.toString(),
+    limit: '999999999',
   });
 
   return fetch(`${API_URL}/Stocks?${params}`, {

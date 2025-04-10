@@ -54,7 +54,7 @@ export function useGetCustomerByName(token: string, name?: string) {
     queryKey: ['customer/name', name],
     queryFn: () => {
       if (name) {
-        return fetch(`${API_URL}/Customers`, {
+        return fetch(`${API_URL}/Customers?limit=999999999`, {
           headers: { Authorization: `Bearer ${token}` },
         })
           .then(async (response): Promise<Customer | null> => {

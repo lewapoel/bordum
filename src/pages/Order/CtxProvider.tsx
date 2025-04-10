@@ -95,7 +95,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
 
   const newOrder = useCallback(async () => {
     if (order) {
-      createOrder(placementId, order.companyId, order.contactId).then(
+      createOrder(placementId, order.contactId, order.companyId).then(
         (orderId) => {
           if (orderId) {
             void updateOrder(orderId, order.items, true);

@@ -17,10 +17,29 @@ import { OrderContext, OrderView } from '../../../models/order.ts';
 import { useFuzzySearchList, Highlight } from '@nozbe/microfuzz/react';
 import clsx from 'clsx';
 import { HighlightRanges } from '@nozbe/microfuzz';
+import update from 'immutability-helper';
+import { toast } from 'react-toastify';
 
 type Match = {
   item: ItemWarehouses;
   highlightRanges: HighlightRanges | null;
+};
+
+type RowElements = {
+  quantity: HTMLInputElement | null;
+  discount: HTMLInputElement | null;
+};
+
+type RowsElements = {
+  [key: number]: RowElements;
+};
+
+type Quantities = {
+  [key: number]: string;
+};
+
+type Discounts = {
+  [key: number]: string;
 };
 
 export default function ItemsView() {
@@ -47,7 +66,11 @@ export default function ItemsView() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItem, setSelectedItem] = useState(0);
 
+  const [quantities, setQuantities] = useState<Quantities>({});
+  const [discounts, setDiscounts] = useState<Discounts>({});
+
   const searchBarRef = useRef<HTMLInputElement>(null);
+  const rowsRef = useRef<RowsElements>(null);
 
   const filteredList = useFuzzySearchList<ItemWarehouses, Match>({
     list: itemsWarehouses ?? [],
@@ -62,21 +85,84 @@ export default function ItemsView() {
   const selectItem = useCallback(
     (item: ItemWarehouses) => {
       if (ctx) {
-        ctx.setCurrentItem(item);
-        ctx.setCurrentView(OrderView.Item);
+        const quantity = quantities[item.id];
+        const discount = discounts[item.id];
+
+        if (isNaN(+quantity) || +quantity <= 0) {
+          toast.error('Nieprawidłowa ilość', {
+            position: 'top-center',
+            theme: 'light',
+          });
+          return;
+        }
+
+        if (isNaN(+discount) || +discount <= 0) {
+          toast.error('Nieprawidłowy upust', {
+            position: 'top-center',
+            theme: 'light',
+          });
+          return;
+        }
+
+        const result = ctx.saveItem({
+          warehouseCode: item.code,
+          productName: item.name,
+          quantity: +quantity,
+          unit: item.unit,
+          unitPrice:
+            item.prices[ctx.selectedPrice!].value * (1 - +discount / 100),
+        });
+
+        let resultLocalized: string;
+
+        switch (result) {
+          case 'add':
+            resultLocalized = 'Dodano';
+            break;
+          case 'edit':
+            resultLocalized = 'Edytowano';
+            break;
+        }
+
+        toast.info(`${resultLocalized} produkt: ${item.name}`, {
+          position: 'top-center',
+          theme: 'light',
+        });
       }
     },
-    [ctx],
+    [ctx, quantities, discounts],
   );
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       switch (e.key) {
         case 'ArrowUp':
-          setSelectedItem(Math.max(0, selectedItem - 1));
+          // If not focused on row
+          if (
+            !rowsRef.current ||
+            Object.values(rowsRef.current).every(
+              (elements) =>
+                document.activeElement !== elements.discount &&
+                document.activeElement !== elements.quantity,
+            )
+          ) {
+            setSelectedItem(Math.max(0, selectedItem - 1));
+          }
           break;
         case 'ArrowDown':
-          setSelectedItem(Math.min(filteredList.length - 1, selectedItem + 1));
+          // If not focused on row
+          if (
+            !rowsRef.current ||
+            Object.values(rowsRef.current).every(
+              (elements) =>
+                document.activeElement !== elements.discount &&
+                document.activeElement !== elements.quantity,
+            )
+          ) {
+            setSelectedItem(
+              Math.min(filteredList.length - 1, selectedItem + 1),
+            );
+          }
           break;
         case 'Enter':
           if (selectedItem >= 0 && selectedItem < filteredList.length) {
@@ -91,6 +177,31 @@ export default function ItemsView() {
             ctx.setCurrentView(OrderView.Summary);
           }
           break;
+        case 'Tab':
+          e.preventDefault();
+
+          if (rowsRef.current) {
+            const selectedRow =
+              rowsRef.current[filteredList[selectedItem].item.id];
+
+            switch (document.activeElement) {
+              case selectedRow.quantity:
+                selectedRow.discount?.focus();
+                selectedRow.discount?.select();
+                break;
+
+              case selectedRow.discount:
+                selectedRow.discount?.blur();
+                break;
+
+              default:
+                selectedRow.quantity?.focus();
+                selectedRow.quantity?.select();
+                break;
+            }
+          }
+
+          break;
         default:
           break;
       }
@@ -104,6 +215,19 @@ export default function ItemsView() {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [handleKeyDown]);
+
+  useEffect(() => {
+    if (itemsWarehouses) {
+      rowsRef.current = itemsWarehouses.reduce((acc: RowsElements, item) => {
+        acc[item.id] = {
+          quantity: null,
+          discount: null,
+        };
+
+        return acc;
+      }, {});
+    }
+  }, [itemsWarehouses]);
 
   return ctx && warehouses && itemsWarehouses ? (
     <div>
@@ -139,27 +263,116 @@ export default function ItemsView() {
             {warehouses.map((warehouse) => (
               <th key={warehouse.id}>Stan ({warehouse.name})</th>
             ))}
+            <th>Ilość</th>
+            <th>Jedn. miary</th>
+            <th>Rodzaj ceny</th>
+            <th>Upust (%)</th>
+            <th>Cena jedn.</th>
+            <th>Wartość</th>
           </tr>
         </thead>
         <tbody>
-          {filteredList.map(({ item, highlightRanges }, idx) => (
-            <tr
-              key={item.id}
-              onClick={() => selectItem(item)}
-              className={clsx(
-                selectedItem === idx ? 'bg-gray-300' : '',
-                'cursor-pointer',
-              )}
-              onMouseEnter={() => setSelectedItem(idx)}
-            >
-              <td>
-                <Highlight text={item.name} ranges={highlightRanges} />
-              </td>
-              {Object.values(item.quantities).map((quantity) => (
-                <td key={quantity.warehouseId}>{quantity.quantity}</td>
-              ))}
-            </tr>
-          ))}
+          {filteredList.map(({ item, highlightRanges }, idx) => {
+            const buyPrice = item.prices['zakupu'];
+            const selectedPrice = item.prices[ctx.selectedPrice!];
+
+            const quantity = quantities[item.id] ?? '0';
+            const discount = discounts[item.id] ?? 0;
+
+            // Calculate max discount based on buy price
+            let maxDiscountBuyPrice: number;
+            if (
+              buyPrice.value === 0 ||
+              selectedPrice.value === 0 ||
+              buyPrice.value >= selectedPrice.value
+            ) {
+              maxDiscountBuyPrice = 0;
+            } else {
+              maxDiscountBuyPrice = Math.min(
+                (1 - buyPrice.value / selectedPrice.value) * 100,
+                100,
+              );
+            }
+
+            // Final max discount is limited by both the buy price
+            // and the discount set on Bitrix
+            const maxDiscount = Math.min(
+              ctx.maxDiscount ?? 0,
+              maxDiscountBuyPrice,
+            );
+
+            const discountMultiplier = 1 - +discount / 100;
+            const unitPrice = selectedPrice.value * discountMultiplier;
+            const price = unitPrice * +quantity;
+
+            return (
+              <tr
+                key={item.id}
+                className={clsx(selectedItem === idx ? 'bg-gray-300' : '')}
+                onMouseEnter={() => setSelectedItem(idx)}
+              >
+                <td>
+                  <Highlight text={item.name} ranges={highlightRanges} />
+                </td>
+                {Object.values(item.quantities).map((quantity) => (
+                  <td key={quantity.warehouseId}>{quantity.quantity}</td>
+                ))}
+                <td>
+                  <input
+                    ref={(el) => {
+                      if (rowsRef.current) {
+                        rowsRef.current[item.id!].quantity = el;
+                      }
+                    }}
+                    className='w-[100px]'
+                    type='number'
+                    min={0}
+                    value={quantity}
+                    onChange={(e) =>
+                      setQuantities((prev) =>
+                        update(prev, { [item.id]: { $set: e.target.value } }),
+                      )
+                    }
+                  />
+                </td>
+                <td>{item.unit}</td>
+                <td>
+                  <p>{ctx.selectedPrice}</p>
+                </td>
+                <td>
+                  <input
+                    ref={(el) => {
+                      if (rowsRef.current) {
+                        rowsRef.current[item.id!].discount = el;
+                      }
+                    }}
+                    className='w-[100px]'
+                    type='number'
+                    min={0}
+                    max={maxDiscount}
+                    value={discount}
+                    onChange={(e) =>
+                      setDiscounts((prev) =>
+                        update(prev, {
+                          [item.id]: {
+                            $set:
+                              e.target.value === ''
+                                ? ''
+                                : Math.min(
+                                    Math.max(0, +e.target.value),
+                                    Math.floor(maxDiscount),
+                                  ).toString(),
+                          },
+                        }),
+                      )
+                    }
+                  />
+                </td>
+                <td>{unitPrice.toFixed(2)}</td>
+                <td>{price.toFixed(2)}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

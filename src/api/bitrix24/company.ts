@@ -1,10 +1,11 @@
 import { getBitrix24 } from '../../utils/bitrix24.ts';
-import { COMPANY_NIP_FIELD } from './field.ts';
+import { COMPANY_DISCOUNT_FIELD, COMPANY_NIP_FIELD } from './field.ts';
 
 export type Company = {
   id: number;
   title: string;
   nip?: string;
+  discount?: number;
 };
 
 export async function getCompany(companyId: number): Promise<Company | null> {
@@ -22,11 +23,25 @@ export async function getCompany(companyId: number): Promise<Company | null> {
         reject();
       } else {
         const data = result.data();
+        const discountField = data[COMPANY_DISCOUNT_FIELD];
+
+        let discount: number | undefined;
+
+        if (
+          !discountField ||
+          discountField.length === 0 ||
+          isNaN(+discountField)
+        ) {
+          discount = undefined;
+        } else {
+          discount = +discountField;
+        }
 
         resolve({
           id: +data['ID'],
           title: data['TITLE'],
-          nip: data[COMPANY_NIP_FIELD] ?? undefined,
+          nip: data[COMPANY_NIP_FIELD] || undefined,
+          discount,
         });
       }
     };

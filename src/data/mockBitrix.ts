@@ -546,6 +546,7 @@ export const CRM_COMPANY_GET = {
   UF_CRM_1731450828: '',
   UF_CRM_1731450861: '',
   UF_CRM_1732189269: '',
+  UF_CRM_1744656184041: '100',
 };
 
 export const CRM_CONTACT_GET = {
@@ -598,6 +599,7 @@ export const CRM_CONTACT_GET = {
   UF_CRM_64D04ED8DE94A: '',
   UF_CRM_1711423888214: '56',
   UF_CRM_1732189368: '',
+  UF_CRM_1744656104583: '',
   PHONE: [
     {
       ID: '3256',

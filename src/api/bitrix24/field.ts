@@ -9,3 +9,7 @@ export const ORDER_DOCUMENTS_ID_FIELD = 'UF_CRM_QUOTE_1742237185';
 
 // Company additional fields
 export const COMPANY_NIP_FIELD = 'UF_CRM_1731450652';
+export const COMPANY_DISCOUNT_FIELD = 'UF_CRM_1744656184041';
+
+// Contact additional fields
+export const CONTACT_DISCOUNT_FIELD = 'UF_CRM_1744656104583';

@@ -18,9 +18,9 @@ export async function getDeal(placementId: number): Promise<DealData | null> {
         const data = result.data();
 
         resolve({
-          id: data['ID'] ?? undefined,
-          companyId: data['COMPANY_ID'] ?? undefined,
-          contactId: data['CONTACT_ID'] ?? undefined,
+          id: data['ID'] || undefined,
+          companyId: data['COMPANY_ID'] || undefined,
+          contactId: data['CONTACT_ID'] || undefined,
         });
       }
     };

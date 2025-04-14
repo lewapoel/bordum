@@ -35,7 +35,7 @@ function SummaryRow({
       <td>{item?.productName}</td>
       <td>{item?.quantity}</td>
       <td>{item?.unit}</td>
-      <td>{item?.unitPrice}</td>
+      <td>{item?.unitPrice.toFixed(2)}</td>
       <td>{item ? (item.unitPrice * item.quantity).toFixed(2) : null}</td>
     </tr>
   );

@@ -8,6 +8,7 @@ import Packaging from './pages/Packaging.tsx';
 import './App.css';
 import ReleaseDocuments from './pages/ReleaseDocuments.tsx';
 import CreateOrder from './pages/Order/CreateOrder.tsx';
+import { ToastContainer } from 'react-toastify';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,6 +23,7 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <ToastContainer />
       <ReactQueryDevtools initialIsOpen={false} />
       <AuthProvider>
         <Router>

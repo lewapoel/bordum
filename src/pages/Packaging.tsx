@@ -215,7 +215,6 @@ export default function Packaging() {
           const keys = Object.keys(prev);
 
           keys.forEach((key) => {
-            console.log(key);
             prev = update(prev, {
               [key]: {
                 $apply: (item) => ({

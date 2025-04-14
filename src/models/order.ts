@@ -1,12 +1,10 @@
 import { createContext } from 'react';
-import { ItemWarehouses } from '../api/comarch/item.ts';
 import { DocumentType } from '../api/comarch/document.ts';
 import { OrderData, OrderItem } from './bitrix/order.ts';
 
 export enum OrderView {
   Summary,
   Items,
-  Item,
 }
 
 // Used for showing different UI variations depending on the action that is taken
@@ -16,11 +14,10 @@ export enum OrderType {
 }
 
 export type OrderStore = {
+  maxDiscount?: number;
   currentView: OrderView;
   setCurrentView: (view: OrderView) => void;
-  currentItem?: ItemWarehouses;
-  setCurrentItem: (item: ItemWarehouses) => void;
-  saveItem: (item: OrderItem) => void;
+  saveItem: (item: OrderItem) => 'add' | 'edit';
   removeItem: () => void;
   selectedItem: number;
   setSelectedItem: (item: number) => void;

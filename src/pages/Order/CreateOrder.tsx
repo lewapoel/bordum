@@ -1,7 +1,6 @@
 import { OrderContext, OrderType, OrderView } from '../../models/order.ts';
 import SummaryView from './components/SummaryView.tsx';
 import ItemsView from './components/ItemsView.tsx';
-import ItemView from './components/ItemView.tsx';
 import CtxProvider from './CtxProvider.tsx';
 import { useContext } from 'react';
 
@@ -16,7 +15,6 @@ function CreateOrderCtx() {
             <SummaryView order={ctx.order} orderType={OrderType.Create} />
           )}
           {ctx.currentView === OrderView.Items && <ItemsView />}
-          {ctx.currentView === OrderView.Item && <ItemView />}
         </>
       )}
     </>

@@ -30,8 +30,8 @@ export async function getAddress(
 
         if (addressData) {
           resolve({
-            address1: addressData['ADDRESS_1'] ?? undefined,
-            address2: addressData['ADDRESS_2'] ?? undefined,
+            address1: addressData['ADDRESS_1'] || undefined,
+            address2: addressData['ADDRESS_2'] || undefined,
           });
         } else {
           resolve(null);

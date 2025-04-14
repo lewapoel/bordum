@@ -8,7 +8,6 @@ import {
 } from '../../api/bitrix24/order.ts';
 import { DocumentType, useAddDocument } from '../../api/comarch/document.ts';
 import { OrderContext, OrderType, OrderView } from '../../models/order.ts';
-import { ItemWarehouses } from '../../api/comarch/item.ts';
 import { AuthContext } from '../../api/comarch/auth.ts';
 import { getCurrentPlacementId } from '../../utils/bitrix24.ts';
 import { getDeal } from '../../api/bitrix24/deal.ts';
@@ -33,7 +32,6 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
   const { token } = useContext(AuthContext);
   const [selectedItem, setSelectedItem] = useState(0);
   const [currentView, setCurrentView] = useState<OrderView>(OrderView.Summary);
-  const [currentItem, setCurrentItem] = useState<ItemWarehouses>();
 
   // First and last name
   const [customerName, setCustomerName] = useState<string>();
@@ -43,6 +41,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
   const [companyNip, setCompanyNip] = useState<string>();
   const company = useGetCustomerByNip(token, companyNip);
 
+  const [maxDiscount, setMaxDiscount] = useState<number>();
   const [selectedPrice, setSelectedPrice] = useState<string>();
   const [order, setOrder] = useState<OrderData>();
   const placementId = getCurrentPlacementId();
@@ -54,8 +53,9 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
 
     if (crm.companyId && +crm.companyId !== 0) {
       getCompany(crm.companyId).then((res) => {
-        if (res && res.nip) {
+        if (res) {
           setCompanyNip(res.nip);
+          setMaxDiscount(res.discount);
         } else {
           setSelectedPrice(defaultPriceName);
         }
@@ -64,6 +64,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
       getContact(crm.contactId).then((res) => {
         if (res) {
           setCustomerName(`${res.name} ${res.lastName}`);
+          setMaxDiscount(res.discount);
         } else {
           setSelectedPrice(defaultPriceName);
         }
@@ -136,10 +137,15 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
       // Adding new item when `selectedItem` is out of range
       if (selectedItem === order?.items.length) {
         setOrder((prev) => update(prev, { items: { $push: [item] } }));
+
+        // Keep "new item" row selected
+        setSelectedItem(selectedItem + 1);
+        return 'add';
       } else {
         setOrder((prev) =>
           update(prev, { items: { [selectedItem]: { $set: item } } }),
         );
+        return 'edit';
       }
     },
     [selectedItem, order],
@@ -190,8 +196,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
   return (
     <OrderContext.Provider
       value={{
-        currentItem,
-        setCurrentItem,
+        maxDiscount,
         currentView,
         setCurrentView,
         saveItem,

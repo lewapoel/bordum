@@ -136,17 +136,56 @@ export default function ItemsView() {
     [ctx, quantities, discounts],
   );
 
+  const selectRow = useCallback(
+    (rowIndex: number, reset: boolean = false) => {
+      if (rowsRef.current) {
+        const selectedRow = rowsRef.current[filteredList[rowIndex].item.id];
+
+        if (reset) {
+          selectedRow.quantity?.focus();
+          selectedRow.quantity?.select();
+        } else {
+          switch (document.activeElement) {
+            case selectedRow.quantity:
+              selectedRow.discount?.focus();
+              selectedRow.discount?.select();
+              break;
+
+            default:
+              selectedRow.quantity?.focus();
+              selectedRow.quantity?.select();
+              break;
+          }
+        }
+      }
+    },
+    [filteredList],
+  );
+
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       switch (e.key) {
         case 'ArrowUp':
           e.preventDefault();
-          setSelectedItem(Math.max(0, selectedItem - 1));
+
+          {
+            const newSelectedItem = Math.max(0, selectedItem - 1);
+            selectRow(newSelectedItem, true);
+            setSelectedItem(newSelectedItem);
+          }
 
           break;
         case 'ArrowDown':
           e.preventDefault();
-          setSelectedItem(Math.min(filteredList.length - 1, selectedItem + 1));
+
+          {
+            const newSelectedItem = Math.min(
+              filteredList.length - 1,
+              selectedItem + 1,
+            );
+            selectRow(newSelectedItem, true);
+            setSelectedItem(newSelectedItem);
+          }
 
           break;
         case 'Enter':
@@ -164,34 +203,14 @@ export default function ItemsView() {
           break;
         case 'Tab':
           e.preventDefault();
-
-          if (rowsRef.current) {
-            const selectedRow =
-              rowsRef.current[filteredList[selectedItem].item.id];
-
-            switch (document.activeElement) {
-              case selectedRow.quantity:
-                selectedRow.discount?.focus();
-                selectedRow.discount?.select();
-                break;
-
-              case selectedRow.discount:
-                selectedRow.discount?.blur();
-                break;
-
-              default:
-                selectedRow.quantity?.focus();
-                selectedRow.quantity?.select();
-                break;
-            }
-          }
+          selectRow(selectedItem);
 
           break;
         default:
           break;
       }
     },
-    [ctx, selectedItem, selectItem, filteredList, searchBarRef],
+    [ctx, selectedItem, selectItem, filteredList, searchBarRef, selectRow],
   );
 
   useEffect(() => {

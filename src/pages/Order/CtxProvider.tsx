@@ -94,6 +94,12 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
   }, [company.isPending, customer.data, company.data, customer.isPending]);
 
   useEffect(() => {
+    getCurrentUser().then((res) => {
+      if (res) {
+        setMaxDiscount(res.discount);
+      }
+    });
+
     switch (orderType) {
       case OrderType.Create:
         if (!placementId) {
@@ -118,12 +124,6 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
           alert('Nie można pobrać ID aktualnej oferty');
           return;
         }
-
-        getCurrentUser().then((res) => {
-          if (res) {
-            setMaxDiscount(res.discount);
-          }
-        });
 
         getOrder(placementId).then((res) => {
           if (res) {

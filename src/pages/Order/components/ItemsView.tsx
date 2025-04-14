@@ -92,7 +92,7 @@ export default function ItemsView() {
           toast.error('Nieprawidłowa ilość', {
             position: 'top-center',
             theme: 'light',
-            autoClose: 500,
+            autoClose: 700,
           });
           return;
         }
@@ -101,7 +101,7 @@ export default function ItemsView() {
           toast.error('Nieprawidłowy upust', {
             position: 'top-center',
             theme: 'light',
-            autoClose: 500,
+            autoClose: 700,
           });
           return;
         }
@@ -129,7 +129,7 @@ export default function ItemsView() {
         toast.info(`${resultLocalized} produkt: ${item.name}`, {
           position: 'top-center',
           theme: 'light',
-          autoClose: 500,
+          autoClose: 700,
         });
       }
     },

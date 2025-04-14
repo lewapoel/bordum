@@ -22,6 +22,7 @@ import {
   useGetCustomerByNip,
 } from '../../api/comarch/customer.ts';
 import { CrmData } from '../../models/bitrix/crm.ts';
+import { getCurrentUser } from '../../api/bitrix24/user.ts';
 
 interface CtxProviderProps {
   children: ReactNode;
@@ -55,7 +56,6 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
       getCompany(crm.companyId).then((res) => {
         if (res) {
           setCompanyNip(res.nip);
-          setMaxDiscount(res.discount);
         } else {
           setSelectedPrice(defaultPriceName);
         }
@@ -64,7 +64,6 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
       getContact(crm.contactId).then((res) => {
         if (res) {
           setCustomerName(`${res.name} ${res.lastName}`);
-          setMaxDiscount(res.discount);
         } else {
           setSelectedPrice(defaultPriceName);
         }
@@ -119,6 +118,12 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
           alert('Nie można pobrać ID aktualnej oferty');
           return;
         }
+
+        getCurrentUser().then((res) => {
+          if (res) {
+            setMaxDiscount(res.discount);
+          }
+        });
 
         getOrder(placementId).then((res) => {
           if (res) {

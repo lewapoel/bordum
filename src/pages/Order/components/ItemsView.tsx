@@ -86,20 +86,22 @@ export default function ItemsView() {
     (item: ItemWarehouses) => {
       if (ctx) {
         const quantity = quantities[item.id];
-        const discount = discounts[item.id];
+        const discount = discounts[item.id] ?? 0;
 
         if (isNaN(+quantity) || +quantity <= 0) {
           toast.error('Nieprawidłowa ilość', {
             position: 'top-center',
             theme: 'light',
+            autoClose: 500,
           });
           return;
         }
 
-        if (isNaN(+discount) || +discount <= 0) {
+        if (isNaN(+discount) || +discount < 0) {
           toast.error('Nieprawidłowy upust', {
             position: 'top-center',
             theme: 'light',
+            autoClose: 500,
           });
           return;
         }
@@ -127,6 +129,7 @@ export default function ItemsView() {
         toast.info(`${resultLocalized} produkt: ${item.name}`, {
           position: 'top-center',
           theme: 'light',
+          autoClose: 500,
         });
       }
     },

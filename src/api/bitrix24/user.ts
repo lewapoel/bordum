@@ -1,9 +1,11 @@
 import { getBitrix24 } from '../../utils/bitrix24.ts';
+import { USER_DISCOUNT_FIELD } from './field.ts';
 
 export type User = {
   id: number;
   firstName: string;
   lastName: string;
+  discount?: number;
 };
 
 export async function getUsers(): Promise<Array<User> | null> {
@@ -21,6 +23,19 @@ export async function getUsers(): Promise<Array<User> | null> {
         reject();
       } else {
         const data = result.data();
+        const discountField = data[USER_DISCOUNT_FIELD];
+
+        let discount: number | undefined;
+
+        if (
+          !discountField ||
+          discountField.length === 0 ||
+          isNaN(+discountField)
+        ) {
+          discount = undefined;
+        } else {
+          discount = +discountField;
+        }
 
         resolve(
           data.map(
@@ -28,6 +43,7 @@ export async function getUsers(): Promise<Array<User> | null> {
               id: +item['ID'],
               firstName: item['NAME'],
               lastName: item['LAST_NAME'],
+              discount,
             }),
           ),
         );
@@ -55,11 +71,25 @@ export async function getCurrentUser(): Promise<User | null> {
         reject();
       } else {
         const data = result.data();
+        const discountField = data[USER_DISCOUNT_FIELD];
+
+        let discount: number | undefined;
+
+        if (
+          !discountField ||
+          discountField.length === 0 ||
+          isNaN(+discountField)
+        ) {
+          discount = undefined;
+        } else {
+          discount = +discountField;
+        }
 
         resolve({
           id: +data['ID'],
           firstName: data['NAME'],
           lastName: data['LAST_NAME'],
+          discount,
         });
       }
     };

@@ -140,32 +140,14 @@ export default function ItemsView() {
     (e: KeyboardEvent) => {
       switch (e.key) {
         case 'ArrowUp':
-          // If not focused on row
-          if (
-            !rowsRef.current ||
-            Object.values(rowsRef.current).every(
-              (elements) =>
-                document.activeElement !== elements.discount &&
-                document.activeElement !== elements.quantity,
-            )
-          ) {
-            setSelectedItem(Math.max(0, selectedItem - 1));
-          }
+          e.preventDefault();
+          setSelectedItem(Math.max(0, selectedItem - 1));
+
           break;
         case 'ArrowDown':
-          // If not focused on row
-          if (
-            !rowsRef.current ||
-            Object.values(rowsRef.current).every(
-              (elements) =>
-                document.activeElement !== elements.discount &&
-                document.activeElement !== elements.quantity,
-            )
-          ) {
-            setSelectedItem(
-              Math.min(filteredList.length - 1, selectedItem + 1),
-            );
-          }
+          e.preventDefault();
+          setSelectedItem(Math.min(filteredList.length - 1, selectedItem + 1));
+
           break;
         case 'Enter':
           if (selectedItem >= 0 && selectedItem < filteredList.length) {

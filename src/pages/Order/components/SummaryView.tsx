@@ -1,6 +1,13 @@
 import clsx from 'clsx';
 import { OrderData, OrderItem } from '../../../models/bitrix/order.ts';
-import { useCallback, useContext, useEffect, useMemo } from 'react';
+import {
+  RefObject,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import { OrderContext, OrderType, OrderView } from '../../../models/order.ts';
 import { DocumentType } from '../../../api/comarch/document.ts';
 
@@ -12,6 +19,7 @@ interface SummaryRowProps {
   editItemQuantity: (index: number, quantity: number) => void;
   className?: string;
   selectItem: () => void;
+  quantitiesRef: RefObject<Array<HTMLInputElement | null>>;
 }
 
 function SummaryRow({
@@ -22,6 +30,7 @@ function SummaryRow({
   item,
   editItemQuantity,
   className,
+  quantitiesRef,
 }: SummaryRowProps) {
   return (
     <tr
@@ -38,6 +47,9 @@ function SummaryRow({
       <td>
         {item ? (
           <input
+            ref={(el) => {
+              quantitiesRef.current[index] = el;
+            }}
             className='w-[50px]'
             type='number'
             min={0}
@@ -62,6 +74,8 @@ interface SummaryViewProps {
 
 export default function SummaryView({ order, orderType }: SummaryViewProps) {
   const ctx = useContext(OrderContext);
+
+  const quantitiesRef = useRef<Array<HTMLInputElement | null>>([]);
 
   const sum = useMemo(
     () =>
@@ -92,6 +106,23 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
     }
   }, [ctx, order.items.length]);
 
+  const selectRowQuantity = useCallback(
+    (index: number) => {
+      if (index < 0 || index >= order.items.length) {
+        if (document.activeElement instanceof HTMLInputElement) {
+          document.activeElement.blur();
+        }
+
+        return;
+      }
+
+      const quantityRef = quantitiesRef.current?.[index];
+      quantityRef?.focus();
+      quantityRef?.select();
+    },
+    [order.items],
+  );
+
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       switch (e.key) {
@@ -99,7 +130,9 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
           e.preventDefault();
 
           if (ctx) {
-            ctx.setSelectedItem(Math.max(0, ctx.selectedItem - 1));
+            const newSelectedItem = Math.max(0, ctx.selectedItem - 1);
+            ctx.setSelectedItem(newSelectedItem);
+            selectRowQuantity(newSelectedItem);
           }
           break;
         case 'ArrowDown':
@@ -107,9 +140,12 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
 
           if (ctx) {
             // Max index is order.length, because there is an additional empty item for adding new rows
-            ctx.setSelectedItem(
-              Math.min(order.items.length, ctx.selectedItem + 1),
+            const newSelectedItem = Math.min(
+              order.items.length,
+              ctx.selectedItem + 1,
             );
+            ctx.setSelectedItem(newSelectedItem);
+            selectRowQuantity(newSelectedItem);
           }
           break;
         case 'Enter':
@@ -133,11 +169,25 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
             void ctx.addDocument.mutation(DocumentType.PROFORMA_DOCUMENT);
           }
           break;
+        case 'Tab':
+          e.preventDefault();
+
+          if (ctx) {
+            selectRowQuantity(ctx.selectedItem);
+          }
+          break;
         default:
           break;
       }
     },
-    [ctx, order.items.length, orderType, saveOrder, selectItem],
+    [
+      ctx,
+      order.items.length,
+      orderType,
+      saveOrder,
+      selectItem,
+      selectRowQuantity,
+    ],
   );
 
   useEffect(() => {
@@ -146,6 +196,10 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [handleKeyDown]);
+
+  useEffect(() => {
+    selectRowQuantity(0);
+  }, []);
 
   return ctx ? (
     <div className='flex flex-col items-center'>
@@ -208,6 +262,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
         <tbody>
           {order.items.map((item, idx) => (
             <SummaryRow
+              quantitiesRef={quantitiesRef}
               selectItem={selectItem}
               key={idx}
               setSelectedItem={ctx.setSelectedItem}
@@ -218,6 +273,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
             />
           ))}
           <SummaryRow
+            quantitiesRef={quantitiesRef}
             selectItem={selectItem}
             editItemQuantity={ctx.editItemQuantity}
             setSelectedItem={ctx.setSelectedItem}

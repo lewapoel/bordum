@@ -9,22 +9,24 @@ interface SummaryRowProps {
   selectedItem: number;
   setSelectedItem: (index: number) => void;
   item?: OrderItem;
+  editItemQuantity: (index: number, quantity: number) => void;
   className?: string;
-  setCurrentView: (view: OrderView) => void;
+  selectItem: () => void;
 }
 
 function SummaryRow({
   index,
   setSelectedItem,
-  setCurrentView,
+  selectItem,
   selectedItem,
   item,
+  editItemQuantity,
   className,
 }: SummaryRowProps) {
   return (
     <tr
       onMouseEnter={() => setSelectedItem(index)}
-      onClick={() => setCurrentView(OrderView.Items)}
+      onClick={() => selectItem()}
       className={clsx(
         selectedItem === index ? 'bg-gray-300' : '',
         'cursor-pointer',
@@ -33,7 +35,19 @@ function SummaryRow({
     >
       <td>{index + 1}</td>
       <td>{item?.productName}</td>
-      <td>{item?.quantity}</td>
+      <td>
+        {item ? (
+          <input
+            className='w-[50px]'
+            type='number'
+            min={0}
+            value={item.quantity}
+            onChange={(e) => editItemQuantity(index, +e.target.value)}
+          />
+        ) : (
+          <></>
+        )}
+      </td>
       <td>{item?.unit}</td>
       <td>{item?.unitPrice.toFixed(2)}</td>
       <td>{item ? (item.unitPrice * item.quantity).toFixed(2) : null}</td>
@@ -71,15 +85,26 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
     }
   }, [ctx, orderType]);
 
+  const selectItem = useCallback(() => {
+    // Allow selecting only last additional row for creating new entries
+    if (ctx && ctx.selectedItem === order.items.length) {
+      ctx.setCurrentView(OrderView.Items);
+    }
+  }, [ctx, order.items.length]);
+
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       switch (e.key) {
         case 'ArrowUp':
+          e.preventDefault();
+
           if (ctx) {
             ctx.setSelectedItem(Math.max(0, ctx.selectedItem - 1));
           }
           break;
         case 'ArrowDown':
+          e.preventDefault();
+
           if (ctx) {
             // Max index is order.length, because there is an additional empty item for adding new rows
             ctx.setSelectedItem(
@@ -88,9 +113,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
           }
           break;
         case 'Enter':
-          if (ctx) {
-            ctx.setCurrentView(OrderView.Items);
-          }
+          selectItem();
           break;
         case 'Insert':
           saveOrder();
@@ -114,7 +137,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
           break;
       }
     },
-    [ctx, order, orderType, saveOrder],
+    [ctx, order.items.length, orderType, saveOrder, selectItem],
   );
 
   useEffect(() => {
@@ -185,16 +208,18 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
         <tbody>
           {order.items.map((item, idx) => (
             <SummaryRow
-              setCurrentView={ctx.setCurrentView}
+              selectItem={selectItem}
               key={idx}
               setSelectedItem={ctx.setSelectedItem}
+              editItemQuantity={ctx.editItemQuantity}
               selectedItem={ctx.selectedItem}
               index={idx}
               item={item}
             />
           ))}
           <SummaryRow
-            setCurrentView={ctx.setCurrentView}
+            selectItem={selectItem}
+            editItemQuantity={ctx.editItemQuantity}
             setSelectedItem={ctx.setSelectedItem}
             selectedItem={ctx.selectedItem}
             index={order.items.length}

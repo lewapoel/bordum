@@ -156,6 +156,19 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
     [selectedItem, order],
   );
 
+  const editItemQuantity = useCallback(
+    (index: number, quantity: number) => {
+      if (order && index >= 0 && index < order.items.length) {
+        setOrder((prev) =>
+          update(prev, {
+            items: { [index]: { quantity: { $set: quantity } } },
+          }),
+        );
+      }
+    },
+    [order],
+  );
+
   const removeItem = useCallback(() => {
     if (order && selectedItem < order.items.length) {
       setOrder((prev) =>
@@ -205,6 +218,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
         currentView,
         setCurrentView,
         saveItem,
+        editItemQuantity,
         removeItem,
         selectedItem,
         setSelectedItem,

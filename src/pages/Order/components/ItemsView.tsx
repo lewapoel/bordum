@@ -194,7 +194,7 @@ export default function ItemsView() {
           }
           break;
         case 'Insert':
-          searchBarRef.current?.focus();
+          // searchBarRef.current?.focus();
           break;
         case 'Escape':
           if (ctx) {
@@ -210,7 +210,7 @@ export default function ItemsView() {
           break;
       }
     },
-    [ctx, selectedItem, selectItem, filteredList, searchBarRef, selectRow],
+    [ctx, selectedItem, selectItem, filteredList, selectRow],
   );
 
   useEffect(() => {
@@ -233,23 +233,27 @@ export default function ItemsView() {
     }
   }, [itemsWarehouses]);
 
+  useEffect(() => {
+    searchBarRef.current?.focus();
+  }, [itemsWarehouses]);
+
   return ctx && warehouses && itemsWarehouses ? (
     <div>
       <h1 className='mb-5'>Wybór towaru</h1>
 
       <div className='justify-center flex items-center gap-2 mb-10'>
         <button
-          className='delete'
+          className='confirm'
           onClick={() => ctx.setCurrentView(OrderView.Summary)}
         >
-          Anuluj (ESC)
+          Powrót do oferty (ESC)
         </button>
       </div>
 
       <div className='text-[20px] justify-center flex items-center gap-4 mb-10'>
         <p>Zmień zaznaczoną pozycję (↑/↓)</p>
-        <p>Wybierz pozycję (ENTER)</p>
-        <p>Przejdź do wyszukiwarki (INSERT)</p>
+        <p>Potwierdź pozycję (ENTER)</p>
+        {/*<p>Przejdź do wyszukiwarki (INSERT)</p>*/}
       </div>
 
       <input

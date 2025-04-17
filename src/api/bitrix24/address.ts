@@ -1,6 +1,10 @@
 import { getBitrix24 } from '../../utils/bitrix24.ts';
 
 export type Address = {
+  city?: string;
+  postalCode?: string;
+  country?: string;
+
   // Street, house, building, structure
   address1?: string;
 
@@ -32,6 +36,9 @@ export async function getAddress(
           resolve({
             address1: addressData['ADDRESS_1'] || undefined,
             address2: addressData['ADDRESS_2'] || undefined,
+            city: addressData['CITY'] || undefined,
+            country: addressData['COUNTRY'] || undefined,
+            postalCode: addressData['POSTAL_CODE'] || undefined,
           });
         } else {
           resolve(null);

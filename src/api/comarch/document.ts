@@ -68,8 +68,6 @@ export function useAddDocument(token: string) {
           vatNumber: company.nip,
           name1: company.title,
           email: company.email,
-          city: address.address1,
-          street: address.address2,
           phone1: company.phone,
         };
       } else if (contact) {
@@ -77,11 +75,18 @@ export function useAddDocument(token: string) {
           code: `${contact.name} ${contact.lastName}`,
           name1: `${contact.name} ${contact.lastName}`,
           email: contact.email,
-          city: address.address1,
-          street: address.address2,
           phone1: contact.phone,
         };
       }
+
+      buyer = {
+        ...buyer,
+        city: address.city,
+        country: address.country,
+        postCode: address.postalCode,
+        street: address.address1,
+        houseNumber: address.address2,
+      };
 
       const orderDocuments = await getOrderDocuments(placementId);
       if (!orderDocuments) {

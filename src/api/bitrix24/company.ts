@@ -5,6 +5,8 @@ export type Company = {
   id: number;
   title: string;
   nip?: string;
+  email?: string;
+  phone?: string;
 };
 
 export async function getCompany(companyId: number): Promise<Company | null> {
@@ -27,6 +29,8 @@ export async function getCompany(companyId: number): Promise<Company | null> {
           id: +data['ID'],
           title: data['TITLE'],
           nip: data[COMPANY_NIP_FIELD] || undefined,
+          email: data['EMAIL']?.[0]?.['VALUE'],
+          phone: data['PHONE']?.[0]?.['VALUE'],
         });
       }
     };

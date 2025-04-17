@@ -33,39 +33,55 @@ export function useAddDocument(token: string) {
       documentType,
       ignoreDeleteError,
     }: AddDocument) => {
-      if (!order.companyId || !order.contactId) {
+      if (!order.companyId && !order.contactId) {
         throw new Error('MISSING_BUYER_ID');
       }
 
-      if (!order.buyerNip) {
-        throw new Error('MISSING_NIP');
+      let company;
+      let contact;
+
+      if (order.companyId) {
+        company = await getCompany(order.companyId);
+      } else if (order.contactId) {
+        contact = await getContact(order.contactId);
       }
 
-      const company = await getCompany(order.companyId);
-      const contact = await getContact(order.contactId);
-
-      if (!company || !contact) {
+      if (!company && !contact) {
         throw new Error('MISSING_DATA');
       }
 
-      const contactAddress = await getAddress(
-        BitrixType.CONTACT,
-        order.contactId,
-      );
-      if (!contactAddress) {
+      let address;
+      if (company) {
+        address = await getAddress(BitrixType.COMPANY, order.companyId!);
+      } else if (contact) {
+        address = await getAddress(BitrixType.CONTACT, order.contactId!);
+      }
+
+      if (!address) {
         throw new Error('MISSING_ADDRESS');
       }
 
-      const buyer = {
-        code: order.buyerNip,
-        vatNumber: order.buyerNip,
-        name1: company.title,
-        name2: `${contact.name} ${contact.lastName}`,
-        email: contact.email,
-        city: contactAddress.address1,
-        street: contactAddress.address2,
-        phone1: contact.phone,
-      };
+      let buyer;
+      if (company) {
+        buyer = {
+          code: company.nip ?? company.title,
+          vatNumber: company.nip,
+          name1: company.title,
+          email: company.email,
+          city: address.address1,
+          street: address.address2,
+          phone1: company.phone,
+        };
+      } else if (contact) {
+        buyer = {
+          code: `${contact.name} ${contact.lastName}`,
+          name1: `${contact.name} ${contact.lastName}`,
+          email: contact.email,
+          city: address.address1,
+          street: address.address2,
+          phone1: contact.phone,
+        };
+      }
 
       const orderDocuments = await getOrderDocuments(placementId);
       if (!orderDocuments) {
@@ -150,8 +166,8 @@ export function useAddDocument(token: string) {
         );
       } else if (error.message === 'MISSING_BUYER_ID') {
         alert('Brakujące dane nabywcy');
-      } else if (error.message === 'MISSING_NIP') {
-        alert('Brakujące pole NIP/PESEL');
+      } else if (error.message === 'MISSING_DATA') {
+        alert('Nie udało się pobrać danych nabywcy');
       } else if (error.message === 'MISSING_ADDRESS') {
         alert('Brakujący adres nabywcy');
       } else if (error.message === 'MISSING_ORDER_DOCUMENTS') {

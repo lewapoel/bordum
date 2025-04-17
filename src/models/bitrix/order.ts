@@ -30,7 +30,6 @@ export type OrderAdditionalData = {
 export type OrderData = CrmData & {
   dealId?: number;
   leadId?: number;
-  buyerNip?: string;
   additionalData?: OrderAdditionalData;
   packagingData?: PackagingData;
   items: OrderItems;

@@ -199,7 +199,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
 
   useEffect(() => {
     selectRowQuantity(0);
-  }, []);
+  }, [selectRowQuantity]);
 
   return ctx ? (
     <div className='flex flex-col items-center'>
@@ -208,7 +208,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
       {orderType === OrderType.Edit && (
         <div className='justify-center flex items-center gap-2 mb-5'>
           <button
-            className={clsx(ctx.addDocument.pending ? 'disabled' : '')}
+            className={ctx.addDocument.pending ? 'disabled' : ''}
             disabled={ctx.addDocument.pending}
             onClick={() =>
               ctx.addDocument.mutation(DocumentType.RELEASE_DOCUMENT)
@@ -220,7 +220,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
           </button>
 
           <button
-            className={clsx(ctx.addDocument.pending ? 'disabled' : '')}
+            className={ctx.addDocument.pending ? 'disabled' : ''}
             disabled={ctx.addDocument.pending}
             onClick={() =>
               ctx.addDocument.mutation(DocumentType.PROFORMA_DOCUMENT, true)

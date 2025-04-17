@@ -7,7 +7,6 @@ import {
 import { ensureMeasure, getMeasures } from './measure.ts';
 import {
   ORDER_ADDITIONAL_DATA_FIELD,
-  ORDER_BUYER_NIP_FIELD,
   ORDER_DOCUMENTS_ID_FIELD,
   ORDER_PACKAGING_DATA_FIELD,
   ORDER_PROFORMA_DOCUMENT_FIELD,
@@ -101,7 +100,6 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
           id: data['ID'] || undefined,
           dealId: data['DEAL_ID'] || undefined,
           leadId: data['LEAD_ID'] || undefined,
-          buyerNip: data[ORDER_BUYER_NIP_FIELD] || undefined,
           companyId: data['COMPANY_ID'] || undefined,
           contactId: data['CONTACT_ID'] || undefined,
           additionalData: additionalData,

@@ -1,5 +1,6 @@
 import { getBitrix24 } from '../../utils/bitrix24.ts';
 import {
+  OrderAdditionalData,
   OrderData,
   OrderItem,
   PackagingData,
@@ -280,12 +281,16 @@ export async function updateOrder(
       }
     };
 
+    const additionalData: OrderAdditionalData = {
+      warehouseCodes: order.map((item) => item.warehouseCode),
+      itemIds: order.map((item) => item.itemId),
+      groupIds: order.map((item) => item.groupId),
+    };
+
     const updateBody = {
       id: placementId,
       fields: {
-        [ORDER_ADDITIONAL_DATA_FIELD]: JSON.stringify({
-          warehouseCodes: order.map((item) => item.warehouseCode),
-        }),
+        [ORDER_ADDITIONAL_DATA_FIELD]: JSON.stringify(additionalData),
       },
     };
 

@@ -47,6 +47,8 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
   const [order, setOrder] = useState<OrderData>();
   const placementId = getCurrentPlacementId();
 
+  const [pendingOrder, setPendingOrder] = useState<boolean>(false);
+
   const setClientData = useCallback((crm: CrmData) => {
     const defaultPriceName = getCustomerDefaultPriceName(
       CustomerDefaultPrice.Default,
@@ -179,7 +181,10 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
 
   const saveOrder = useCallback(async () => {
     if (order) {
-      void updateOrder(placementId, order.items, true);
+      setPendingOrder(true);
+      updateOrder(placementId, order.items, true).then(() =>
+        setPendingOrder(false),
+      );
     }
   }, [placementId, order]);
 
@@ -225,6 +230,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
         order,
         selectedPrice,
         saveOrder,
+        pendingOrder,
         createOrder: newOrder,
         addDocument: {
           mutation: addDocument,

@@ -201,34 +201,26 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
     selectRowQuantity(0);
   }, [selectRowQuantity]);
 
-  return ctx ? (
+  return ctx && !ctx.addDocument.pending && !ctx.pendingOrder ? (
     <div className='flex flex-col items-center'>
       <h1 className='mb-5'>Oferta</h1>
 
       {orderType === OrderType.Edit && (
         <div className='justify-center flex items-center gap-2 mb-5'>
           <button
-            className={ctx.addDocument.pending ? 'disabled' : ''}
-            disabled={ctx.addDocument.pending}
             onClick={() =>
               ctx.addDocument.mutation(DocumentType.RELEASE_DOCUMENT)
             }
           >
-            {ctx.addDocument.pending
-              ? 'Czekaj...'
-              : 'Utwórz dokument WZ (HOME)'}
+            Utwórz dokument WZ (HOME)
           </button>
 
           <button
-            className={ctx.addDocument.pending ? 'disabled' : ''}
-            disabled={ctx.addDocument.pending}
             onClick={() =>
               ctx.addDocument.mutation(DocumentType.PROFORMA_DOCUMENT, true)
             }
           >
-            {ctx.addDocument.pending
-              ? 'Czekaj...'
-              : 'Utwórz fakturę proforma (PAGEUP)'}
+            Utwórz fakturę proforma (PAGEUP)
           </button>
         </div>
       )}
@@ -284,6 +276,9 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
       </table>
     </div>
   ) : (
-    <></>
+    <>
+      {ctx && ctx.addDocument.pending && <h1>Tworzenie dokumentu...</h1>}
+      {ctx && ctx.pendingOrder && <h1>Zapisywanie oferty...</h1>}
+    </>
   );
 }

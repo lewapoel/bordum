@@ -25,6 +25,7 @@ export type OrderStore = {
   order?: OrderData;
   selectedPrice?: string;
   saveOrder: () => Promise<void>;
+  pendingOrder: boolean;
   createOrder: () => Promise<void>;
   addDocument: {
     mutation: (

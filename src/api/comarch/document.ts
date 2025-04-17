@@ -176,6 +176,10 @@ export function useAddDocument(token: string) {
         alert('Brakujący adres nabywcy');
       } else if (error.message === 'MISSING_ORDER_DOCUMENTS') {
         alert('Nieprawidłowe dane dokumentów oferty');
+      } else if (error.message.includes('shortage')) {
+        alert(
+          'W ofercie znajdują się produkty, których ilość przekracza dostępny stan magazynowy',
+        );
       } else {
         console.error(error.message);
         alert('Wystąpił błąd przy dodawaniu dokumentu. Sprawdź konsolę');

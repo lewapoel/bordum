@@ -84,8 +84,7 @@ export function useAddDocument(token: string) {
         city: address.city,
         country: address.country,
         postCode: address.postalCode,
-        street: address.address1,
-        houseNumber: address.address2,
+        street: `${address.address1} ${address.address2}`,
       };
 
       const orderDocuments = await getOrderDocuments(placementId);

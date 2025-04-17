@@ -108,6 +108,8 @@ export default function ItemsView() {
 
         const result = ctx.saveItem({
           warehouseCode: item.code,
+          groupId: item.groupId,
+          itemId: item.id.toString(),
           productName: item.name,
           quantity: +quantity,
           unit: item.unit,

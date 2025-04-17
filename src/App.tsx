@@ -9,6 +9,7 @@ import './App.css';
 import ReleaseDocuments from './pages/ReleaseDocuments.tsx';
 import CreateOrder from './pages/Order/CreateOrder.tsx';
 import { ToastContainer } from 'react-toastify';
+import Verification from './pages/Verification.tsx';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,6 +35,7 @@ function App() {
                 <Route path='/order' element={<Order />} />
                 <Route path='/create-order' element={<CreateOrder />} />
                 <Route path='/packaging' element={<Packaging />} />
+                <Route path='/verification' element={<Verification />} />
                 <Route
                   path='/release-documents'
                   element={<ReleaseDocuments />}

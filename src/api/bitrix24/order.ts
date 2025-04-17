@@ -3,6 +3,7 @@ import {
   OrderData,
   OrderItem,
   PackagingData,
+  VerificationData,
 } from '../../models/bitrix/order.ts';
 import { ensureMeasure, getMeasures } from './measure.ts';
 import {
@@ -11,6 +12,7 @@ import {
   ORDER_PACKAGING_DATA_FIELD,
   ORDER_PROFORMA_DOCUMENT_FIELD,
   ORDER_RELEASE_DOCUMENT_FIELD,
+  ORDER_VERIFICATION_DATA_FIELD,
 } from './field.ts';
 import moment from 'moment';
 import { DocumentType } from '../comarch/document.ts';
@@ -41,6 +43,8 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
             id: item['ID'],
             warehouseCode:
               orderData.additionalData?.warehouseCodes?.[idx] ?? '',
+            groupId: orderData.additionalData?.groupIds?.[idx] ?? '',
+            itemId: orderData.additionalData?.itemIds?.[idx] ?? '',
             productName: item['PRODUCT_NAME'],
             quantity: item['QUANTITY'],
             unit: item['MEASURE_NAME'],
@@ -69,6 +73,26 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
           {},
         );
 
+        orderData.verificationData = orderData.items.reduce(
+          (acc: VerificationData, item) => {
+            if (item.id) {
+              if (orderData.verificationData?.[item.id]) {
+                acc[item.id] = orderData.verificationData[item.id];
+              } else {
+                acc[item.id] = {
+                  itemId: item.id,
+                  actualStock: 0,
+                  qualityGoods: 0,
+                  comment: '',
+                };
+              }
+            }
+
+            return acc;
+          },
+          {},
+        );
+
         resolve(orderData);
       }
     };
@@ -82,7 +106,8 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
         const data = result.data();
 
         let additionalData = {};
-        let packagingData = [];
+        let packagingData = {};
+        let verificationData = {};
 
         try {
           additionalData = JSON.parse(data[ORDER_ADDITIONAL_DATA_FIELD]);
@@ -96,6 +121,12 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
           void e;
         }
 
+        try {
+          verificationData = JSON.parse(data[ORDER_VERIFICATION_DATA_FIELD]);
+        } catch (e) {
+          void e;
+        }
+
         orderData = {
           id: data['ID'] || undefined,
           dealId: data['DEAL_ID'] || undefined,
@@ -104,6 +135,7 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
           contactId: data['CONTACT_ID'] || undefined,
           additionalData: additionalData,
           packagingData: packagingData,
+          verificationData: verificationData,
           items: [],
         };
 
@@ -286,6 +318,38 @@ export async function updateOrderPackagingData(
       id: placementId,
       fields: {
         [ORDER_PACKAGING_DATA_FIELD]: JSON.stringify(packagingData),
+      },
+    };
+
+    bx24.callMethod('crm.quote.update', updateBody, setEstimateCallback);
+  });
+}
+
+export async function updateOrderVerificationData(
+  placementId: number,
+  verificationData: VerificationData,
+) {
+  const bx24 = getBitrix24();
+  if (!bx24) {
+    return null;
+  }
+
+  return new Promise((resolve, reject) => {
+    const setEstimateCallback = (result: any) => {
+      if (result.error()) {
+        console.error(result.error());
+        alert('Nie udało się zapisać oferty. Szczegóły w konsoli');
+        reject();
+      } else {
+        alert('Dane weryfikacji stanu zapisane pomyślnie');
+        resolve(true);
+      }
+    };
+
+    const updateBody = {
+      id: placementId,
+      fields: {
+        [ORDER_VERIFICATION_DATA_FIELD]: JSON.stringify(verificationData),
       },
     };
 

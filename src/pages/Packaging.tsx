@@ -39,6 +39,8 @@ export default function Packaging() {
   const [packagingData, setPackagingData] = useState<PackagingData>();
   const [users, setUsers] = useState<Array<User>>();
 
+  console.log(packagingData);
+
   const saveData = useCallback(
     (itemId: string) => {
       if (!packagingData || !originalPackagingData) {

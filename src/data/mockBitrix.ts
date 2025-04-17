@@ -288,7 +288,8 @@ export const CRM_QUOTE_GET = {
   UF_CRM_67C7670E3631A: '',
   UF_CRM_67C7670E43C6B: '',
   UF_CRM_67C7670E53E3C: '',
-  UF_CRM_QUOTE_1741447619: '{"warehouseCodes":["000001"]}',
+  UF_CRM_QUOTE_1741447619:
+    '{"warehouseCodes":["000001"],"groupIds":["3"],"itemIds":["2301"]}',
   UF_CRM_67CEBCF6EC87F: '',
   UF_CRM_67CEBCF70FAB5: '',
   UF_CRM_67CEBCF71F036: '',

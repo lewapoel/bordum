@@ -190,6 +190,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
 
   const newOrder = useCallback(async () => {
     if (order) {
+      setPendingOrder(true);
       createOrder(placementId, order.contactId, order.companyId).then(
         (orderId) => {
           if (orderId) {
@@ -197,6 +198,8 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
           } else {
             alert('Utworzona oferta nie ma identyfikatora');
           }
+
+          setPendingOrder(false);
         },
       );
     }

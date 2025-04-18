@@ -90,7 +90,11 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
     if (ctx) {
       switch (orderType) {
         case OrderType.Create:
-          void ctx.createOrder();
+          if (ctx.order?.items && ctx.order.items.length > 0) {
+            void ctx.createOrder();
+          } else {
+            alert('Nie można utworzyć pustej oferty');
+          }
           break;
         case OrderType.Edit:
           void ctx.saveOrder();

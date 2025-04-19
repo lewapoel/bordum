@@ -14,10 +14,12 @@ import {
   ORDER_PROFORMA_DOCUMENT_FIELD,
   ORDER_RELEASE_DOCUMENT_FIELD,
   ORDER_VERIFICATION_DATA_FIELD,
+  ORDER_VERIFICATION_DOCUMENTS_FIELD,
 } from './field.ts';
 import moment from 'moment';
 import { DocumentType } from '../comarch/document.ts';
 import sanitize from 'sanitize-filename';
+import { BitrixFile } from '../../models/bitrix/file.ts';
 
 export async function getOrder(placementId: number): Promise<OrderData | null> {
   const bx24 = getBitrix24();
@@ -457,6 +459,38 @@ export async function updateOrderDocument(
           ...orderDocuments,
           [documentType.valueOf()]: documentId,
         }),
+      },
+    };
+
+    bx24.callMethod('crm.quote.update', updateBody, setEstimateCallback);
+  });
+}
+
+export async function updateOrderVerificationDocuments(
+  placementId: number,
+  files: Array<BitrixFile>,
+) {
+  const bx24 = getBitrix24();
+  if (!bx24) {
+    return null;
+  }
+
+  return new Promise((resolve, reject) => {
+    const setEstimateCallback = (result: any) => {
+      if (result.error()) {
+        console.error(result.error());
+        reject();
+      } else {
+        resolve(true);
+      }
+    };
+
+    const updateBody = {
+      id: placementId,
+      fields: {
+        [ORDER_VERIFICATION_DOCUMENTS_FIELD]: {
+          fileData: files,
+        },
       },
     };
 

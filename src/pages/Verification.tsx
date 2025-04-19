@@ -1,14 +1,24 @@
+import ReactDOMServer from 'react-dom/server';
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { getCurrentPlacementId } from '../utils/bitrix24.ts';
 import {
   getOrder,
   updateOrderVerificationData,
+  updateOrderVerificationDocuments,
 } from '../api/bitrix24/order.ts';
 import update from 'immutability-helper';
-import { OrderData, VerificationData } from '../models/bitrix/order.ts';
+import {
+  OrderData,
+  OrderItems,
+  VerificationData,
+} from '../models/bitrix/order.ts';
 import { ITEM_GROUPS } from '../data/groups.ts';
 import { useGetStocks } from '../api/comarch/stock.ts';
 import { AuthContext } from '../api/comarch/auth.ts';
+import { Document, Font, Page, pdf } from '@react-pdf/renderer';
+import Html from 'react-pdf-html';
+import { blobToBase64 } from '../utils/blob.ts';
+import { BitrixFile } from '../models/bitrix/file.ts';
 
 type RowElements = {
   actualStock: HTMLInputElement | null;
@@ -18,12 +28,62 @@ type RowElements = {
 
 type RowsElements = { [key: string]: RowElements };
 
+type GroupItems = {
+  groupName: string;
+  items: OrderItems;
+};
+
+type GroupsItems = { [key: string]: GroupItems };
+
 enum Status {
-  LOADING,
   EMPTY,
+  LOADING,
   LOADED,
   INVALID,
+  SAVING,
 }
+
+Font.register({
+  family: 'NotoSans',
+  fonts: [
+    {
+      src: '/fonts/NotoSans-Thin.ttf',
+      fontWeight: 100,
+    },
+    {
+      src: '/fonts/NotoSans-ExtraLight.ttf',
+      fontWeight: 200,
+    },
+    {
+      src: '/fonts/NotoSans-Light.ttf',
+      fontWeight: 300,
+    },
+    {
+      src: '/fonts/NotoSans-Regular.ttf',
+      fontWeight: 400,
+    },
+    {
+      src: '/fonts/NotoSans-Medium.ttf',
+      fontWeight: 500,
+    },
+    {
+      src: '/fonts/NotoSans-SemiBold.ttf',
+      fontWeight: 600,
+    },
+    {
+      src: '/fonts/NotoSans-Bold.ttf',
+      fontWeight: 700,
+    },
+    {
+      src: '/fonts/NotoSans-ExtraBold.ttf',
+      fontWeight: 800,
+    },
+    {
+      src: '/fonts/NotoSans-Black.ttf',
+      fontWeight: 900,
+    },
+  ],
+});
 
 export default function Verification() {
   const { token } = useContext(AuthContext);
@@ -42,8 +102,110 @@ export default function Verification() {
       return;
     }
 
-    void updateOrderVerificationData(placementId, verificationData);
+    setStatus(Status.SAVING);
+    updateOrderVerificationData(placementId, verificationData).then(() => {
+      setStatus(Status.LOADED);
+    });
   }, [verificationData, placementId]);
+
+  const generatePdfHtml = useCallback(
+    (group: GroupItems) => {
+      if (!verificationData) {
+        return '';
+      }
+
+      const element = (
+        <html>
+          <body>
+            <h1>{group.groupName}</h1>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>Nazwa towaru</th>
+                  <th>Jedn. miary</th>
+                  <th>Ilość do zamówienia</th>
+                  <th>Komentarz</th>
+                </tr>
+              </thead>
+              <tbody>
+                {group.items.map((item) => (
+                  <tr key={item.id}>
+                    <td>{item.productName}</td>
+                    <td>{item.unit}</td>
+                    <td>
+                      {Math.max(
+                        0,
+                        item.quantity -
+                          verificationData[item.id!.toString()].qualityGoods,
+                      )}
+                    </td>
+                    <td>{verificationData[item.id!].comment}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </body>
+        </html>
+      );
+
+      return ReactDOMServer.renderToStaticMarkup(element);
+    },
+    [verificationData],
+  );
+
+  const generatePdfs = useCallback(async () => {
+    if (!placementId || !order) {
+      alert('Nie udało się pobrać danych oferty');
+      return;
+    }
+    setStatus(Status.SAVING);
+
+    const stylesheet = {
+      body: {
+        fontFamily: 'NotoSans',
+      },
+      ['table, th, td']: {
+        border: '1px solid black',
+        borderCollapse: 'collapse',
+      },
+    };
+
+    const itemsByGroups = order.items.reduce((acc: GroupsItems, item) => {
+      if (!acc[item.groupId]) {
+        acc[item.groupId] = {
+          groupName: ITEM_GROUPS[item.groupId],
+          items: [item],
+        };
+      } else {
+        acc[item.groupId].items.push(item);
+      }
+
+      return acc;
+    }, {});
+
+    const files: Array<BitrixFile> = [];
+
+    for (const group of Object.values(itemsByGroups)) {
+      const pdfDocument = (
+        <Document>
+          <Page size='A4'>
+            <Html stylesheet={stylesheet}>{generatePdfHtml(group)}</Html>
+          </Page>
+        </Document>
+      );
+
+      const blob = await pdf(pdfDocument).toBlob();
+      const pdfBase64 = await blobToBase64(blob);
+
+      files.push([`${group.groupName}.pdf`, pdfBase64]);
+    }
+
+    updateOrderVerificationDocuments(placementId, files).then(() => {
+      setStatus(Status.LOADED);
+      alert('Utworzono dokumenty pomyślnie');
+    });
+  }, [order, generatePdfHtml, placementId]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -77,6 +239,9 @@ export default function Verification() {
         case 'Insert':
           saveData();
           break;
+        case 'Home':
+          void generatePdfs();
+          break;
         case 'Tab':
           e.preventDefault();
 
@@ -105,7 +270,7 @@ export default function Verification() {
           break;
       }
     },
-    [selectedItem, saveData, verificationData],
+    [selectedItem, saveData, verificationData, generatePdfs],
   );
 
   useEffect(() => {
@@ -161,6 +326,12 @@ export default function Verification() {
       {status === Status.LOADED && verificationData && order && stocks ? (
         <>
           <h1 className='mb-5'>Weryfikacja stanu</h1>
+
+          <div className='justify-center flex items-center gap-2 mb-5'>
+            <button onClick={() => generatePdfs()}>
+              Wygeneruj braki (HOME)
+            </button>
+          </div>
 
           <div className='justify-center flex items-center gap-2 mb-10'>
             <button className='confirm' onClick={() => saveData()}>
@@ -290,6 +461,7 @@ export default function Verification() {
               Produkty oferty zawierają niekompletne dane, dodaj je ponownie
             </h1>
           )}
+          {status === Status.SAVING && <h1>Zapisywanie danych...</h1>}
         </>
       )}
     </div>

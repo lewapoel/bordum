@@ -3,8 +3,10 @@ import {
   CRM_ADDRESS_LIST,
   CRM_COMPANY_GET,
   CRM_CONTACT_GET,
+  CRM_DEAL_FIELDS,
   CRM_DEAL_GET,
   CRM_MEASURE_LIST,
+  CRM_QUOTE_FIELDS,
   CRM_QUOTE_GET,
   CRM_QUOTE_PRODUCTROWS_GET,
   USER_CURRENT,
@@ -67,6 +69,14 @@ const mockBX24 = {
 
       case 'crm.deal.get':
         data = CRM_DEAL_GET;
+        break;
+
+      case 'crm.quote.fields':
+        data = CRM_QUOTE_FIELDS;
+        break;
+
+      case 'crm.deal.fields':
+        data = CRM_DEAL_FIELDS;
         break;
 
       default:
@@ -133,6 +143,7 @@ export function translateEnumField(
   destField: EnumFieldMeta,
   field: string,
 ): string {
+  console.log(sourceField);
   const text = sourceField.items.find((item) => item.ID === field)?.VALUE;
   if (!text) {
     throw new Error(

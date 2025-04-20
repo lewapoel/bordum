@@ -258,6 +258,8 @@ export async function createOrder(
       INSTALLATION_SERVICE: installationService,
     } = CONNECTIONS;
 
+    console.log(dealData);
+
     try {
       const updateBody = {
         fields: {

@@ -1,11 +1,11 @@
 import { API_URL } from './const.ts';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { OrderData } from '../../models/bitrix/order.ts';
-import { getCompany } from '../bitrix24/company.ts';
-import { getContact } from '../bitrix24/contact.ts';
-import { getAddress } from '../bitrix24/address.ts';
+import { getCompany } from '../bitrix/company.ts';
+import { getContact } from '../bitrix/contact.ts';
+import { getAddress } from '../bitrix/address.ts';
 import { BitrixType } from '../../models/bitrix/type.ts';
-import { getOrderDocuments, updateOrderDocument } from '../bitrix24/order.ts';
+import { getOrderDocuments, updateOrderDocument } from '../bitrix/order.ts';
 
 export type AddDocument = {
   placementId: number;

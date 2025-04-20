@@ -7,7 +7,37 @@ import {
   DEAL_INSTALLATION_SERVICE_FIELD,
   DEAL_PAYMENT_TYPE_FIELD,
   DEAL_PAYMENT_VARIANT_FIELD,
-} from './field.ts';
+} from '../../data/bitrix/field.ts';
+import { EnumFieldMeta, FieldsMeta } from '../../models/bitrix/field.ts';
+
+export async function getDealFields(): Promise<FieldsMeta | null> {
+  const bx24 = getBitrix24();
+
+  if (!bx24) {
+    return null;
+  }
+
+  return new Promise((resolve, reject) => {
+    const getFieldsCallback = (result: any) => {
+      if (result.error()) {
+        console.error(result.error());
+        alert('Nie udało się pobrać pól deala. Szczegóły w konsoli');
+        reject();
+      } else {
+        const data = result.data() as FieldsMeta;
+        Object.entries(data).forEach(([key, value]) => {
+          if (value.type === 'enumeration') {
+            data[key] = value as EnumFieldMeta;
+          }
+        });
+
+        resolve(data);
+      }
+    };
+
+    bx24.callMethod('crm.deal.fields', {}, getFieldsCallback);
+  });
+}
 
 export async function getDeal(placementId: number): Promise<DealData | null> {
   const bx24 = getBitrix24();

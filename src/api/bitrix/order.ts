@@ -1,4 +1,4 @@
-import { getBitrix24 } from '../../utils/bitrix24.ts';
+import { getBitrix24, translateEnumField } from '../../utils/bitrix24.ts';
 import {
   OrderAdditionalData,
   OrderData,
@@ -8,6 +8,7 @@ import {
 } from '../../models/bitrix/order.ts';
 import { ensureMeasure, getMeasures } from './measure.ts';
 import {
+  CONNECTIONS,
   ORDER_ADDITIONAL_DATA_FIELD,
   ORDER_DELIVERY_TYPE_FIELD,
   ORDER_DEPOSIT_DUE_DATE_FIELD,
@@ -21,12 +22,37 @@ import {
   ORDER_RELEASE_DOCUMENT_FIELD,
   ORDER_VERIFICATION_DATA_FIELD,
   ORDER_VERIFICATION_DOCUMENTS_FIELD,
-} from './field.ts';
+} from '../../data/bitrix/field.ts';
 import moment from 'moment';
 import { DocumentType } from '../comarch/document.ts';
 import sanitize from 'sanitize-filename';
 import { BitrixFile } from '../../models/bitrix/file.ts';
 import { DealData } from '../../models/bitrix/deal.ts';
+import { EnumFieldMeta, FieldsMeta } from '../../models/bitrix/field.ts';
+import { getDealFields } from './deal.ts';
+
+export async function getOrderFields(): Promise<FieldsMeta | null> {
+  const bx24 = getBitrix24();
+
+  if (!bx24) {
+    return null;
+  }
+
+  return new Promise((resolve, reject) => {
+    const getFieldsCallback = (result: any) => {
+      if (result.error()) {
+        console.error(result.error());
+        alert('Nie udało się pobrać pól oferty. Szczegóły w konsoli');
+        reject();
+      } else {
+        const data = result.data();
+        resolve(data as FieldsMeta);
+      }
+    };
+
+    bx24.callMethod('crm.quote.fields', {}, getFieldsCallback);
+  });
+}
 
 export async function getOrder(placementId: number): Promise<OrderData | null> {
   const bx24 = getBitrix24();
@@ -205,6 +231,13 @@ export async function createOrder(
     return null;
   }
 
+  const dealFields = await getDealFields();
+  const orderFields = await getOrderFields();
+
+  if (!dealFields || !orderFields) {
+    return null;
+  }
+
   return new Promise((resolve, reject) => {
     const addEstimateCallback = (result: any) => {
       if (result.error()) {
@@ -216,17 +249,62 @@ export async function createOrder(
       }
     };
 
+    const {
+      DEPOSIT_REQUIRED: depositRequired,
+      PAYMENT_VARIANT: paymentVariant,
+      DEPOSIT_DUE_DATE: depositDueDate,
+      PAYMENT_TYPE: paymentType,
+      DELIVERY_TYPE: deliveryType,
+      INSTALLATION_SERVICE: installationService,
+    } = CONNECTIONS;
+
     const updateBody = {
       fields: {
         DEAL_ID: dealId,
         CONTACT_ID: dealData.contactId,
         COMPANY_ID: dealData.companyId,
-        [ORDER_DEPOSIT_REQUIRED_FIELD]: dealData.depositRequired,
-        [ORDER_PAYMENT_VARIANT_FIELD]: dealData.paymentVariant,
-        [ORDER_DEPOSIT_DUE_DATE_FIELD]: dealData.depositDueDate,
-        [ORDER_PAYMENT_TYPE_FIELD]: dealData.paymentType,
-        [ORDER_DELIVERY_TYPE_FIELD]: dealData.deliveryType,
-        [ORDER_INSTALLATION_SERVICE_FIELD]: dealData.installationService,
+        [depositRequired.order]: dealData.depositRequired
+          ? translateEnumField(
+              dealFields[depositRequired.deal] as EnumFieldMeta,
+              orderFields[depositRequired.order] as EnumFieldMeta,
+              dealData.depositRequired,
+            )
+          : '',
+        [paymentVariant.order]: dealData.paymentVariant
+          ? translateEnumField(
+              dealFields[paymentVariant.deal] as EnumFieldMeta,
+              orderFields[paymentVariant.order] as EnumFieldMeta,
+              dealData.paymentVariant,
+            )
+          : '',
+        [depositDueDate.order]: dealData.depositDueDate
+          ? translateEnumField(
+              dealFields[depositDueDate.deal] as EnumFieldMeta,
+              orderFields[depositDueDate.order] as EnumFieldMeta,
+              dealData.depositDueDate,
+            )
+          : '',
+        [paymentType.order]: dealData.paymentType
+          ? translateEnumField(
+              dealFields[paymentType.deal] as EnumFieldMeta,
+              orderFields[paymentType.order] as EnumFieldMeta,
+              dealData.paymentType,
+            )
+          : '',
+        [deliveryType.order]: dealData.deliveryType
+          ? translateEnumField(
+              dealFields[deliveryType.deal] as EnumFieldMeta,
+              orderFields[deliveryType.order] as EnumFieldMeta,
+              dealData.deliveryType,
+            )
+          : '',
+        [installationService.order]: dealData.installationService
+          ? translateEnumField(
+              dealFields[installationService.deal] as EnumFieldMeta,
+              orderFields[installationService.order] as EnumFieldMeta,
+              dealData.installationService,
+            )
+          : '',
       },
     };
 

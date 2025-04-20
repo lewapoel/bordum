@@ -1,5 +1,5 @@
 import { getBitrix24 } from '../../utils/bitrix24.ts';
-import { COMPANY_NIP_FIELD } from './field.ts';
+import { COMPANY_NIP_FIELD } from '../../data/bitrix/field.ts';
 
 export type Company = {
   id: number;

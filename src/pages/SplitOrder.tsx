@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getBitrix24, getCurrentPlacementId } from '../utils/bitrix24';
 import { OrderItem } from '../models/bitrix/order.ts';
-import { getOrder, hasOrderDeals, updateOrder } from '../api/bitrix24/order.ts';
-import { ORDER_MAIN_LINK_FIELD } from '../api/bitrix24/field.ts';
+import { getOrder, hasOrderDeals, updateOrder } from '../api/bitrix/order.ts';
+import { ORDER_MAIN_LINK_FIELD } from '../data/bitrix/field.ts';
 
 function SplitOrder() {
   const placementId = getCurrentPlacementId();

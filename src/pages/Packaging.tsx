@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getCurrentPlacementId } from '../utils/bitrix24.ts';
-import { getOrder, updateOrderPackagingData } from '../api/bitrix24/order.ts';
+import { getOrder, updateOrderPackagingData } from '../api/bitrix/order.ts';
 import update from 'immutability-helper';
-import { getCurrentUser, getUsers, User } from '../api/bitrix24/user.ts';
+import { getCurrentUser, getUsers, User } from '../api/bitrix/user.ts';
 import { OrderData, PackagingData } from '../models/bitrix/order.ts';
 
 type RowElements = {

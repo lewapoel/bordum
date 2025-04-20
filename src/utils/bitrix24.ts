@@ -9,7 +9,8 @@ import {
   CRM_QUOTE_PRODUCTROWS_GET,
   USER_CURRENT,
   USER_GET,
-} from '../data/mockBitrix.ts';
+} from '../data/bitrix/mockBitrix.ts';
+import { EnumFieldMeta } from '../models/bitrix/field.ts';
 
 type MockBitrixResult = {
   error: () => any;
@@ -111,6 +112,41 @@ export function getCurrentPlacementId() {
   const id = bx24.placement?.info?.()?.options?.ID;
   if (!id) {
     return null;
+  }
+
+  return id;
+}
+
+/**
+ * Translates an enum field between types (ex. from deal to quote). \
+ * This is necessary because custom fields cannot be shared between types
+ * (deals cannot have same custom fields as quotes). \
+ * The value stored in a custom enum field is it's ID which
+ * can be translated to it's text value using the `crm.[type].fields` endpoint
+ * @param sourceField Meta of the custom field in the source type
+ * @param destField Meta of the custom field in the destination type
+ * @param field Fields' ID retrieved from the source type
+ * @returns Fields' ID translated from the source to the destination type
+ */
+export function translateEnumField(
+  sourceField: EnumFieldMeta,
+  destField: EnumFieldMeta,
+  field: string,
+): string {
+  const text = sourceField.items.find((item) => item.ID === field)?.VALUE;
+  if (!text) {
+    throw new Error(
+      `Cannot translate, ${field} ID doesn't exist in the source field items`,
+    );
+  }
+
+  const id = destField.items.find(
+    (item) => item.VALUE.toLowerCase().trim() === text.toLowerCase().trim(),
+  )?.ID;
+  if (!id) {
+    throw new Error(
+      `Cannot translate, ${text} text doesn't exist in the destination field items`,
+    );
   }
 
   return id;

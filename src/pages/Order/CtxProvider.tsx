@@ -1,28 +1,24 @@
 import { ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import { OrderData, OrderItem } from '../../models/bitrix/order.ts';
 import update from 'immutability-helper';
-import {
-  createOrder,
-  getOrder,
-  updateOrder,
-} from '../../api/bitrix24/order.ts';
+import { createOrder, getOrder, updateOrder } from '../../api/bitrix/order.ts';
 import { DocumentType, useAddDocument } from '../../api/comarch/document.ts';
 import { OrderContext, OrderType, OrderView } from '../../models/order.ts';
 import { AuthContext } from '../../api/comarch/auth.ts';
 import { getCurrentPlacementId } from '../../utils/bitrix24.ts';
-import { getDeal } from '../../api/bitrix24/deal.ts';
+import { getDeal } from '../../api/bitrix/deal.ts';
 import {
   CustomerDefaultPrice,
   getCustomerDefaultPriceName,
 } from '../../models/comarch/customer.ts';
-import { getCompany } from '../../api/bitrix24/company.ts';
-import { getContact } from '../../api/bitrix24/contact.ts';
+import { getCompany } from '../../api/bitrix/company.ts';
+import { getContact } from '../../api/bitrix/contact.ts';
 import {
   useGetCustomerByName,
   useGetCustomerByNip,
 } from '../../api/comarch/customer.ts';
 import { CrmData } from '../../models/bitrix/crm.ts';
-import { getCurrentUser } from '../../api/bitrix24/user.ts';
+import { getCurrentUser } from '../../api/bitrix/user.ts';
 import { DealData } from '../../models/bitrix/deal.ts';
 
 interface CtxProviderProps {

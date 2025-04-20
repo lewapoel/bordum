@@ -1,5 +1,5 @@
 import { getBitrix24 } from '../../utils/bitrix24.ts';
-import { USER_DISCOUNT_FIELD } from './field.ts';
+import { USER_DISCOUNT_FIELD } from '../../data/bitrix/field.ts';
 
 export type User = {
   id: number;

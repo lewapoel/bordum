@@ -5,14 +5,14 @@ import {
   getOrder,
   updateOrderVerificationData,
   updateOrderVerificationDocuments,
-} from '../api/bitrix24/order.ts';
+} from '../api/bitrix/order.ts';
 import update from 'immutability-helper';
 import {
   OrderData,
   OrderItems,
   VerificationData,
 } from '../models/bitrix/order.ts';
-import { ITEM_GROUPS } from '../data/groups.ts';
+import { ITEM_GROUPS } from '../data/comarch/groups.ts';
 import { useGetStocks } from '../api/comarch/stock.ts';
 import { AuthContext } from '../api/comarch/auth.ts';
 import { Document, Font, Page, pdf } from '@react-pdf/renderer';

@@ -258,57 +258,63 @@ export async function createOrder(
       INSTALLATION_SERVICE: installationService,
     } = CONNECTIONS;
 
-    const updateBody = {
-      fields: {
-        DEAL_ID: dealId,
-        CONTACT_ID: dealData.contactId,
-        COMPANY_ID: dealData.companyId,
-        [depositRequired.order]: dealData.depositRequired
-          ? translateEnumField(
-              dealFields[depositRequired.deal] as EnumFieldMeta,
-              orderFields[depositRequired.order] as EnumFieldMeta,
-              dealData.depositRequired,
-            )
-          : '',
-        [paymentVariant.order]: dealData.paymentVariant
-          ? translateEnumField(
-              dealFields[paymentVariant.deal] as EnumFieldMeta,
-              orderFields[paymentVariant.order] as EnumFieldMeta,
-              dealData.paymentVariant,
-            )
-          : '',
-        [depositDueDate.order]: dealData.depositDueDate
-          ? translateEnumField(
-              dealFields[depositDueDate.deal] as EnumFieldMeta,
-              orderFields[depositDueDate.order] as EnumFieldMeta,
-              dealData.depositDueDate,
-            )
-          : '',
-        [paymentType.order]: dealData.paymentType
-          ? translateEnumField(
-              dealFields[paymentType.deal] as EnumFieldMeta,
-              orderFields[paymentType.order] as EnumFieldMeta,
-              dealData.paymentType,
-            )
-          : '',
-        [deliveryType.order]: dealData.deliveryType
-          ? translateEnumField(
-              dealFields[deliveryType.deal] as EnumFieldMeta,
-              orderFields[deliveryType.order] as EnumFieldMeta,
-              dealData.deliveryType,
-            )
-          : '',
-        [installationService.order]: dealData.installationService
-          ? translateEnumField(
-              dealFields[installationService.deal] as EnumFieldMeta,
-              orderFields[installationService.order] as EnumFieldMeta,
-              dealData.installationService,
-            )
-          : '',
-      },
-    };
+    try {
+      const updateBody = {
+        fields: {
+          DEAL_ID: dealId,
+          CONTACT_ID: dealData.contactId,
+          COMPANY_ID: dealData.companyId,
+          [depositRequired.order]: dealData.depositRequired
+            ? translateEnumField(
+                dealFields[depositRequired.deal] as EnumFieldMeta,
+                orderFields[depositRequired.order] as EnumFieldMeta,
+                dealData.depositRequired,
+              )
+            : '',
+          [paymentVariant.order]: dealData.paymentVariant
+            ? translateEnumField(
+                dealFields[paymentVariant.deal] as EnumFieldMeta,
+                orderFields[paymentVariant.order] as EnumFieldMeta,
+                dealData.paymentVariant,
+              )
+            : '',
+          [depositDueDate.order]: dealData.depositDueDate
+            ? translateEnumField(
+                dealFields[depositDueDate.deal] as EnumFieldMeta,
+                orderFields[depositDueDate.order] as EnumFieldMeta,
+                dealData.depositDueDate,
+              )
+            : '',
+          [paymentType.order]: dealData.paymentType
+            ? translateEnumField(
+                dealFields[paymentType.deal] as EnumFieldMeta,
+                orderFields[paymentType.order] as EnumFieldMeta,
+                dealData.paymentType,
+              )
+            : '',
+          [deliveryType.order]: dealData.deliveryType
+            ? translateEnumField(
+                dealFields[deliveryType.deal] as EnumFieldMeta,
+                orderFields[deliveryType.order] as EnumFieldMeta,
+                dealData.deliveryType,
+              )
+            : '',
+          [installationService.order]: dealData.installationService
+            ? translateEnumField(
+                dealFields[installationService.deal] as EnumFieldMeta,
+                orderFields[installationService.order] as EnumFieldMeta,
+                dealData.installationService,
+              )
+            : '',
+        },
+      };
 
-    bx24.callMethod('crm.quote.add', updateBody, addEstimateCallback);
+      bx24.callMethod('crm.quote.add', updateBody, addEstimateCallback);
+    } catch (error) {
+      console.error(error);
+      alert('Nie udało się ustalić pól tworzonej oferty. Szczegóły w konsoli');
+      reject();
+    }
   });
 }
 

@@ -221,12 +221,12 @@ export async function createOrder(
         DEAL_ID: dealId,
         CONTACT_ID: dealData.contactId,
         COMPANY_ID: dealData.companyId,
-        ORDER_DEPOSIT_REQUIRED_FIELD: dealData.depositRequired,
-        ORDER_PAYMENT_VARIANT_FIELD: dealData.paymentVariant,
-        ORDER_DEPOSIT_DUE_DATE_FIELD: dealData.depositDueDate,
-        ORDER_PAYMENT_TYPE_FIELD: dealData.paymentType,
-        ORDER_DELIVERY_TYPE_FIELD: dealData.deliveryType,
-        ORDER_INSTALLATION_SERVICE_FIELD: dealData.installationService,
+        [ORDER_DEPOSIT_REQUIRED_FIELD]: dealData.depositRequired,
+        [ORDER_PAYMENT_VARIANT_FIELD]: dealData.paymentVariant,
+        [ORDER_DEPOSIT_DUE_DATE_FIELD]: dealData.depositDueDate,
+        [ORDER_PAYMENT_TYPE_FIELD]: dealData.paymentType,
+        [ORDER_DELIVERY_TYPE_FIELD]: dealData.deliveryType,
+        [ORDER_INSTALLATION_SERVICE_FIELD]: dealData.installationService,
       },
     };
 

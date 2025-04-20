@@ -488,9 +488,7 @@ export async function updateOrderVerificationDocuments(
     const updateBody = {
       id: placementId,
       fields: {
-        [ORDER_VERIFICATION_DOCUMENTS_FIELD]: {
-          fileData: files,
-        },
+        [ORDER_VERIFICATION_DOCUMENTS_FIELD]: files,
       },
     };
 

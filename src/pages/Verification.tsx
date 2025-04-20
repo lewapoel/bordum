@@ -316,10 +316,15 @@ export default function Verification() {
   }, [placementId]);
 
   useEffect(() => {
-    if (order && verificationData && !stocksQuery.isLoading) {
+    if (
+      order &&
+      verificationData &&
+      !stocksQuery.isLoading &&
+      status === Status.LOADING
+    ) {
       setStatus(Status.LOADED);
     }
-  }, [order, verificationData, stocksQuery]);
+  }, [order, verificationData, stocksQuery, status]);
 
   return (
     <div>

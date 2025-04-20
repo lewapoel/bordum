@@ -258,8 +258,6 @@ export async function createOrder(
       INSTALLATION_SERVICE: installationService,
     } = CONNECTIONS;
 
-    console.log(dealData);
-
     try {
       const updateBody = {
         fields: {
@@ -280,13 +278,7 @@ export async function createOrder(
                 dealData.paymentVariant,
               )
             : '',
-          [depositDueDate.order]: dealData.depositDueDate
-            ? translateEnumField(
-                dealFields[depositDueDate.deal] as EnumFieldMeta,
-                orderFields[depositDueDate.order] as EnumFieldMeta,
-                dealData.depositDueDate,
-              )
-            : '',
+          [depositDueDate.order]: dealData.depositDueDate,
           [paymentType.order]: dealData.paymentType
             ? translateEnumField(
                 dealFields[paymentType.deal] as EnumFieldMeta,

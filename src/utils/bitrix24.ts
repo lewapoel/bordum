@@ -143,7 +143,6 @@ export function translateEnumField(
   destField: EnumFieldMeta,
   field: string,
 ): string {
-  console.log(sourceField);
   const text = sourceField.items.find((item) => item.ID === field)?.VALUE;
   if (!text) {
     throw new Error(

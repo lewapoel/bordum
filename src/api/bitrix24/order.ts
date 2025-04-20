@@ -488,7 +488,9 @@ export async function updateOrderVerificationDocuments(
     const updateBody = {
       id: placementId,
       fields: {
-        [ORDER_VERIFICATION_DOCUMENTS_FIELD]: files,
+        [ORDER_VERIFICATION_DOCUMENTS_FIELD]: files.map((file) => ({
+          fileData: file,
+        })),
       },
     };
 

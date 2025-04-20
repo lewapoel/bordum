@@ -23,6 +23,7 @@ import {
 } from '../../api/comarch/customer.ts';
 import { CrmData } from '../../models/bitrix/crm.ts';
 import { getCurrentUser } from '../../api/bitrix24/user.ts';
+import { DealData } from '../../models/bitrix/deal.ts';
 
 interface CtxProviderProps {
   children: ReactNode;
@@ -45,6 +46,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
   const [maxDiscount, setMaxDiscount] = useState<number>();
   const [selectedPrice, setSelectedPrice] = useState<string>();
   const [order, setOrder] = useState<OrderData>();
+  const [deal, setDeal] = useState<DealData>();
   const placementId = getCurrentPlacementId();
 
   const [pendingOrder, setPendingOrder] = useState<boolean>(false);
@@ -111,10 +113,9 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
 
         getDeal(placementId).then((res) => {
           if (res) {
+            setDeal(res);
             setOrder({
               items: [],
-              contactId: res.contactId,
-              companyId: res.companyId,
             });
             setClientData(res);
           }
@@ -189,21 +190,19 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
   }, [placementId, order]);
 
   const newOrder = useCallback(async () => {
-    if (order) {
+    if (order && deal) {
       setPendingOrder(true);
-      createOrder(placementId, order.contactId, order.companyId).then(
-        (orderId) => {
-          if (orderId) {
-            void updateOrder(orderId, order.items, true);
-          } else {
-            alert('Utworzona oferta nie ma identyfikatora');
-          }
+      createOrder(placementId, deal).then((orderId) => {
+        if (orderId) {
+          void updateOrder(orderId, order.items, true);
+        } else {
+          alert('Utworzona oferta nie ma identyfikatora');
+        }
 
-          setPendingOrder(false);
-        },
-      );
+        setPendingOrder(false);
+      });
     }
-  }, [placementId, order]);
+  }, [placementId, order, deal]);
 
   const addDocument = useCallback(
     async (documentType: DocumentType, ignoreDeleteError = false) => {

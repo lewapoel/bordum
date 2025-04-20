@@ -9,8 +9,14 @@ import {
 import { ensureMeasure, getMeasures } from './measure.ts';
 import {
   ORDER_ADDITIONAL_DATA_FIELD,
+  ORDER_DELIVERY_TYPE_FIELD,
+  ORDER_DEPOSIT_DUE_DATE_FIELD,
+  ORDER_DEPOSIT_REQUIRED_FIELD,
   ORDER_DOCUMENTS_ID_FIELD,
+  ORDER_INSTALLATION_SERVICE_FIELD,
   ORDER_PACKAGING_DATA_FIELD,
+  ORDER_PAYMENT_TYPE_FIELD,
+  ORDER_PAYMENT_VARIANT_FIELD,
   ORDER_PROFORMA_DOCUMENT_FIELD,
   ORDER_RELEASE_DOCUMENT_FIELD,
   ORDER_VERIFICATION_DATA_FIELD,
@@ -20,6 +26,7 @@ import moment from 'moment';
 import { DocumentType } from '../comarch/document.ts';
 import sanitize from 'sanitize-filename';
 import { BitrixFile } from '../../models/bitrix/file.ts';
+import { DealData } from '../../models/bitrix/deal.ts';
 
 export async function getOrder(placementId: number): Promise<OrderData | null> {
   const bx24 = getBitrix24();
@@ -140,6 +147,13 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
           packagingData: packagingData,
           verificationData: verificationData,
           items: [],
+          depositRequired: data[ORDER_DEPOSIT_REQUIRED_FIELD] || undefined,
+          paymentVariant: data[ORDER_PAYMENT_VARIANT_FIELD] || undefined,
+          depositDueDate: data[ORDER_DEPOSIT_DUE_DATE_FIELD] || undefined,
+          paymentType: data[ORDER_PAYMENT_TYPE_FIELD] || undefined,
+          deliveryType: data[ORDER_DELIVERY_TYPE_FIELD] || undefined,
+          installationService:
+            data[ORDER_INSTALLATION_SERVICE_FIELD] || undefined,
         };
 
         bx24.callMethod(
@@ -184,8 +198,7 @@ export async function hasOrderDeals(placementId: number): Promise<boolean> {
 
 export async function createOrder(
   dealId: number,
-  contactId?: number,
-  companyId?: number,
+  dealData: DealData,
 ): Promise<number | null> {
   const bx24 = getBitrix24();
   if (!bx24) {
@@ -206,8 +219,14 @@ export async function createOrder(
     const updateBody = {
       fields: {
         DEAL_ID: dealId,
-        CONTACT_ID: contactId,
-        COMPANY_ID: companyId,
+        CONTACT_ID: dealData.contactId,
+        COMPANY_ID: dealData.companyId,
+        ORDER_DEPOSIT_REQUIRED_FIELD: dealData.depositRequired,
+        ORDER_PAYMENT_VARIANT_FIELD: dealData.paymentVariant,
+        ORDER_DEPOSIT_DUE_DATE_FIELD: dealData.depositDueDate,
+        ORDER_PAYMENT_TYPE_FIELD: dealData.paymentType,
+        ORDER_DELIVERY_TYPE_FIELD: dealData.deliveryType,
+        ORDER_INSTALLATION_SERVICE_FIELD: dealData.installationService,
       },
     };
 

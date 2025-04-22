@@ -395,96 +395,102 @@ export default function Verification() {
               </tr>
             </thead>
             <tbody>
-              {order.items.map((item) => (
-                <tr
-                  onMouseEnter={() => setSelectedItem(item.id!.toString())}
-                  className={
-                    selectedItem === item.id!.toString() ? 'bg-gray-300' : ''
-                  }
-                  key={item.id}
-                >
-                  <td>{item.productName}</td>
-                  <td>{ITEM_GROUPS[item.groupId]}</td>
-                  <td>{item.quantity}</td>
-                  <td>{item.unit}</td>
-                  <td>{stocks[+item.itemId].quantity}</td>
-                  <td>
-                    <input
-                      type='number'
-                      className='w-[100px]'
-                      min={0}
-                      ref={(el) => {
-                        if (rowsRef.current) {
-                          rowsRef.current[item.id!.toString()].actualStock = el;
-                        }
-                      }}
-                      value={verificationData[item.id!.toString()].actualStock}
-                      onChange={(e) => {
-                        setVerificationData((prev) =>
-                          update(prev, {
-                            [item.id!]: {
-                              actualStock: {
-                                $set: Math.max(0, +e.target.value),
+              {order.items.map((item) => {
+                const verification = verificationData[item.id!.toString()];
+                const orderQuantity = Math.max(
+                  0,
+                  item.quantity - verification.qualityGoods,
+                );
+
+                return (
+                  <tr
+                    onMouseEnter={() => setSelectedItem(item.id!.toString())}
+                    className={
+                      selectedItem === item.id!.toString() ? 'bg-gray-300' : ''
+                    }
+                    key={item.id}
+                  >
+                    <td>{item.productName}</td>
+                    <td>{ITEM_GROUPS[item.groupId]}</td>
+                    <td>{item.quantity}</td>
+                    <td>{item.unit}</td>
+                    <td>{stocks[+item.itemId].quantity}</td>
+                    <td>
+                      <input
+                        type='number'
+                        className='w-[100px]'
+                        min={0}
+                        ref={(el) => {
+                          if (rowsRef.current) {
+                            rowsRef.current[item.id!.toString()].actualStock =
+                              el;
+                          }
+                        }}
+                        value={verification.actualStock}
+                        onChange={(e) => {
+                          setVerificationData((prev) =>
+                            update(prev, {
+                              [item.id!]: {
+                                actualStock: {
+                                  $set: Math.max(0, +e.target.value),
+                                },
                               },
-                            },
-                          }),
-                        );
-                      }}
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type='number'
-                      className='w-[100px]'
-                      min={0}
-                      ref={(el) => {
-                        if (rowsRef.current) {
-                          rowsRef.current[item.id!.toString()].qualityGoods =
-                            el;
-                        }
-                      }}
-                      value={verificationData[item.id!.toString()].qualityGoods}
-                      onChange={(e) => {
-                        setVerificationData((prev) =>
-                          update(prev, {
-                            [item.id!]: {
-                              qualityGoods: {
-                                $set: Math.max(0, +e.target.value),
+                            }),
+                          );
+                        }}
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type='number'
+                        className='w-[100px]'
+                        min={0}
+                        ref={(el) => {
+                          if (rowsRef.current) {
+                            rowsRef.current[item.id!.toString()].qualityGoods =
+                              el;
+                          }
+                        }}
+                        value={verification.qualityGoods}
+                        onChange={(e) => {
+                          setVerificationData((prev) =>
+                            update(prev, {
+                              [item.id!]: {
+                                qualityGoods: {
+                                  $set: Math.min(
+                                    verification.actualStock,
+                                    Math.max(0, +e.target.value),
+                                  ),
+                                },
                               },
-                            },
-                          }),
-                        );
-                      }}
-                    />
-                  </td>
-                  <td>
-                    {Math.max(
-                      0,
-                      item.quantity -
-                        verificationData[item.id!.toString()].qualityGoods,
-                    )}
-                  </td>
-                  <td>
-                    <input
-                      ref={(el) => {
-                        if (rowsRef.current) {
-                          rowsRef.current[item.id!].comment = el;
-                        }
-                      }}
-                      type='text'
-                      placeholder='Komentarz'
-                      value={verificationData[item.id!].comment}
-                      onChange={(e) => {
-                        setVerificationData((prev) =>
-                          update(prev, {
-                            [item.id!]: { comment: { $set: e.target.value } },
-                          }),
-                        );
-                      }}
-                    />
-                  </td>
-                </tr>
-              ))}
+                            }),
+                          );
+                        }}
+                      />
+                    </td>
+                    <td>{orderQuantity}</td>
+                    <td>
+                      <input
+                        ref={(el) => {
+                          if (rowsRef.current) {
+                            rowsRef.current[item.id!].comment = el;
+                          }
+                        }}
+                        type='text'
+                        placeholder='Komentarz'
+                        value={verification.comment}
+                        onChange={(e) => {
+                          setVerificationData((prev) =>
+                            update(prev, {
+                              [item.id!]: { comment: { $set: e.target.value } },
+                            }),
+                          );
+                        }}
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </>

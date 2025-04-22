@@ -243,7 +243,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
         <p>Dodaj/modyfikuj pozycję (ENTER)</p>
       </div>
 
-      <h2 className='mb-5 font-bold'>Wartość całkowita: {sum.toFixed(2)}</h2>
+      <h2 className='mb-5 font-bold'>Wartość całkowita: {sum.toFixed(2)} zł</h2>
       <table>
         <thead>
           <tr>

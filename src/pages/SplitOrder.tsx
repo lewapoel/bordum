@@ -215,7 +215,7 @@ function SplitOrder() {
           <>
             <h1 className='mb-5'>Oferta</h1>
             <p className='font-bold mb-2'>
-              Łączna kwota oferty: {orderSum.toFixed(2)}
+              Łączna kwota oferty: {orderSum.toFixed(2)} zł
             </p>
             <table>
               <thead>
@@ -252,7 +252,7 @@ function SplitOrder() {
 
             <h1 className='mb-5'>Podoferta</h1>
             <p className='font-bold mb-2'>
-              Łączna kwota podoferty: {subOrderSum.toFixed(2)}
+              Łączna kwota podoferty: {subOrderSum.toFixed(2)} zł
             </p>
 
             <div className='justify-center flex items-center gap-2 mb-10'>

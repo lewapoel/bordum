@@ -13,6 +13,8 @@ import {
   USER_GET,
 } from '../data/bitrix/mockBitrix.ts';
 import { EnumFieldMeta } from '../models/bitrix/field.ts';
+import { ORDER_VERIFICATION_DOCUMENTS_FIELD } from '../data/bitrix/field.ts';
+import { downloadBase64File } from './file.ts';
 
 type MockBitrixResult = {
   error: () => any;
@@ -22,7 +24,7 @@ type MockBitrixResult = {
 const mockBX24 = {
   callMethod: (
     method: string,
-    _args: object,
+    _args: any,
     callback: (result: MockBitrixResult) => void,
   ) => {
     let isError = false;
@@ -78,6 +80,22 @@ const mockBX24 = {
       case 'crm.deal.fields':
         data = CRM_DEAL_FIELDS;
         break;
+
+      case 'crm.quote.update': {
+        const verificationDocuments =
+          _args?.fields?.[ORDER_VERIFICATION_DOCUMENTS_FIELD];
+
+        if (verificationDocuments && verificationDocuments.length > 0) {
+          verificationDocuments.forEach((verificationDocument: any) => {
+            downloadBase64File(
+              verificationDocument.fileData[0],
+              'pdf',
+              verificationDocument.fileData[1],
+            );
+          });
+        }
+        break;
+      }
 
       default:
         isError = true;

@@ -117,7 +117,7 @@ export default function Verification() {
       const element = (
         <html>
           <body>
-            <h1>{group.groupName}</h1>
+            <h1 style={{ textAlign: 'center' }}>{group.groupName}</h1>
 
             <table>
               <thead>
@@ -189,7 +189,7 @@ export default function Verification() {
     for (const group of Object.values(itemsByGroups)) {
       const pdfDocument = (
         <Document>
-          <Page size='A4'>
+          <Page size='A4' orientation='landscape'>
             <Html stylesheet={stylesheet}>{generatePdfHtml(group)}</Html>
           </Page>
         </Document>

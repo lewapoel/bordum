@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { getBitrix24, getCurrentPlacementId } from '../utils/bitrix24';
+import { getCurrentPlacementId } from '../utils/bitrix24';
 import { OrderItem } from '../models/bitrix/order.ts';
-import { getOrder, hasOrderDeals, updateOrder } from '../api/bitrix/order.ts';
-import { ORDER_MAIN_LINK_FIELD } from '../data/bitrix/field.ts';
+import { getOrder, hasOrderDeals, splitOrder } from '../api/bitrix/order.ts';
 
 function SplitOrder() {
   const placementId = getCurrentPlacementId();
@@ -100,50 +99,11 @@ function SplitOrder() {
       return;
     }
 
-    const bx24 = getBitrix24();
-    if (!bx24) {
-      return;
-    }
-
-    const addEstimateCallback = (result: any) => {
-      if (result.error()) {
-        console.error(result.error());
-        alert('Nie udało się utworzyć oferty. Szczegóły w konsoli');
-      } else {
-        updateOrder(result.data(), subOrderResult, false, false).then(() =>
-          alert('Oferta podzielona pomyślnie'),
-        );
-      }
-    };
-
-    const getEstimateCallback = (result: any) => {
-      if (result.error()) {
-        console.error(result.error());
-        alert('Nie udało się pobrać danych oferty. Szczegóły w konsoli');
-      } else {
-        const estimateData = result.data();
-        const id = estimateData.ID;
-
-        delete estimateData.ID; // Not needed for creating new estimate
-
-        const quoteData = {
-          fields: {
-            ...estimateData,
-            TITLE: `${estimateData.TITLE} - podoferta`,
-          },
-        };
-
-        quoteData.fields[ORDER_MAIN_LINK_FIELD] =
-          `https://bordum.bitrix24.pl/crm/type/7/details/${id}/`;
-
-        // Add new estimate
-        bx24.callMethod('crm.quote.add', quoteData, addEstimateCallback);
-
-        void updateOrder(placementId, orderResult, false, false);
-      }
-    };
-
-    bx24.callMethod('crm.quote.get', { id: placementId }, getEstimateCallback);
+    void splitOrder(placementId, {
+      order: orderResult,
+      subOrder: subOrderResult,
+      title: 'podoferta',
+    });
   }, [
     orderQuantity,
     orderResult,

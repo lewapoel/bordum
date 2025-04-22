@@ -1,7 +1,11 @@
 import { ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import { OrderData, OrderItem } from '../../models/bitrix/order.ts';
 import update from 'immutability-helper';
-import { createOrder, getOrder, updateOrder } from '../../api/bitrix/order.ts';
+import {
+  createOrderFromDeal,
+  getOrder,
+  updateOrder,
+} from '../../api/bitrix/order.ts';
 import { DocumentType, useAddDocument } from '../../api/comarch/document.ts';
 import { OrderContext, OrderType, OrderView } from '../../models/order.ts';
 import { AuthContext } from '../../api/comarch/auth.ts';
@@ -188,7 +192,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
   const newOrder = useCallback(async () => {
     if (order && deal) {
       setPendingOrder(true);
-      createOrder(placementId, deal).then((orderId) => {
+      createOrderFromDeal(placementId, deal).then((orderId) => {
         if (orderId) {
           void updateOrder(orderId, order.items, true);
         } else {

@@ -3,13 +3,14 @@ import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { getCurrentPlacementId } from '../utils/bitrix24.ts';
 import {
   getOrder,
+  splitOrder,
   updateOrderVerificationData,
   updateOrderVerificationDocuments,
 } from '../api/bitrix/order.ts';
 import update from 'immutability-helper';
 import {
   OrderData,
-  OrderItems,
+  OrderItem,
   VerificationData,
 } from '../models/bitrix/order.ts';
 import { ITEM_GROUPS } from '../data/comarch/groups.ts';
@@ -30,7 +31,7 @@ type RowsElements = { [key: string]: RowElements };
 
 type GroupItems = {
   groupName: string;
-  items: OrderItems;
+  items: Array<OrderItem>;
 };
 
 type GroupsItems = { [key: string]: GroupItems };
@@ -207,6 +208,27 @@ export default function Verification() {
     });
   }, [order, generatePdfHtml, placementId]);
 
+  const generateOrder = useCallback(() => {
+    if (!placementId || !order || !verificationData) {
+      alert('Nie udało się pobrać danych oferty');
+      return;
+    }
+    setStatus(Status.SAVING);
+
+    const subOrder = order.items.filter((item) => {
+      const orderQuantity = Math.max(
+        0,
+        item.quantity - verificationData[item.id!.toString()].qualityGoods,
+      );
+
+      return orderQuantity > 0;
+    });
+
+    splitOrder(placementId, { title: 'braki', subOrder }).then(() => {
+      setStatus(Status.LOADED);
+    });
+  }, [placementId, order, verificationData]);
+
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       switch (e.key) {
@@ -242,6 +264,9 @@ export default function Verification() {
         case 'Home':
           void generatePdfs();
           break;
+        case 'End':
+          generateOrder();
+          break;
         case 'Tab':
           e.preventDefault();
 
@@ -270,7 +295,7 @@ export default function Verification() {
           break;
       }
     },
-    [selectedItem, saveData, verificationData, generatePdfs],
+    [selectedItem, saveData, verificationData, generatePdfs, generateOrder],
   );
 
   useEffect(() => {
@@ -335,6 +360,10 @@ export default function Verification() {
           <div className='justify-center flex items-center gap-2 mb-5'>
             <button onClick={() => generatePdfs()}>
               Wygeneruj braki (HOME)
+            </button>
+
+            <button onClick={() => generateOrder()}>
+              Wydziel braki do oferty (END)
             </button>
           </div>
 

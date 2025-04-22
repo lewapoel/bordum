@@ -12,8 +12,6 @@ export type OrderItem = {
   unitPrice: number;
 };
 
-export type OrderItems = Array<OrderItem>;
-
 export type PackagingDataItem = {
   itemId: number;
   quality: number;
@@ -46,7 +44,7 @@ export type OrderData = CrmData & {
   additionalData?: OrderAdditionalData;
   packagingData?: PackagingData;
   verificationData?: VerificationData;
-  items: OrderItems;
+  items: Array<OrderItem>;
 
   // Offer details section
   depositRequired?: string;

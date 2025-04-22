@@ -15,6 +15,7 @@ import {
   ORDER_DEPOSIT_REQUIRED_FIELD,
   ORDER_DOCUMENTS_ID_FIELD,
   ORDER_INSTALLATION_SERVICE_FIELD,
+  ORDER_MAIN_LINK_FIELD,
   ORDER_PACKAGING_DATA_FIELD,
   ORDER_PAYMENT_TYPE_FIELD,
   ORDER_PAYMENT_VARIANT_FIELD,
@@ -222,7 +223,7 @@ export async function hasOrderDeals(placementId: number): Promise<boolean> {
   });
 }
 
-export async function createOrder(
+export async function createOrderFromDeal(
   dealId: number,
   dealData: DealData,
 ): Promise<number | null> {
@@ -309,6 +310,77 @@ export async function createOrder(
       alert('Nie udało się ustalić pól tworzonej oferty. Szczegóły w konsoli');
       reject();
     }
+  });
+}
+
+/**
+ * @property subOrder Suborder items
+ * @property order New current order items (optional)
+ * @property title Title suffix
+ */
+type SplitOrderParams = {
+  subOrder: Array<OrderItem>;
+  order?: Array<OrderItem>;
+  title: string;
+};
+
+/**
+ * Split order into two or create new suborder without modifying the current one
+ * @param placementId Current order ID
+ * @param params See {@link SplitOrderParams}
+ */
+export async function splitOrder(
+  placementId: number,
+  params: SplitOrderParams,
+) {
+  const bx24 = getBitrix24();
+  if (!bx24) {
+    return null;
+  }
+
+  return new Promise((resolve, reject) => {
+    const addEstimateCallback = (result: any) => {
+      if (result.error()) {
+        console.error(result.error());
+        alert('Nie udało się utworzyć oferty. Szczegóły w konsoli');
+        reject();
+      } else {
+        updateOrder(result.data(), params.subOrder, false, false).then(() => {
+          alert('Oferta podzielona pomyślnie');
+          resolve(true);
+        });
+      }
+    };
+
+    const getEstimateCallback = (result: any) => {
+      if (result.error()) {
+        console.error(result.error());
+        alert('Nie udało się pobrać danych oferty. Szczegóły w konsoli');
+        reject();
+      } else {
+        const estimateData = result.data();
+        const id = estimateData.ID;
+
+        delete estimateData.ID; // Not needed for creating new estimate
+
+        const quoteData = {
+          fields: {
+            ...estimateData,
+            TITLE: `${estimateData.TITLE} - ${params.title}`,
+            [ORDER_MAIN_LINK_FIELD]: `https://bordum.bitrix24.pl/crm/type/7/details/${id}/`,
+          },
+        };
+
+        // Add new estimate
+        bx24.callMethod('crm.quote.add', quoteData, addEstimateCallback);
+
+        if (params.order) {
+          void updateOrder(placementId, params.order, false, false);
+        }
+      }
+    };
+
+    bx24.callMethod('crm.quote.get', { id: placementId }, getEstimateCallback);
   });
 }
 

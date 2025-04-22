@@ -165,10 +165,23 @@ export default function Verification() {
     const stylesheet = {
       body: {
         fontFamily: 'NotoSans',
+        fontSize: '12px',
       },
       ['table, th, td']: {
         border: '1px solid black',
         borderCollapse: 'collapse',
+      },
+      ['th:nth-child(1), td:nth-child(1)']: {
+        width: '40%',
+      },
+      ['th:nth-child(2), td:nth-child(2)']: {
+        width: '10%',
+      },
+      ['th:nth-child(3), td:nth-child(3)']: {
+        width: '20%',
+      },
+      ['th:nth-child(4), td:nth-child(4)']: {
+        width: '30%',
       },
     };
 

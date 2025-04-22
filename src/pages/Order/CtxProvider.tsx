@@ -160,7 +160,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
       if (order && index >= 0 && index < order.items.length) {
         setOrder((prev) =>
           update(prev, {
-            items: { [index]: { quantity: { $set: quantity } } },
+            items: { [index]: { quantity: { $set: Math.max(1, quantity) } } },
           }),
         );
       }

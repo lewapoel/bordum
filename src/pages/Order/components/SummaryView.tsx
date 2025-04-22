@@ -52,7 +52,7 @@ function SummaryRow({
             }}
             className='w-[50px]'
             type='number'
-            min={0}
+            min={1}
             value={item.quantity}
             onChange={(e) => editItemQuantity(index, +e.target.value)}
           />

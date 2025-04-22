@@ -339,13 +339,21 @@ export async function splitOrder(
   }
 
   return new Promise((resolve, reject) => {
+    let estimateData: any;
+
     const addEstimateCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
         alert('Nie udało się utworzyć oferty. Szczegóły w konsoli');
         reject();
       } else {
-        updateOrder(result.data(), params.subOrder, false, false).then(() => {
+        updateOrder(result.data(), params.subOrder, {
+          ensureMeasures: false,
+          showAlertOnSuccess: false,
+          title: params.title
+            ? `${estimateData.TITLE} - ${params.title}`
+            : undefined,
+        }).then(() => {
           alert('Oferta podzielona pomyślnie');
           resolve(true);
         });
@@ -358,7 +366,7 @@ export async function splitOrder(
         alert('Nie udało się pobrać danych oferty. Szczegóły w konsoli');
         reject();
       } else {
-        const estimateData = result.data();
+        estimateData = result.data();
         const id = estimateData.ID;
 
         delete estimateData.ID; // Not needed for creating new estimate
@@ -366,7 +374,6 @@ export async function splitOrder(
         const quoteData = {
           fields: {
             ...estimateData,
-            TITLE: `${estimateData.TITLE} - ${params.title}`,
             [ORDER_MAIN_LINK_FIELD]: `https://bordum.bitrix24.pl/crm/type/7/details/${id}/`,
           },
         };
@@ -375,7 +382,10 @@ export async function splitOrder(
         bx24.callMethod('crm.quote.add', quoteData, addEstimateCallback);
 
         if (params.order) {
-          void updateOrder(placementId, params.order, false, false);
+          void updateOrder(placementId, params.order, {
+            ensureMeasures: false,
+            showAlertOnSuccess: false,
+          });
         }
       }
     };
@@ -384,11 +394,16 @@ export async function splitOrder(
   });
 }
 
+type UpdateOrderParams = {
+  ensureMeasures: boolean;
+  showAlertOnSuccess?: boolean;
+  title?: string;
+};
+
 export async function updateOrder(
   placementId: number,
   order: Array<OrderItem>,
-  ensureMeasures: boolean,
-  showAlertOnSuccess: boolean = true,
+  { ensureMeasures, showAlertOnSuccess = true, title }: UpdateOrderParams,
 ) {
   const bx24 = getBitrix24();
   if (!bx24) {
@@ -458,12 +473,16 @@ export async function updateOrder(
       groupIds: order.map((item) => item.groupId),
     };
 
-    const updateBody = {
+    const updateBody: any = {
       id: placementId,
       fields: {
         [ORDER_ADDITIONAL_DATA_FIELD]: JSON.stringify(additionalData),
       },
     };
+
+    if (title) {
+      updateBody.fields.TITLE = title;
+    }
 
     bx24.callMethod('crm.quote.update', updateBody, setEstimateCallback);
   });

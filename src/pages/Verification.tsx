@@ -215,14 +215,16 @@ export default function Verification() {
     }
     setStatus(Status.SAVING);
 
-    const subOrder = order.items.filter((item) => {
-      const orderQuantity = Math.max(
-        0,
-        item.quantity - verificationData[item.id!.toString()].qualityGoods,
-      );
+    const subOrder = order.items
+      .map((item) => {
+        const orderQuantity = Math.max(
+          0,
+          item.quantity - verificationData[item.id!.toString()].qualityGoods,
+        );
 
-      return orderQuantity > 0;
-    });
+        return { ...item, quantity: orderQuantity };
+      })
+      .filter((item) => item.quantity > 0);
 
     splitOrder(placementId, { title: 'braki', subOrder }).then(() => {
       setStatus(Status.LOADED);

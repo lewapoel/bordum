@@ -183,7 +183,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
   const saveOrder = useCallback(async () => {
     if (order) {
       setPendingOrder(true);
-      updateOrder(placementId, order.items, true).then(() =>
+      updateOrder(placementId, order.items, { ensureMeasures: true }).then(() =>
         setPendingOrder(false),
       );
     }
@@ -194,7 +194,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
       setPendingOrder(true);
       createOrderFromDeal(placementId, deal).then((orderId) => {
         if (orderId) {
-          void updateOrder(orderId, order.items, true);
+          void updateOrder(orderId, order.items, { ensureMeasures: true });
         } else {
           alert('Utworzona oferta nie ma identyfikatora');
         }

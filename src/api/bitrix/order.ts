@@ -368,6 +368,7 @@ export async function splitOrder(
       } else {
         estimateData = result.data();
         const id = estimateData.ID;
+        estimateData.TITLE = id;
 
         delete estimateData.ID; // Not needed for creating new estimate
 

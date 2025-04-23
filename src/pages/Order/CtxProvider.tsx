@@ -58,13 +58,15 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
 
     if (crm.companyId && +crm.companyId !== 0) {
       getCompany(crm.companyId).then((res) => {
-        if (res) {
+        if (res && res.nip) {
           setCompanyNip(res.nip);
         } else {
           setSelectedPrice(defaultPriceName);
         }
       });
-    } else if (crm.contactId && +crm.contactId !== 0) {
+    }
+
+    if (crm.contactId && +crm.contactId !== 0) {
       getContact(crm.contactId).then((res) => {
         if (res) {
           setCustomerName(`${res.name} ${res.lastName}`);

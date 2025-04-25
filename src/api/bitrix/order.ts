@@ -164,12 +164,15 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
           void e;
         }
 
+        const companyId = data['COMPANY_ID'];
+        const contactId = data['CONTACT_ID'];
+
         orderData = {
           id: data['ID'] || undefined,
           dealId: data['DEAL_ID'] || undefined,
           leadId: data['LEAD_ID'] || undefined,
-          companyId: data['COMPANY_ID'] || undefined,
-          contactId: data['CONTACT_ID'] || undefined,
+          companyId: companyId && companyId !== '0' ? companyId : undefined,
+          contactId: contactId && contactId !== '0' ? contactId : undefined,
           additionalData: additionalData,
           packagingData: packagingData,
           verificationData: verificationData,

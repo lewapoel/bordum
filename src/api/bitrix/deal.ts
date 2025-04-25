@@ -55,10 +55,13 @@ export async function getDeal(placementId: number): Promise<DealData | null> {
       } else {
         const data = result.data();
 
+        const companyId = data['COMPANY_ID'];
+        const contactId = data['CONTACT_ID'];
+
         resolve({
           id: data['ID'] || undefined,
-          companyId: data['COMPANY_ID'] || undefined,
-          contactId: data['CONTACT_ID'] || undefined,
+          companyId: companyId && companyId !== '0' ? companyId : undefined,
+          contactId: contactId && contactId !== '0' ? contactId : undefined,
           depositRequired: data[DEAL_DEPOSIT_REQUIRED_FIELD] || undefined,
           paymentVariant: data[DEAL_PAYMENT_VARIANT_FIELD] || undefined,
           depositDueDate: data[DEAL_DEPOSIT_DUE_DATE_FIELD] || undefined,

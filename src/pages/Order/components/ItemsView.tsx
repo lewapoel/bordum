@@ -133,6 +133,8 @@ export default function ItemsView() {
           theme: 'light',
           autoClose: 700,
         });
+
+        searchBarRef.current?.focus();
       }
     },
     [ctx, quantities, discounts],
@@ -195,9 +197,6 @@ export default function ItemsView() {
             selectItem(filteredList[selectedItem].item);
           }
           break;
-        case 'Insert':
-          // searchBarRef.current?.focus();
-          break;
         case 'Escape':
           if (ctx) {
             ctx.setCurrentView(OrderView.Summary);
@@ -255,7 +254,6 @@ export default function ItemsView() {
       <div className='text-[20px] justify-center flex items-center gap-4 mb-10'>
         <p>Zmień zaznaczoną pozycję (↑/↓)</p>
         <p>Potwierdź pozycję (ENTER)</p>
-        {/*<p>Przejdź do wyszukiwarki (INSERT)</p>*/}
       </div>
 
       <input

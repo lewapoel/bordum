@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { getCurrentPlacementId } from '../utils/bitrix24.ts';
 import { getOrder, updateOrderPackagingData } from '../api/bitrix/order.ts';
 import update from 'immutability-helper';
-import { getCurrentUser, getUsers, User } from '../api/bitrix/user.ts';
+import { getCurrentUser, User } from '../api/bitrix/user.ts';
 import { OrderData, PackagingData } from '../models/bitrix/order.ts';
 
 type RowElements = {
@@ -37,7 +37,9 @@ export default function Packaging() {
   const [originalPackagingData, setOriginalPackagingData] =
     useState<PackagingData>();
   const [packagingData, setPackagingData] = useState<PackagingData>();
-  const [users, setUsers] = useState<Array<User>>();
+  const [users, _] = useState<Array<User>>(
+    JSON.parse(import.meta.env.VITE_PACKAGING_USERS),
+  );
 
   const saveData = useCallback(
     (itemId: string) => {
@@ -189,11 +191,11 @@ export default function Packaging() {
       }
     });
 
-    getUsers().then((res) => {
+    /*    getUsers().then((res) => {
       if (res) {
         setUsers(res);
       }
-    });
+    });*/
 
     getCurrentUser().then((res) => {
       if (res) {

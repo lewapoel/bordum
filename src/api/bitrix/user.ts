@@ -5,6 +5,7 @@ export type User = {
   id: number;
   firstName: string;
   lastName: string;
+  email: string;
   discount?: number;
 };
 
@@ -43,6 +44,7 @@ export async function getUsers(): Promise<Array<User> | null> {
               id: +item['ID'],
               firstName: item['NAME'],
               lastName: item['LAST_NAME'],
+              email: item['EMAIL'],
               discount,
             }),
           ),
@@ -89,6 +91,7 @@ export async function getCurrentUser(): Promise<User | null> {
           id: +data['ID'],
           firstName: data['NAME'],
           lastName: data['LAST_NAME'],
+          email: data['EMAIL'],
           discount,
         });
       }

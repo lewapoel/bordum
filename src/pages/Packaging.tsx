@@ -9,7 +9,7 @@ type RowElements = {
   quality: HTMLSelectElement | null;
   packer: HTMLSelectElement | null;
   date: HTMLInputElement | null;
-  comment: HTMLInputElement | null;
+  comment: HTMLTextAreaElement | null;
 };
 
 type RowsElements = { [key: string]: RowElements };
@@ -27,6 +27,9 @@ export default function Packaging() {
   const [status, setStatus] = useState<Status>(Status.LOADING);
   const [selectedItem, setSelectedItem] = useState('0');
 
+  const [lastSaved, setLastSaved] = useState<string>();
+  const [saving, setSaving] = useState(false);
+
   const rowsRef = useRef<RowsElements>(null);
 
   // Range of [1, 10]
@@ -37,9 +40,9 @@ export default function Packaging() {
   const [originalPackagingData, setOriginalPackagingData] =
     useState<PackagingData>();
   const [packagingData, setPackagingData] = useState<PackagingData>();
-  const [users, _] = useState<Array<User>>(
+  const users = useState<Array<User>>(
     JSON.parse(import.meta.env.VITE_PACKAGING_USERS),
-  );
+  )[0];
 
   const saveData = useCallback(
     (itemId: string) => {
@@ -63,7 +66,8 @@ export default function Packaging() {
         return;
       }
 
-      void updateOrderPackagingData(
+      setSaving(true);
+      updateOrderPackagingData(
         placementId,
         Object.fromEntries(
           Object.entries(originalPackagingData).map(([key, item]) => {
@@ -78,7 +82,10 @@ export default function Packaging() {
             ];
           }),
         ),
-      );
+      ).then(() => {
+        setSaving(false);
+        setLastSaved(itemId);
+      });
     },
     [packagingData, placementId, originalPackagingData],
   );
@@ -190,12 +197,6 @@ export default function Packaging() {
         }
       }
     });
-
-    /*    getUsers().then((res) => {
-      if (res) {
-        setUsers(res);
-      }
-    });*/
 
     getCurrentUser().then((res) => {
       if (res) {
@@ -341,13 +342,12 @@ export default function Packaging() {
                     />
                   </td>
                   <td>
-                    <input
+                    <textarea
                       ref={(el) => {
                         if (rowsRef.current) {
                           rowsRef.current[item.id!].comment = el;
                         }
                       }}
-                      type='text'
                       placeholder='Komentarz'
                       className='disabled:cursor-not-allowed'
                       disabled={packagingData[item.id!].quality >= 8}
@@ -367,10 +367,15 @@ export default function Packaging() {
                   </td>
                   <td>
                     <button
-                      className='confirm'
+                      className={saving ? 'disabled' : 'confirm'}
+                      disabled={saving}
                       onClick={() => saveData(item.id!.toString())}
                     >
-                      Zapisz (ENTER)
+                      {saving
+                        ? 'Zapisywanie...'
+                        : item.id!.toString() === lastSaved
+                          ? 'Zapisano (ENTER)'
+                          : 'Zapisz (ENTER)'}
                     </button>
                   </td>
                 </tr>

@@ -24,7 +24,7 @@ import { BitrixFile } from '../models/bitrix/file.ts';
 type RowElements = {
   actualStock: HTMLInputElement | null;
   qualityGoods: HTMLInputElement | null;
-  comment: HTMLInputElement | null;
+  comment: HTMLTextAreaElement | null;
 };
 
 type RowsElements = { [key: string]: RowElements };
@@ -483,13 +483,12 @@ export default function Verification() {
                     </td>
                     <td>{orderQuantity}</td>
                     <td>
-                      <input
+                      <textarea
                         ref={(el) => {
                           if (rowsRef.current) {
                             rowsRef.current[item.id!].comment = el;
                           }
                         }}
-                        type='text'
                         placeholder='Komentarz'
                         value={verification.comment}
                         onChange={(e) => {

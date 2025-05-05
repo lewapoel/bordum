@@ -66,7 +66,9 @@ export default function Packaging() {
         return;
       }
 
+      setLastSaved(itemId);
       setSaving(true);
+
       updateOrderPackagingData(
         placementId,
         Object.fromEntries(
@@ -84,7 +86,6 @@ export default function Packaging() {
         ),
       ).then(() => {
         setSaving(false);
-        setLastSaved(itemId);
       });
     },
     [packagingData, placementId, originalPackagingData],
@@ -371,11 +372,11 @@ export default function Packaging() {
                       disabled={saving}
                       onClick={() => saveData(item.id!.toString())}
                     >
-                      {saving
-                        ? 'Zapisywanie...'
-                        : item.id!.toString() === lastSaved
-                          ? 'Zapisano (ENTER)'
-                          : 'Zapisz (ENTER)'}
+                      {item.id!.toString() === lastSaved
+                        ? saving
+                          ? 'Zapisywanie...'
+                          : 'Zapisano (ENTER)'
+                        : 'Zapisz (ENTER)'}
                     </button>
                   </td>
                 </tr>

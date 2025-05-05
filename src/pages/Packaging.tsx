@@ -368,8 +368,12 @@ export default function Packaging() {
                   </td>
                   <td>
                     <button
-                      className={saving ? 'disabled' : 'confirm'}
-                      disabled={saving}
+                      className={
+                        saving && item.id!.toString() === lastSaved
+                          ? 'disabled'
+                          : 'confirm'
+                      }
+                      disabled={saving && item.id!.toString() === lastSaved}
                       onClick={() => saveData(item.id!.toString())}
                     >
                       {item.id!.toString() === lastSaved

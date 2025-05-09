@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 export type Stock = {
   itemId: number;
   quantity: number;
+  reservation: number;
   warehouseId: number;
 };
 
@@ -29,6 +30,7 @@ export async function getStocks(
           result[+itemId] = {
             itemId: +itemId,
             quantity: stocks[0]['quantity'],
+            reservation: stocks[0]['reservation'],
             warehouseId: warehouseId,
           };
 

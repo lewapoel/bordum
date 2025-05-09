@@ -1,4 +1,5 @@
 import {
+  Fragment,
   useCallback,
   useContext,
   useEffect,
@@ -269,7 +270,10 @@ export default function ItemsView() {
           <tr>
             <th>Nazwa</th>
             {warehouses.map((warehouse) => (
-              <th key={warehouse.id}>Stan ({warehouse.name})</th>
+              <Fragment key={warehouse.id}>
+                <th>Stan ({warehouse.name})</th>
+                <th>Ilość w trakcie ofertowania ({warehouse.name})</th>
+              </Fragment>
             ))}
             <th>Ilość</th>
             <th>Jedn. miary</th>
@@ -323,7 +327,10 @@ export default function ItemsView() {
                   <Highlight text={item.name} ranges={highlightRanges} />
                 </td>
                 {Object.values(item.quantities).map((quantity) => (
-                  <td key={quantity.warehouseId}>{quantity.quantity}</td>
+                  <Fragment key={quantity.warehouseId}>
+                    <td>{quantity.quantity}</td>
+                    <td>{quantity.reservation}</td>
+                  </Fragment>
                 ))}
                 <td>
                   <input

@@ -6,6 +6,8 @@ import { getContact } from '../bitrix/contact.ts';
 import { getAddress } from '../bitrix/address.ts';
 import { BitrixType } from '../../models/bitrix/type.ts';
 import { getOrderDocuments, updateOrderDocument } from '../bitrix/order.ts';
+import { getDeal, updateDealReturnData } from '../bitrix/deal.ts';
+import moment from 'moment/moment';
 
 export type AddDocument = {
   placementId: number;
@@ -153,7 +155,7 @@ export function useAddDocument(token: string) {
       const fileBuffer = await response.arrayBuffer();
       const fileData = Buffer.from(fileBuffer).toString('base64');
 
-      return await updateOrderDocument(
+      await updateOrderDocument(
         placementId,
         documentType,
         orderDocuments,
@@ -161,6 +163,26 @@ export function useAddDocument(token: string) {
         documentFullNumber,
         fileData,
       );
+
+      // Add order return data if came from a deal
+      if (order.dealId) {
+        const deal = await getDeal(order.dealId);
+        if (deal) {
+          const returnData = deal.returnData ?? {};
+          order.items.forEach((item) => {
+            if (item.id) {
+              returnData[item.id] = {
+                item: item,
+                wantsReturn: false,
+                date: moment().format('YYYY-MM-DD'),
+                comment: '',
+              };
+            }
+          });
+
+          await updateDealReturnData(order.dealId, returnData);
+        }
+      }
     },
     onSuccess: () => alert('Utworzono dokument pomyślnie'),
     onError: (error) => {

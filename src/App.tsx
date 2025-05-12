@@ -5,11 +5,12 @@ import { AuthProvider } from './components/AuthProvider.tsx';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import Packaging from './pages/Packaging.tsx';
-import './App.css';
 import ReleaseDocuments from './pages/ReleaseDocuments.tsx';
 import CreateOrder from './pages/Order/CreateOrder.tsx';
 import { ToastContainer } from 'react-toastify';
 import Verification from './pages/Verification.tsx';
+import Return from './pages/Return.tsx';
+import './App.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,6 +41,7 @@ function App() {
                   path='/release-documents'
                   element={<ReleaseDocuments />}
                 />
+                <Route path='/return' element={<Return />} />
               </Routes>
             </header>
           </div>

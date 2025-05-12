@@ -198,7 +198,7 @@ export default function Return() {
                   <td>
                     <input
                       type='checkbox'
-                      className='w-[50px]'
+                      className='w-[25px] h-[25px]'
                       ref={(el) => {
                         if (rowsRef.current) {
                           rowsRef.current[itemId].wantsReturn = el;

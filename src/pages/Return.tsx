@@ -180,7 +180,7 @@ export default function Return() {
                 <th>Zamówiona ilość</th>
                 <th>Jedn. miary</th>
                 <th>Zwrot</th>
-                <td>Data zwrotu</td>
+                <th>Data zwrotu</th>
                 <th>Komentarz</th>
               </tr>
             </thead>
@@ -198,6 +198,7 @@ export default function Return() {
                   <td>
                     <input
                       type='checkbox'
+                      className='w-[50px]'
                       ref={(el) => {
                         if (rowsRef.current) {
                           rowsRef.current[itemId].wantsReturn = el;

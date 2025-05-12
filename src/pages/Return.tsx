@@ -39,6 +39,12 @@ export default function Return() {
     });
   }, [returnData, placementId]);
 
+  const removeItem = useCallback(() => {
+    if (returnData) {
+      setReturnData((prev) => update(prev, { $unset: [selectedItem] }));
+    }
+  }, [returnData, selectedItem]);
+
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       switch (e.key) {
@@ -71,6 +77,9 @@ export default function Return() {
         case 'Insert':
           saveData();
           break;
+        case 'Delete':
+          removeItem();
+          break;
         case 'Tab':
           e.preventDefault();
 
@@ -79,6 +88,10 @@ export default function Return() {
 
             switch (document.activeElement) {
               case selectedRow.wantsReturn:
+                selectedRow.date?.focus();
+                break;
+
+              case selectedRow.date:
                 selectedRow.comment?.focus();
                 break;
 
@@ -93,7 +106,7 @@ export default function Return() {
           break;
       }
     },
-    [selectedItem, saveData, returnData],
+    [selectedItem, saveData, returnData, removeItem],
   );
 
   useEffect(() => {
@@ -148,6 +161,9 @@ export default function Return() {
           <div className='justify-center flex items-center gap-2 mb-10'>
             <button className='confirm' onClick={() => saveData()}>
               Zapisz (INSERT)
+            </button>
+            <button className='delete' onClick={() => removeItem()}>
+              Usuń zaznaczoną pozycję (DELETE)
             </button>
           </div>
 

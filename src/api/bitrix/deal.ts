@@ -90,6 +90,7 @@ export async function getDeal(placementId: number): Promise<DealData | null> {
 export async function updateDealReturnData(
   placementId: number,
   returnData: ReturnData,
+  alertOnSuccess: boolean = true,
 ) {
   const bx24 = getBitrix24();
   if (!bx24) {
@@ -103,7 +104,9 @@ export async function updateDealReturnData(
         alert('Nie udało się zapisać deala. Szczegóły w konsoli');
         reject();
       } else {
-        alert('Dane zwrotu zapisane pomyślnie');
+        if (alertOnSuccess) {
+          alert('Dane zwrotu zapisane pomyślnie');
+        }
         resolve(true);
       }
     };

@@ -644,7 +644,7 @@ export async function updateOrderDocument(
     }
 
     if (!fieldId) {
-      console.error('Invalid order document type provided');
+      console.error('Nieprawidłowy rodzaj dokumentu');
       reject();
       return;
     }

@@ -173,7 +173,7 @@ export function useAddDocument(token: string) {
             }
           });
 
-          await updateDealReturnData(order.dealId, returnData);
+          await updateDealReturnData(order.dealId, returnData, false);
         }
       }
     },

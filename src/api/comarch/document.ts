@@ -3,8 +3,6 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { OrderData } from '../../models/bitrix/order.ts';
 import { getCompany } from '../bitrix/company.ts';
 import { getContact } from '../bitrix/contact.ts';
-import { getAddress } from '../bitrix/address.ts';
-import { BitrixType } from '../../models/bitrix/type.ts';
 import { getOrderDocuments, updateOrderDocument } from '../bitrix/order.ts';
 import { getDeal, updateDealReturnData } from '../bitrix/deal.ts';
 import moment from 'moment/moment';
@@ -52,14 +50,9 @@ export function useAddDocument(token: string) {
         throw new Error('MISSING_DATA');
       }
 
-      let address;
-      if (company) {
-        address = await getAddress(BitrixType.COMPANY, order.companyId!);
-      } else if (contact) {
-        address = await getAddress(BitrixType.CONTACT, order.contactId!);
-      }
+      const address = order.deliveryAddress;
 
-      if (!address) {
+      if (!address.street || !address.city || !address.houseNumber) {
         throw new Error('MISSING_ADDRESS');
       }
 
@@ -84,9 +77,9 @@ export function useAddDocument(token: string) {
       buyer = {
         ...buyer,
         city: address.city,
-        country: address.country,
+        street: address.street,
         postCode: address.postalCode,
-        street: [address.address1, address.address2].filter(Boolean).join(' '),
+        houseNumber: address.houseNumber,
       };
 
       const orderDocuments = await getOrderDocuments(placementId);

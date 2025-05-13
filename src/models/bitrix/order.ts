@@ -31,11 +31,18 @@ export type VerificationDataItem = {
 
 export type VerificationData = { [key: string]: VerificationDataItem };
 
-// Meant for internal use only, use `OrderItem` and it's props instead
+// Meant for internal use only, use `OrderItem` and its props instead
 export type OrderAdditionalData = {
   warehouseCodes?: Array<string>;
   groupIds?: Array<string>;
   itemIds?: Array<string>;
+};
+
+export type OrderDeliveryAddress = {
+  postalCode?: string;
+  city?: string;
+  street?: string;
+  houseNumber?: string;
 };
 
 export type OrderData = CrmData & {
@@ -44,6 +51,7 @@ export type OrderData = CrmData & {
   additionalData?: OrderAdditionalData;
   packagingData?: PackagingData;
   verificationData?: VerificationData;
+  deliveryAddress: OrderDeliveryAddress;
   items: Array<OrderItem>;
 
   // Offer details section

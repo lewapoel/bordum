@@ -10,6 +10,10 @@ import { ensureMeasure, getMeasures } from './measure.ts';
 import {
   CONNECTIONS,
   ORDER_ADDITIONAL_DATA_FIELD,
+  ORDER_DELIVERY_CITY_FIELD,
+  ORDER_DELIVERY_HOUSE_NUMBER_FIELD,
+  ORDER_DELIVERY_POSTAL_CODE_FIELD,
+  ORDER_DELIVERY_STREET_FIELD,
   ORDER_DELIVERY_TYPE_FIELD,
   ORDER_DEPOSIT_DUE_DATE_FIELD,
   ORDER_DEPOSIT_REQUIRED_FIELD,
@@ -65,6 +69,7 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
   return new Promise((resolve, reject) => {
     let orderData: OrderData = {
       items: [],
+      deliveryAddress: {},
     };
 
     const getProductRowsCallback = (result: any) => {
@@ -176,6 +181,12 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
           additionalData: additionalData,
           packagingData: packagingData,
           verificationData: verificationData,
+          deliveryAddress: {
+            postalCode: data[ORDER_DELIVERY_POSTAL_CODE_FIELD] || undefined,
+            city: data[ORDER_DELIVERY_CITY_FIELD] || undefined,
+            street: data[ORDER_DELIVERY_STREET_FIELD] || undefined,
+            houseNumber: data[ORDER_DELIVERY_HOUSE_NUMBER_FIELD] || undefined,
+          },
           items: [],
           depositRequired: data[ORDER_DEPOSIT_REQUIRED_FIELD] || undefined,
           paymentVariant: data[ORDER_PAYMENT_VARIANT_FIELD] || undefined,

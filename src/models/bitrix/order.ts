@@ -49,6 +49,7 @@ export type OrderDeliveryAddress = {
 export type OrderData = CrmData & {
   dealId?: number;
   leadId?: number;
+  title?: string;
   additionalData?: OrderAdditionalData;
   packagingData?: PackagingData;
   verificationData?: VerificationData;

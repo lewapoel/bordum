@@ -106,29 +106,35 @@ export function useAddDocument(token: string) {
         }
       }
 
+      let body: any = {
+        type: documentType,
+        calculatedOn: 1,
+        paymentMethod: 'przelew',
+        currency: 'PLN',
+        elements: order.items.map((item) => ({
+          code: item.warehouseCode,
+          quantity: item.quantity,
+          totalNetValue: item.unitPrice * item.quantity,
+          setCustomValue: true,
+        })),
+        payer: buyer,
+        recipient: buyer,
+        status: 1,
+        sourceWarehouseId: 1,
+        description: order.id,
+      };
+
+      if (documentType === DocumentType.RESERVATION_DOCUMENT) {
+        body.foreignNumber = order.title;
+      }
+
       let response = await fetch(`${API_URL}/Documents`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          type: documentType,
-          calculatedOn: 1,
-          paymentMethod: 'przelew',
-          currency: 'PLN',
-          elements: order.items.map((item) => ({
-            code: item.warehouseCode,
-            quantity: item.quantity,
-            totalNetValue: item.unitPrice * item.quantity,
-            setCustomValue: true,
-          })),
-          payer: buyer,
-          recipient: buyer,
-          status: 1,
-          sourceWarehouseId: 1,
-          description: order.id,
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!response.ok) {

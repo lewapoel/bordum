@@ -176,6 +176,7 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
           id: data['ID'] || undefined,
           dealId: data['DEAL_ID'] || undefined,
           leadId: data['LEAD_ID'] || undefined,
+          title: data['TITLE'] || undefined,
           companyId: companyId && companyId !== '0' ? companyId : undefined,
           contactId: contactId && contactId !== '0' ? contactId : undefined,
           additionalData: additionalData,

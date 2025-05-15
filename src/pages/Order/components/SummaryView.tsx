@@ -221,7 +221,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
 
           <button
             onClick={() =>
-              ctx.addDocument.mutation(DocumentType.PROFORMA_DOCUMENT, true)
+              ctx.addDocument.mutation(DocumentType.PROFORMA_DOCUMENT)
             }
           >
             Utwórz fakturę proforma (PAGEUP)

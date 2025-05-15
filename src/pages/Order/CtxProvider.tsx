@@ -118,6 +118,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
             setDeal(res);
             setOrder({
               items: [],
+              deliveryAddress: {},
             });
             setClientData(res);
           }
@@ -207,13 +208,12 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
   }, [placementId, order, deal]);
 
   const addDocument = useCallback(
-    async (documentType: DocumentType, ignoreDeleteError = false) => {
+    async (documentType: DocumentType) => {
       if (order) {
         void addDocumentMutation.mutate({
           order: order,
           placementId,
           documentType,
-          ignoreDeleteError,
         });
       }
     },

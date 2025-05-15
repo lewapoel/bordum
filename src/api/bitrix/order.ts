@@ -631,7 +631,7 @@ export async function updateOrderDocument(
       }
     };
 
-    let fieldId: string;
+    let fieldId: string | null = null;
 
     switch (documentType) {
       case DocumentType.RELEASE_DOCUMENT:

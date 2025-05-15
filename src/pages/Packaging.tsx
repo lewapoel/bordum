@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { getCurrentPlacementId } from '../utils/bitrix24.ts';
 import { getOrder, updateOrderPackagingData } from '../api/bitrix/order.ts';
 import update from 'immutability-helper';
 import { getCurrentUser, User } from '../api/bitrix/user.ts';
 import { OrderData, PackagingData } from '../models/bitrix/order.ts';
+import { DocumentType, useAddDocument } from '../api/comarch/document.ts';
+import { AuthContext } from '../api/comarch/auth.ts';
 
 type RowElements = {
   quality: HTMLSelectElement | null;
@@ -21,6 +23,7 @@ enum Status {
 }
 
 export default function Packaging() {
+  const { token } = useContext(AuthContext);
   const placementId = getCurrentPlacementId();
   const [currentUserId, setCurrentUserId] = useState<number>();
   const [order, setOrder] = useState<OrderData>();
@@ -44,9 +47,11 @@ export default function Packaging() {
     JSON.parse(import.meta.env.VITE_PACKAGING_USERS),
   )[0];
 
+  const addDocumentMutation = useAddDocument(token);
+
   const saveData = useCallback(
     (itemId: string) => {
-      if (!packagingData || !originalPackagingData) {
+      if (!packagingData || !originalPackagingData || !order) {
         return;
       }
 
@@ -69,6 +74,16 @@ export default function Packaging() {
       setLastSaved(itemId);
       setSaving(true);
 
+      if (!data.reservationCreated) {
+        data.reservationCreated = true;
+        void addDocumentMutation.mutate({
+          order,
+          placementId,
+          documentType: DocumentType.RESERVATION_DOCUMENT,
+          exportDocument: false,
+        });
+      }
+
       updateOrderPackagingData(
         placementId,
         Object.fromEntries(
@@ -88,7 +103,13 @@ export default function Packaging() {
         setSaving(false);
       });
     },
-    [packagingData, placementId, originalPackagingData],
+    [
+      packagingData,
+      placementId,
+      originalPackagingData,
+      addDocumentMutation,
+      order,
+    ],
   );
 
   const handleKeyDown = useCallback(

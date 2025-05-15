@@ -28,10 +28,7 @@ export type OrderStore = {
   pendingOrder: boolean;
   createOrder: () => Promise<void>;
   addDocument: {
-    mutation: (
-      documentType: DocumentType,
-      ignoreDeleteError?: boolean,
-    ) => Promise<void>;
+    mutation: (documentType: DocumentType) => Promise<void>;
     pending: boolean;
   };
 };

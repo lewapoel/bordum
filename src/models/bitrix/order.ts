@@ -18,6 +18,7 @@ export type PackagingDataItem = {
   packerId: number;
   date: string;
   comment: string;
+  reservationCreated?: boolean;
 };
 
 export type PackagingData = { [key: string]: PackagingDataItem };

@@ -11,18 +11,14 @@ export type AddDocument = {
   placementId: number;
   order: OrderData;
   documentType: DocumentType;
-  ignoreDeleteError?: boolean;
+  exportDocument?: boolean;
 };
 
 export enum DocumentType {
   RELEASE_DOCUMENT = 306,
+  RESERVATION_DOCUMENT = 308,
   PROFORMA_DOCUMENT = 320,
 }
-
-export const DOCUMENT_NAMES = {
-  [DocumentType.RELEASE_DOCUMENT]: 'WZ',
-  [DocumentType.PROFORMA_DOCUMENT]: 'PROFORMA',
-} as const;
 
 export function useAddDocument(token: string) {
   return useMutation({
@@ -31,7 +27,7 @@ export function useAddDocument(token: string) {
       order,
       placementId,
       documentType,
-      ignoreDeleteError,
+      exportDocument = true,
     }: AddDocument) => {
       if (!order.companyId && !order.contactId) {
         throw new Error('MISSING_BUYER_ID');
@@ -54,6 +50,11 @@ export function useAddDocument(token: string) {
 
       if (!address.street || !address.city || !address.houseNumber) {
         throw new Error('MISSING_ADDRESS');
+      }
+
+      const orderDocuments = await getOrderDocuments(placementId);
+      if (!orderDocuments) {
+        throw new Error('MISSING_ORDER_DOCUMENTS');
       }
 
       let buyer;
@@ -82,12 +83,13 @@ export function useAddDocument(token: string) {
         houseNumber: address.houseNumber,
       };
 
-      const orderDocuments = await getOrderDocuments(placementId);
-      if (!orderDocuments) {
-        throw new Error('MISSING_ORDER_DOCUMENTS');
-      }
-
-      if (orderDocuments[documentType]) {
+      /**
+       * Deleting documents is supported only for release documents (API bug/limitation)
+       */
+      if (
+        documentType === DocumentType.RELEASE_DOCUMENT &&
+        orderDocuments[documentType]
+      ) {
         const response = await fetch(
           `${API_URL}/Documents?type=${documentType}&id=${orderDocuments[documentType]}`,
           {
@@ -98,7 +100,7 @@ export function useAddDocument(token: string) {
           },
         );
 
-        if (!response.ok && !ignoreDeleteError) {
+        if (!response.ok) {
           const error = await response.text();
           throw new Error(error);
         }
@@ -134,31 +136,33 @@ export function useAddDocument(token: string) {
         throw new Error(error);
       }
 
-      const data = await response.json();
-      const documentId = data['id'];
-      const documentFullNumber = data['fullNumber'];
+      if (exportDocument) {
+        const data = await response.json();
+        const documentId = data['id'];
+        const documentFullNumber = data['fullNumber'];
 
-      response = await fetch(`${API_URL}/DocumentsExport?id=${documentId}`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+        response = await fetch(`${API_URL}/DocumentsExport?id=${documentId}`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-      const fileBuffer = await response.arrayBuffer();
-      const fileData = Buffer.from(fileBuffer).toString('base64');
+        const fileBuffer = await response.arrayBuffer();
+        const fileData = Buffer.from(fileBuffer).toString('base64');
 
-      await updateOrderDocument(
-        placementId,
-        documentType,
-        orderDocuments,
-        documentId,
-        documentFullNumber,
-        fileData,
-      );
+        await updateOrderDocument(
+          placementId,
+          documentType,
+          orderDocuments,
+          documentId,
+          documentFullNumber,
+          fileData,
+        );
+      }
 
-      // Add order return data if came from a deal
-      if (order.dealId) {
+      // Add order return data if release document from a deal
+      if (documentType === DocumentType.RELEASE_DOCUMENT && order.dealId) {
         const deal = await getDeal(order.dealId);
         if (deal) {
           const returnData = deal.returnData ?? {};

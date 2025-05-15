@@ -117,7 +117,6 @@ export function useAddDocument(token: string) {
           totalNetValue: item.unitPrice * item.quantity,
           setCustomValue: true,
         })),
-        payer: buyer,
         recipient: buyer,
         status: 1,
         sourceWarehouseId: 1,

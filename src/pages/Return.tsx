@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getCurrentPlacementId } from '../utils/bitrix24.ts';
-import { ITEM_GROUPS } from '../data/comarch/groups.ts';
 import { ReturnData } from '../models/bitrix/deal.ts';
 import { getDeal, updateDealReturnData } from '../api/bitrix/deal.ts';
 import update from 'immutability-helper';
 
 type RowElements = {
-  wantsReturn: HTMLInputElement | null;
-  comment: HTMLTextAreaElement | null;
+  quantity: HTMLInputElement | null;
+  reason: HTMLTextAreaElement | null;
   date: HTMLInputElement | null;
 };
 
@@ -30,6 +29,15 @@ export default function Return() {
 
   const saveData = useCallback(() => {
     if (!returnData) {
+      return;
+    }
+
+    if (
+      Object.values(returnData).some(
+        (x) => x.returnQuantity > 0 && x.reason === '',
+      )
+    ) {
+      alert('Powód zwrotu nie może być pusty');
       return;
     }
 
@@ -87,16 +95,16 @@ export default function Return() {
             const selectedRow = rowsRef.current[selectedItem];
 
             switch (document.activeElement) {
-              case selectedRow.wantsReturn:
+              case selectedRow.quantity:
+                selectedRow.reason?.focus();
+                break;
+
+              case selectedRow.reason:
                 selectedRow.date?.focus();
                 break;
 
-              case selectedRow.date:
-                selectedRow.comment?.focus();
-                break;
-
               default:
-                selectedRow.wantsReturn?.focus();
+                selectedRow.quantity?.focus();
                 break;
             }
           }
@@ -130,8 +138,8 @@ export default function Return() {
           rowsRef.current = Object.keys(res.returnData).reduce(
             (acc: RowsElements, key) => {
               acc[key] = {
-                comment: null,
-                wantsReturn: null,
+                quantity: null,
+                reason: null,
                 date: null,
               };
 
@@ -175,13 +183,14 @@ export default function Return() {
           <table>
             <thead>
               <tr>
+                <th>WZ</th>
                 <th>Nazwa towaru</th>
-                <th>Kategoria produktu</th>
                 <th>Zamówiona ilość</th>
                 <th>Jedn. miary</th>
-                <th>Zwrot</th>
+                <th>Ilość do zwrotu</th>
+                <th>Powód zwrotu</th>
                 <th>Data zwrotu</th>
-                <th>Komentarz</th>
+                <th>Zdjęcia</th>
               </tr>
             </thead>
             <tbody>
@@ -191,28 +200,50 @@ export default function Return() {
                   className={selectedItem === itemId ? 'bg-gray-300' : ''}
                   key={itemId}
                 >
+                  <td>{returnData.releaseDocument}</td>
                   <td>{returnData.item.productName}</td>
-                  <td>{ITEM_GROUPS[returnData.item.groupId]}</td>
                   <td>{returnData.item.quantity}</td>
                   <td>{returnData.item.unit}</td>
                   <td>
                     <input
-                      type='checkbox'
-                      className='w-[25px] h-[25px]'
+                      type='number'
+                      className='w-[100px]'
+                      min={0}
                       ref={(el) => {
                         if (rowsRef.current) {
-                          rowsRef.current[itemId].wantsReturn = el;
+                          rowsRef.current[itemId].quantity = el;
                         }
                       }}
-                      checked={returnData.wantsReturn}
+                      value={returnData.returnQuantity}
                       onChange={(e) => {
                         setReturnData((prev) =>
                           update(prev, {
                             [itemId]: {
-                              wantsReturn: {
-                                $set: e.target.checked,
+                              returnQuantity: {
+                                $set: Math.min(
+                                  returnData.item.quantity,
+                                  Math.max(0, +e.target.value),
+                                ),
                               },
                             },
+                          }),
+                        );
+                      }}
+                    />
+                  </td>
+                  <td>
+                    <textarea
+                      ref={(el) => {
+                        if (rowsRef.current) {
+                          rowsRef.current[itemId].reason = el;
+                        }
+                      }}
+                      placeholder='Powód zwrotu'
+                      value={returnData.reason}
+                      onChange={(e) => {
+                        setReturnData((prev) =>
+                          update(prev, {
+                            [itemId]: { reason: { $set: e.target.value } },
                           }),
                         );
                       }}
@@ -236,24 +267,7 @@ export default function Return() {
                       }}
                     />
                   </td>
-                  <td>
-                    <textarea
-                      ref={(el) => {
-                        if (rowsRef.current) {
-                          rowsRef.current[itemId].comment = el;
-                        }
-                      }}
-                      placeholder='Komentarz'
-                      value={returnData.comment}
-                      onChange={(e) => {
-                        setReturnData((prev) =>
-                          update(prev, {
-                            [itemId]: { comment: { $set: e.target.value } },
-                          }),
-                        );
-                      }}
-                    />
-                  </td>
+                  <td></td>
                 </tr>
               ))}
             </tbody>

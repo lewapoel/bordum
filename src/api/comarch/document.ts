@@ -106,7 +106,7 @@ export function useAddDocument(token: string) {
         }
       }
 
-      let body: any = {
+      const body: any = {
         type: documentType,
         calculatedOn: 1,
         paymentMethod: 'przelew',
@@ -142,11 +142,11 @@ export function useAddDocument(token: string) {
         throw new Error(error);
       }
 
-      if (exportDocument) {
-        const data = await response.json();
-        const documentId = data['id'];
-        const documentFullNumber = data['fullNumber'];
+      const data = await response.json();
+      const documentId = data['id'];
+      const documentFullNumber = data['fullNumber'];
 
+      if (exportDocument) {
         response = await fetch(`${API_URL}/DocumentsExport?id=${documentId}`, {
           method: 'GET',
           headers: {
@@ -175,10 +175,12 @@ export function useAddDocument(token: string) {
           order.items.forEach((item) => {
             if (item.id) {
               returnData[item.id] = {
+                releaseDocument: documentFullNumber,
                 item: item,
-                wantsReturn: false,
+                returnQuantity: 0,
                 date: moment().format('YYYY-MM-DD'),
-                comment: '',
+                reason: '',
+                images: [],
               };
             }
           });

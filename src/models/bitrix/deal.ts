@@ -3,9 +3,11 @@ import { OrderItem } from './order.ts';
 
 export type ReturnDataItem = {
   item: OrderItem;
-  wantsReturn: boolean;
+  releaseDocument: string;
+  returnQuantity: number;
   date: string;
-  comment: string;
+  reason: string;
+  images: Array<string>;
 };
 
 export type ReturnData = { [key: string]: ReturnDataItem };

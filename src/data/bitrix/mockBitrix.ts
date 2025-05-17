@@ -751,6 +751,8 @@ export const CRM_DEAL_GET = {
   UF_CRM_1738148003484: '',
   UF_CRM_1738161803362: '',
   UF_CRM_1739490154: '',
+  UF_CRM_1747067264:
+    '{"1442":{"releaseDocument":"WZ/3/05/2025","item":{"id":"1442","warehouseCode":"000001","groupId":"3","itemId":"2301","productName":"Cement-CEM II A-M 52,5 - TONA","quantity":1,"unit":"TON","unitPrice":1130.59},"returnQuantity":1,"date":"2025-05-16","reason":"vvvv","images":[]},"1552":{"releaseDocument":"WZ/3/05/2025","item":{"id":"1552","warehouseCode":"000001","groupId":"3","itemId":"2301","productName":"Cement-CEM II A-M 52,5 - TONA","quantity":1,"unit":"TON","unitPrice":1130.59},"returnQuantity":1,"date":"2025-05-16","reason":"","images":[{"id":1,"url":"https://images.unsplash.com/photo-1579353977828-2a4eab540b9a?q=80&w=2274&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"},{"id":1123,"url":"https://images.unsplash.com/photo-1712762056200-50d8f803ba10?q=80&w=2474&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"}]}}',
   UF_CRM_WEBFORM_PARTICIPATION_FORMAT: '',
   UF_CRM_1740047386396: '',
   UF_CRM_67BD88BCC4928: '',

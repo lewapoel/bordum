@@ -2,10 +2,11 @@ import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { getCurrentPlacementId } from '../utils/bitrix24.ts';
 import { getOrder, updateOrderPackagingData } from '../api/bitrix/order.ts';
 import update from 'immutability-helper';
-import { getCurrentUser, User } from '../api/bitrix/user.ts';
+import { getCurrentUser } from '../api/bitrix/user.ts';
 import { OrderData, PackagingData } from '../models/bitrix/order.ts';
 import { DocumentType, useAddDocument } from '../api/comarch/document.ts';
 import { AuthContext } from '../api/comarch/auth.ts';
+import { User } from '../models/bitrix/user.ts';
 
 type RowElements = {
   quality: HTMLSelectElement | null;

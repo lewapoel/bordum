@@ -19,7 +19,7 @@ import { AuthContext } from '../api/comarch/auth.ts';
 import { Document, Font, Page, pdf } from '@react-pdf/renderer';
 import Html from 'react-pdf-html';
 import { blobToBase64 } from '../utils/blob.ts';
-import { BitrixFile } from '../models/bitrix/file.ts';
+import { BitrixFile } from '../models/bitrix/disk.ts';
 
 type RowElements = {
   actualStock: HTMLInputElement | null;

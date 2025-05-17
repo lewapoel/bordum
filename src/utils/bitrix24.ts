@@ -21,6 +21,16 @@ type MockBitrixResult = {
   data: () => any;
 };
 
+export async function fetchDiskApi(method: string, data: any) {
+  return fetch(`${import.meta.env.VITE_BITRIX_DISK_API}/${method}.json`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+}
+
 const mockBX24 = {
   callMethod: (
     method: string,

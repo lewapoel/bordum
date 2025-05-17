@@ -1,16 +1,5 @@
 import { getBitrix24 } from '../../utils/bitrix24.ts';
-
-export type Address = {
-  city?: string;
-  postalCode?: string;
-  country?: string;
-
-  // Street, house, building, structure
-  address1?: string;
-
-  // Apartment / office
-  address2?: string;
-};
+import { Address } from '../../models/bitrix/address.ts';
 
 export async function getAddress(
   anchorTypeId: number,

@@ -31,10 +31,10 @@ import {
 import moment from 'moment';
 import { DocumentType } from '../comarch/document.ts';
 import sanitize from 'sanitize-filename';
-import { BitrixFile } from '../../models/bitrix/file.ts';
 import { DealData } from '../../models/bitrix/deal.ts';
 import { EnumFieldMeta, FieldsMeta } from '../../models/bitrix/field.ts';
 import { getDealFields } from './deal.ts';
+import { BitrixFile } from '../../models/bitrix/disk.ts';
 
 export async function getOrderFields(): Promise<FieldsMeta | null> {
   const bx24 = getBitrix24();

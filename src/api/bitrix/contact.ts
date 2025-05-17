@@ -1,12 +1,5 @@
 import { getBitrix24 } from '../../utils/bitrix24.ts';
-
-export type Contact = {
-  id: number;
-  name: string;
-  lastName: string;
-  phone?: string;
-  email?: string;
-};
+import { Contact } from '../../models/bitrix/contact.ts';
 
 export async function getContact(contactId: number): Promise<Contact | null> {
   const bx24 = getBitrix24();

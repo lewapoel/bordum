@@ -1,12 +1,6 @@
 import { getHashCode } from '../../utils/hash.ts';
 import { getBitrix24 } from '../../utils/bitrix24.ts';
-
-type Measure = {
-  code: string;
-  symbol: string;
-};
-
-type Measures = { [symbol: string]: Measure };
+import { Measures } from '../../models/bitrix/measure.ts';
 
 export async function getMeasures(): Promise<Measures | null> {
   const bx24 = getBitrix24();

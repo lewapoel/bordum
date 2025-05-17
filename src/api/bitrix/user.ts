@@ -1,13 +1,6 @@
 import { getBitrix24 } from '../../utils/bitrix24.ts';
 import { USER_DISCOUNT_FIELD } from '../../data/bitrix/field.ts';
-
-export type User = {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  discount?: number;
-};
+import { User } from '../../models/bitrix/user.ts';
 
 export async function getUsers(): Promise<Array<User> | null> {
   const bx24 = getBitrix24();

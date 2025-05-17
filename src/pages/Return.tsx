@@ -1,16 +1,42 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  ChangeEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import ImageGallery from 'react-image-gallery';
 import { getCurrentPlacementId } from '../utils/bitrix24.ts';
-import { ReturnData } from '../models/bitrix/deal.ts';
+import { ReturnData, ReturnImage } from '../models/bitrix/deal.ts';
 import { getDeal, updateDealReturnData } from '../api/bitrix/deal.ts';
 import update from 'immutability-helper';
+import ReactImageGallery from 'react-image-gallery';
+import { deleteFile, folderUploadFile } from '../api/bitrix/disk.ts';
+import { RETURNS_FOLDER_ID } from '../data/bitrix/const.ts';
+import { blobToBase64 } from '../utils/blob.ts';
+
+type Galleries = { [key: string]: ReactImageGallery | null };
 
 type RowElements = {
   quantity: HTMLInputElement | null;
   reason: HTMLTextAreaElement | null;
   date: HTMLInputElement | null;
 };
-
 type RowsElements = { [key: string]: RowElements };
+
+type PendingImage = {
+  file: File;
+  previewUrl: string;
+};
+type PendingImages = { [key: string]: Array<PendingImage> };
+
+type Image = {
+  id: number;
+  url: string;
+  isPending: boolean;
+};
+type Images = { [key: string]: Array<Image> };
 
 enum Status {
   EMPTY,
@@ -23,12 +49,44 @@ export default function Return() {
   const placementId = getCurrentPlacementId();
   const [status, setStatus] = useState<Status>(Status.LOADING);
   const [selectedItem, setSelectedItem] = useState('0');
+  const [originalReturnData, setOriginalReturnData] = useState<ReturnData>();
   const [returnData, setReturnData] = useState<ReturnData>();
+  const [pendingImages, setPendingImages] = useState<PendingImages>({});
+
+  const [galleryFullscreen, setGalleryFullscreen] = useState(false);
+  const [galleryIndex, setGalleryIndex] = useState(0);
+  const [galleryItemId, setGalleryItemId] = useState('');
 
   const rowsRef = useRef<RowsElements>(null);
+  const galleryRef = useRef<Galleries>(null);
 
-  const saveData = useCallback(() => {
-    if (!returnData) {
+  const images: Images = useMemo(() => {
+    const result: Images = {};
+
+    if (returnData) {
+      Object.entries(returnData).forEach(([key, item]) => {
+        result[key] = item.images.map((image) => ({
+          id: image.id,
+          url: image.url,
+          isPending: false,
+        }));
+      });
+    }
+
+    Object.entries(pendingImages).forEach(([key, item]) => {
+      const pendingItems = item.map((x, idx) => ({
+        id: idx,
+        url: x.previewUrl,
+        isPending: true,
+      }));
+      result[key].push(...pendingItems);
+    });
+
+    return result;
+  }, [pendingImages, returnData]);
+
+  const saveData = useCallback(async () => {
+    if (!returnData || !originalReturnData) {
       return;
     }
 
@@ -41,16 +99,57 @@ export default function Return() {
       return;
     }
 
+    // Delete removed images from disk
+    const imagesToRemove: Array<ReturnImage> = [];
+    Object.entries(originalReturnData).forEach(([key, item]) => {
+      const newData = returnData[key];
+
+      // If the whole row is gone, remove all images
+      if (!newData) {
+        imagesToRemove.push(...item.images);
+      } else {
+        const newImages = newData.images.map((image) => image.id);
+        imagesToRemove.push(
+          ...item.images.filter((image) => !newImages.includes(image.id)),
+        );
+      }
+    });
+
+    for (const image of imagesToRemove) {
+      await deleteFile(image.id);
+    }
+
+    for (const [key, images] of Object.entries(pendingImages)) {
+      for (const image of images) {
+        const imageData = await blobToBase64(image.file);
+
+        const file = await folderUploadFile(RETURNS_FOLDER_ID, [
+          image.file.name,
+          imageData,
+        ]);
+        if (!file) {
+          return;
+        }
+
+        returnData[key].images.push({
+          id: file.id,
+          url: file.downloadUrl,
+        });
+      }
+    }
+
     setStatus(Status.SAVING);
     updateDealReturnData(placementId, returnData).then(() => {
       setStatus(Status.LOADED);
     });
-  }, [returnData, placementId]);
+  }, [returnData, originalReturnData, placementId, pendingImages]);
 
   const removeItem = useCallback(() => {
     if (returnData) {
       setReturnData((prev) => update(prev, { $unset: [selectedItem] }));
     }
+
+    setPendingImages((prev) => update(prev, { $unset: [selectedItem] }));
   }, [returnData, selectedItem]);
 
   const handleKeyDown = useCallback(
@@ -83,7 +182,7 @@ export default function Return() {
           });
           break;
         case 'Insert':
-          saveData();
+          void saveData();
           break;
         case 'Delete':
           removeItem();
@@ -117,6 +216,47 @@ export default function Return() {
     [selectedItem, saveData, returnData, removeItem],
   );
 
+  const handleImageChange = (
+    itemId: string,
+    e: ChangeEvent<HTMLInputElement>,
+  ) => {
+    if (e.target.files) {
+      const files = [...e.target.files];
+      const images = files.map((file) => ({
+        file,
+        previewUrl: URL.createObjectURL(file),
+      }));
+
+      setPendingImages((prev) => update(prev, { [itemId]: { $push: images } }));
+      e.target.value = '';
+    }
+  };
+
+  const handleImageRemove = useCallback(
+    (itemId: string) => {
+      const image = images[itemId][galleryIndex];
+
+      if (image.isPending) {
+        setPendingImages((prev) =>
+          update(prev, { [itemId]: { $splice: [[image.id, 1]] } }),
+        );
+        URL.revokeObjectURL(image.url);
+      } else if (returnData) {
+        const imageIndex = returnData[itemId].images.findIndex(
+          (x) => x.id === image.id,
+        );
+        setReturnData((prev) =>
+          update(prev, {
+            [itemId]: { images: { $splice: [[imageIndex, 1]] } },
+          }),
+        );
+      }
+
+      galleryRef.current?.[itemId]?.exitFullScreen();
+    },
+    [images, galleryIndex, returnData],
+  );
+
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
     return () => {
@@ -148,6 +288,22 @@ export default function Return() {
             {},
           );
 
+          galleryRef.current = Object.keys(res.returnData).reduce(
+            (acc: Galleries, key) => {
+              acc[key] = null;
+              return acc;
+            },
+            {},
+          );
+
+          setPendingImages(
+            Object.keys(res.returnData).reduce((acc: PendingImages, key) => {
+              acc[key] = [];
+              return acc;
+            }, {}),
+          );
+
+          setOriginalReturnData(res.returnData);
           setReturnData(res.returnData);
         }
       }
@@ -191,6 +347,7 @@ export default function Return() {
                 <th>Powód zwrotu</th>
                 <th>Data zwrotu</th>
                 <th>Zdjęcia</th>
+                <th>Dodaj zdjęcie</th>
               </tr>
             </thead>
             <tbody>
@@ -267,7 +424,83 @@ export default function Return() {
                       }}
                     />
                   </td>
-                  <td></td>
+                  <td>
+                    {images[itemId].length === 0 ? (
+                      <p>Brak zdjęć</p>
+                    ) : (
+                      <>
+                        {galleryFullscreen &&
+                          galleryItemId === itemId &&
+                          images[itemId][galleryIndex].isPending && (
+                            <p className='text-shadow-lg text-white top-5 left-5 fixed z-10 '>
+                              Nowe zdjęcie (niezapisane)
+                            </p>
+                          )}
+                        {galleryFullscreen && galleryItemId === itemId && (
+                          <button
+                            onClick={() => handleImageRemove(itemId)}
+                            className='delete top-5 right-5 fixed z-10'
+                          >
+                            Usuń zdjęcie
+                          </button>
+                        )}
+                        <ImageGallery
+                          additionalClass={galleryFullscreen ? '' : 'hidden'}
+                          showPlayButton={false}
+                          useBrowserFullscreen={false}
+                          ref={(el) => {
+                            if (galleryRef.current) {
+                              galleryRef.current[itemId] = el;
+                            }
+                          }}
+                          onBeforeSlide={(index) => setGalleryIndex(index)}
+                          onScreenChange={(fullscreen) => {
+                            setGalleryFullscreen(fullscreen);
+                            setGalleryItemId(itemId);
+                            galleryRef.current?.[itemId]?.slideToIndex(0);
+                          }}
+                          items={images[itemId].map((image) => ({
+                            original: image.url,
+                            thumbnail: image.url,
+                          }))}
+                        />
+                        <button
+                          onClick={() =>
+                            galleryRef.current?.[itemId]?.fullScreen()
+                          }
+                        >
+                          Otwórz galerię
+                        </button>
+                      </>
+                    )}
+                  </td>
+                  <td>
+                    <input
+                      id={`files-${itemId}`}
+                      type='file'
+                      accept='image/*'
+                      multiple
+                      className='hidden'
+                      onChange={(e) => handleImageChange(itemId, e)}
+                    />
+                    <button
+                      type='button'
+                      onClick={(e) => {
+                        // Propagate button click to the label
+                        const element: HTMLButtonElement = e.currentTarget;
+                        const label = element.querySelector('label');
+
+                        label?.click();
+                      }}
+                    >
+                      <label
+                        className='pointer-events-none'
+                        htmlFor={`files-${itemId}`}
+                      >
+                        Wybierz plik
+                      </label>
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

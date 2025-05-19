@@ -48,10 +48,6 @@ export function useAddDocument(token: string) {
 
       const address = order.deliveryAddress;
 
-      if (!address.street || !address.city || !address.houseNumber) {
-        throw new Error('MISSING_ADDRESS');
-      }
-
       const orderDocuments = await getOrderDocuments(placementId);
       if (!orderDocuments) {
         throw new Error('MISSING_ORDER_DOCUMENTS');
@@ -198,8 +194,6 @@ export function useAddDocument(token: string) {
         alert('Brakujące dane nabywcy');
       } else if (error.message === 'MISSING_DATA') {
         alert('Nie udało się pobrać danych nabywcy');
-      } else if (error.message === 'MISSING_ADDRESS') {
-        alert('Brakujący adres nabywcy');
       } else if (error.message === 'MISSING_ORDER_DOCUMENTS') {
         alert('Nieprawidłowe dane dokumentów oferty');
       } else if (error.message.includes('shortage')) {

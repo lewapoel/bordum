@@ -271,8 +271,8 @@ export default function ItemsView() {
             <th>Nazwa</th>
             {warehouses.map((warehouse) => (
               <Fragment key={warehouse.id}>
-                <th>Stan ({warehouse.name})</th>
-                <th>Ilość w trakcie ofertowania ({warehouse.name})</th>
+                <th>Stan</th>
+                <th>Ilość w trakcie ofertowania</th>
               </Fragment>
             ))}
             <th>Ilość</th>

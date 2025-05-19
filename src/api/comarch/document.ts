@@ -54,6 +54,7 @@ export function useAddDocument(token: string) {
       }
 
       let buyer;
+      let buyerNoAddress;
       if (company) {
         buyer = {
           code: company.nip ?? company.title,
@@ -70,6 +71,8 @@ export function useAddDocument(token: string) {
           phone1: contact.phone,
         };
       }
+
+      buyerNoAddress = buyer;
 
       buyer = {
         ...buyer,
@@ -113,6 +116,7 @@ export function useAddDocument(token: string) {
           totalNetValue: item.unitPrice * item.quantity,
           setCustomValue: true,
         })),
+        payer: buyerNoAddress,
         recipient: buyer,
         status: 1,
         sourceWarehouseId: 1,

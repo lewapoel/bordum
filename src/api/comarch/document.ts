@@ -54,7 +54,6 @@ export function useAddDocument(token: string) {
       }
 
       let buyer;
-      let buyerNoAddress;
       if (company) {
         buyer = {
           code: company.nip ?? company.title,
@@ -72,7 +71,7 @@ export function useAddDocument(token: string) {
         };
       }
 
-      buyerNoAddress = buyer;
+      const buyerNoAddress = buyer;
 
       buyer = {
         ...buyer,

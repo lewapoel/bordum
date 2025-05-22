@@ -135,6 +135,7 @@ export default function ItemsView() {
           autoClose: 700,
         });
 
+        setSearchTerm('');
         searchBarRef.current?.focus();
       }
     },

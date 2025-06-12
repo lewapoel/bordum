@@ -240,7 +240,7 @@ export function useGetReleaseDocuments(token: string) {
 
             return {
               id: +document['id'],
-              orderId: match[1],
+              orderId: match?.[1] ?? '',
               fullNumber: document['fullNumber'],
               recipientName: `${document['recipient']['name1']} (${document['recipient']['name2']})`,
               recipientVAT: document['recipient']['vatNumber'],

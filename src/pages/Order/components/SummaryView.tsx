@@ -207,7 +207,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
 
   return ctx && !ctx.addDocument.pending && !ctx.pendingOrder ? (
     <div className='flex flex-col items-center'>
-      <h1 className='mb-5'>Oferta nr ${ctx.order!.id}</h1>
+      <h1 className='mb-5'>Oferta nr {ctx.order!.id}</h1>
 
       {orderType === OrderType.Edit && (
         <div className='justify-center flex items-center gap-2 mb-5'>

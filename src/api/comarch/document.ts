@@ -119,11 +119,13 @@ export function useAddDocument(token: string) {
         recipient: buyer,
         status: 1,
         sourceWarehouseId: 1,
-        description: `Proszę uwzględnić numer oferty w tytule płatności: "Oferta nr ${order.id}"`,
       };
 
       if (documentType === DocumentType.RESERVATION_DOCUMENT) {
         body.foreignNumber = order.title;
+        body.description = order.id;
+      } else {
+        body.description = `Proszę uwzględnić numer oferty w tytule płatności: "Oferta nr ${order.id}"`;
       }
 
       let response = await fetch(`${API_URL}/Documents`, {

@@ -236,11 +236,19 @@ export function useGetReleaseDocuments(token: string) {
           }
 
           return releaseDocuments.map((document: any): ReleaseDocument => {
-            const match = document['description'].match(/Oferta nr\s+(\d+)/i);
+            const description = document['description'];
+            let orderId: string | undefined;
+
+            if (isNaN(+description)) {
+              const match = document['description'].match(/Oferta nr\s+(\d+)/i);
+              orderId = match?.[1];
+            } else if (+description !== 0) {
+              orderId = description;
+            }
 
             return {
               id: +document['id'],
-              orderId: match?.[1] ?? '',
+              orderId: orderId ?? '',
               fullNumber: document['fullNumber'],
               recipientName: `${document['recipient']['name1']} (${document['recipient']['name2']})`,
               recipientVAT: document['recipient']['vatNumber'],

@@ -74,7 +74,7 @@ export default function ReleaseDocuments() {
   const filteredByOffer = useFilterBy(
     documents ?? [],
     searchTerm.offer,
-    (item) => [item.description],
+    (item) => [item.orderId],
   );
 
   const filteredByRecipient = useFilterBy(
@@ -230,10 +230,10 @@ export default function ReleaseDocuments() {
                     return;
                   }
 
-                  bx24.openPath(`/crm/type/7/details/${item.description}/`);
+                  bx24.openPath(`/crm/type/7/details/${item.orderId}/`);
                 }}
               >
-                <Highlight text={item.description} ranges={highlights.offer!} />
+                <Highlight text={item.orderId} ranges={highlights.offer!} />
               </td>
               <td>
                 <Highlight

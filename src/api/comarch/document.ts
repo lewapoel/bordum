@@ -119,7 +119,7 @@ export function useAddDocument(token: string) {
         recipient: buyer,
         status: 1,
         sourceWarehouseId: 1,
-        description: order.id,
+        description: `Proszę uwzględnić numer oferty w tytule płatności: "Oferta nr ${order.id}"`,
       };
 
       if (documentType === DocumentType.RESERVATION_DOCUMENT) {
@@ -216,7 +216,7 @@ export type ReleaseDocument = {
   fullNumber: string;
   recipientVAT: string;
   recipientName: string;
-  description: string;
+  orderId: string;
 };
 
 export function useGetReleaseDocuments(token: string) {
@@ -235,15 +235,17 @@ export function useGetReleaseDocuments(token: string) {
             releaseDocuments = [data];
           }
 
-          return releaseDocuments.map(
-            (document: any): ReleaseDocument => ({
+          return releaseDocuments.map((document: any): ReleaseDocument => {
+            const match = document['description'].match(/Oferta nr\s+(\d+)/i);
+
+            return {
               id: +document['id'],
-              description: document['description'],
+              orderId: match[1],
               fullNumber: document['fullNumber'],
               recipientName: `${document['recipient']['name1']} (${document['recipient']['name2']})`,
               recipientVAT: document['recipient']['vatNumber'],
-            }),
-          );
+            };
+          });
         })
         .catch((error) => {
           console.error(error);

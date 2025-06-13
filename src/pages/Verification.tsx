@@ -20,6 +20,7 @@ import { Document, Font, Page, pdf } from '@react-pdf/renderer';
 import Html from 'react-pdf-html';
 import { blobToBase64 } from '../utils/blob.ts';
 import { BitrixFile } from '../models/bitrix/disk.ts';
+import { QUOTE_STATUSES } from '../data/bitrix/const.ts';
 
 type RowElements = {
   actualStock: HTMLInputElement | null;
@@ -253,11 +254,14 @@ export default function Verification() {
       })
       .filter((item) => item.quantity > 0);
 
-    splitOrder(placementId, { title: 'braki', subOrder, order: newOrder }).then(
-      () => {
-        setStatus(Status.LOADED);
-      },
-    );
+    splitOrder(placementId, {
+      title: 'braki',
+      statusId: QUOTE_STATUSES.WAITING_FOR_SHORTAGES,
+      subOrder,
+      order: newOrder,
+    }).then(() => {
+      setStatus(Status.LOADED);
+    });
   }, [placementId, order, verificationData]);
 
   const handleKeyDown = useCallback(

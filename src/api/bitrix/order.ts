@@ -332,11 +332,13 @@ export async function createOrderFromDeal(
  * @property subOrder Suborder items
  * @property order New current order items (optional)
  * @property title Title suffix
+ * @property statusId Assigned status ID (optional)
  */
 type SplitOrderParams = {
   subOrder: Array<OrderItem>;
   order?: Array<OrderItem>;
   title: string;
+  statusId?: string;
 };
 
 /**
@@ -368,6 +370,7 @@ export async function splitOrder(
           title: params.title
             ? `${estimateData.TITLE} - ${params.title}`
             : undefined,
+          statusId: params.statusId,
         }).then(() => {
           alert('Oferta podzielona pomyślnie');
           resolve(true);
@@ -401,6 +404,7 @@ export async function splitOrder(
           void updateOrder(placementId, params.order, {
             ensureMeasures: false,
             showAlertOnSuccess: false,
+            statusId: params.statusId,
           });
         }
       }
@@ -414,12 +418,18 @@ type UpdateOrderParams = {
   ensureMeasures: boolean;
   showAlertOnSuccess?: boolean;
   title?: string;
+  statusId?: string;
 };
 
 export async function updateOrder(
   placementId: number,
   order: Array<OrderItem>,
-  { ensureMeasures, showAlertOnSuccess = true, title }: UpdateOrderParams,
+  {
+    ensureMeasures,
+    showAlertOnSuccess = true,
+    title,
+    statusId,
+  }: UpdateOrderParams,
 ) {
   const bx24 = getBitrix24();
   if (!bx24) {
@@ -498,6 +508,10 @@ export async function updateOrder(
 
     if (title) {
       updateBody.fields.TITLE = title;
+    }
+
+    if (statusId) {
+      updateBody.fields.STATUS_ID = statusId;
     }
 
     bx24.callMethod('crm.quote.update', updateBody, setEstimateCallback);

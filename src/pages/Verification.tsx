@@ -228,6 +228,20 @@ export default function Verification() {
     }
     setStatus(Status.SAVING);
 
+    const newOrder = order.items
+      .map((item) => {
+        const orderQuantity = Math.max(
+          0,
+          Math.min(
+            item.quantity,
+            verificationData[item.id!.toString()].qualityGoods,
+          ),
+        );
+
+        return { ...item, quantity: orderQuantity };
+      })
+      .filter((item) => item.quantity > 0);
+
     const subOrder = order.items
       .map((item) => {
         const orderQuantity = Math.max(
@@ -239,9 +253,11 @@ export default function Verification() {
       })
       .filter((item) => item.quantity > 0);
 
-    splitOrder(placementId, { title: 'braki', subOrder }).then(() => {
-      setStatus(Status.LOADED);
-    });
+    splitOrder(placementId, { title: 'braki', subOrder, order: newOrder }).then(
+      () => {
+        setStatus(Status.LOADED);
+      },
+    );
   }, [placementId, order, verificationData]);
 
   const handleKeyDown = useCallback(

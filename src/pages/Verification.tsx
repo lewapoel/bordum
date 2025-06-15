@@ -256,7 +256,8 @@ export default function Verification() {
 
     splitOrder(placementId, {
       title: 'braki',
-      statusId: QUOTE_STATUSES.WAITING_FOR_SHORTAGES,
+      subStatusId: QUOTE_STATUSES.WAITING_FOR_SHORTAGES,
+      statusId: QUOTE_STATUSES.READY_TO_PACK,
       subOrder,
       order: newOrder,
     }).then(() => {

@@ -333,12 +333,14 @@ export async function createOrderFromDeal(
  * @property order New current order items (optional)
  * @property title Title suffix
  * @property statusId Assigned status ID (optional)
+ * @property subStatusId Assigned status ID of suborder (optional)
  */
 type SplitOrderParams = {
   subOrder: Array<OrderItem>;
   order?: Array<OrderItem>;
   title: string;
   statusId?: string;
+  subStatusId?: string;
 };
 
 /**
@@ -370,7 +372,7 @@ export async function splitOrder(
           title: params.title
             ? `${estimateData.TITLE} - ${params.title}`
             : undefined,
-          statusId: params.statusId,
+          statusId: params.subStatusId,
         }).then(() => {
           alert('Oferta podzielona pomyślnie');
           resolve(true);

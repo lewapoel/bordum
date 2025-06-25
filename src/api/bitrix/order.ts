@@ -372,7 +372,6 @@ export async function splitOrder(
           title: params.title
             ? `${estimateData.TITLE} - ${params.title}`
             : undefined,
-          statusId: params.subStatusId,
         }).then(() => {
           alert('Oferta podzielona pomyślnie');
           resolve(true);
@@ -392,12 +391,16 @@ export async function splitOrder(
 
         delete estimateData.ID; // Not needed for creating new estimate
 
-        const quoteData = {
+        let quoteData = {
           fields: {
             ...estimateData,
             [ORDER_MAIN_LINK_FIELD]: `https://bordum.bitrix24.pl/crm/type/7/details/${id}/`,
           },
         };
+
+        if (params.subStatusId) {
+          quoteData.fields.STATUS_ID = params.subStatusId;
+        }
 
         // Add new estimate
         bx24.callMethod('crm.quote.add', quoteData, addEstimateCallback);

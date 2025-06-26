@@ -13,7 +13,7 @@ import {
   OrderItem,
   VerificationData,
 } from '../models/bitrix/order.ts';
-import { ITEM_GROUPS } from '../data/comarch/groups.ts';
+import { VERIFICATION_PDF_GROUPS } from '../data/comarch/groups.ts';
 import { useGetStocks } from '../api/comarch/stock.ts';
 import { AuthContext } from '../api/comarch/auth.ts';
 import { Document, Font, Page, pdf } from '@react-pdf/renderer';
@@ -21,6 +21,7 @@ import Html from 'react-pdf-html';
 import { blobToBase64 } from '../utils/blob.ts';
 import { BitrixFile } from '../models/bitrix/disk.ts';
 import { QUOTE_STATUSES } from '../data/bitrix/const.ts';
+import { useGetItemsGroups } from '../api/comarch/item.ts';
 
 type RowElements = {
   copyStock: HTMLButtonElement | null;
@@ -95,8 +96,11 @@ export default function Verification() {
   const [status, setStatus] = useState<Status>(Status.LOADING);
   const [selectedItem, setSelectedItem] = useState('0');
   const [verificationData, setVerificationData] = useState<VerificationData>();
+
   const stocksQuery = useGetStocks(token, 1);
   const stocks = stocksQuery.data;
+  const itemsGroupsQuery = useGetItemsGroups(token);
+  const itemsGroups = itemsGroupsQuery.data;
 
   const rowsRef = useRef<RowsElements>(null);
 
@@ -187,10 +191,13 @@ export default function Verification() {
     };
 
     const itemsByGroups = order.items.reduce((acc: GroupsItems, item) => {
-      if (Object.keys(ITEM_GROUPS).includes(item.groupId)) {
+      if (
+        itemsGroups &&
+        Object.keys(VERIFICATION_PDF_GROUPS).includes(item.groupId)
+      ) {
         if (!acc[item.groupId]) {
           acc[item.groupId] = {
-            groupName: ITEM_GROUPS[item.groupId],
+            groupName: itemsGroups[item.groupId].name,
             items: [item],
           };
         } else {
@@ -222,7 +229,7 @@ export default function Verification() {
       setStatus(Status.LOADED);
       alert('Utworzono dokumenty pomyślnie');
     });
-  }, [order, generatePdfHtml, placementId]);
+  }, [order, generatePdfHtml, placementId, itemsGroups]);
 
   const generateOrder = useCallback(() => {
     if (!placementId || !order || !verificationData) {
@@ -386,15 +393,20 @@ export default function Verification() {
       order &&
       verificationData &&
       !stocksQuery.isLoading &&
+      !itemsGroupsQuery.isLoading &&
       status === Status.LOADING
     ) {
       setStatus(Status.LOADED);
     }
-  }, [order, verificationData, stocksQuery, status]);
+  }, [order, verificationData, stocksQuery, itemsGroupsQuery, status]);
 
   return (
     <div>
-      {status === Status.LOADED && verificationData && order && stocks ? (
+      {status === Status.LOADED &&
+      verificationData &&
+      order &&
+      stocks &&
+      itemsGroups ? (
         <>
           <h1 className='mb-5'>Weryfikacja stanu</h1>
 
@@ -451,7 +463,7 @@ export default function Verification() {
                     key={item.id}
                   >
                     <td>{item.productName}</td>
-                    <td>{ITEM_GROUPS[item.groupId]}</td>
+                    <td>{itemsGroups[item.groupId]?.name ?? ''}</td>
                     <td>{item.quantity}</td>
                     <td>{item.unit}</td>
                     <td>{stocks[+item.itemId].quantity}</td>

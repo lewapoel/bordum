@@ -1,7 +1,5 @@
-export type ItemGroups = { [key: string]: string };
-
-export const ITEM_GROUPS: ItemGroups = {
-  '3406': 'Stal',
-  '3407': 'Beton',
-  '3408': 'Magazyn',
-};
+export const VERIFICATION_PDF_GROUPS = [
+  '1', // Stal
+  '2', // Beton
+  '3', // Magazyn
+] as const;

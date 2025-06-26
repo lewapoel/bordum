@@ -19,6 +19,51 @@ export type Item = {
   groupId: string;
 };
 
+export type ItemsGroup = {
+  id: number;
+  gidNumber: number;
+  parentGidNumber: number;
+  code: string;
+  name: string;
+};
+
+export type ItemsGroups = { [key: string]: ItemsGroup };
+
+export function useGetItemsGroups(token: string) {
+  return useQuery({
+    // eslint-disable-next-line
+    queryKey: ['items/groups'],
+    queryFn: () =>
+      fetch(`${API_URL}/ItemsGroups?limit=999999999`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then(async (response): Promise<ItemsGroups> => {
+          const data = await response.json();
+
+          return data
+            .map(
+              (item: any): ItemsGroup => ({
+                id: item['id'],
+                gidNumber: item['gidNumber'],
+                parentGidNumber: item['parentGidNumber'],
+                code: item['code'],
+                name: item['name'],
+              }),
+            )
+            .reduce((acc: ItemsGroups, item: ItemsGroup) => {
+              acc[item.code] = item;
+              return acc;
+            }, {});
+        })
+        .catch((error) => {
+          console.error(error);
+          alert('Nie udało się pobrać grup przedmiotów');
+          return null;
+        }),
+    enabled: !!token,
+  });
+}
+
 export function useGetItems(token: string) {
   return useQuery({
     // eslint-disable-next-line

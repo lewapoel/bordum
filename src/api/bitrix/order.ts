@@ -391,7 +391,7 @@ export async function splitOrder(
 
         delete estimateData.ID; // Not needed for creating new estimate
 
-        let quoteData = {
+        const quoteData = {
           fields: {
             ...estimateData,
             [ORDER_MAIN_LINK_FIELD]: `https://bordum.bitrix24.pl/crm/type/7/details/${id}/`,

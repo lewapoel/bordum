@@ -7,6 +7,7 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
 } from 'react';
 import { OrderContext, OrderType, OrderView } from '../../../models/order.ts';
 import { DocumentType } from '../../../api/comarch/document.ts';
@@ -16,7 +17,7 @@ interface SummaryRowProps {
   selectedItem: number;
   setSelectedItem: (index: number) => void;
   item?: OrderItem;
-  editItemQuantity: (index: number, quantity: number) => void;
+  editItemQuantity: (index: number, quantity: number) => number | null;
   className?: string;
   selectItem: () => void;
   quantitiesRef: RefObject<Array<HTMLInputElement | null>>;
@@ -32,6 +33,14 @@ function SummaryRow({
   className,
   quantitiesRef,
 }: SummaryRowProps) {
+  const [tempQuantity, setTempQuantity] = useState(item?.quantity ?? '');
+
+  useEffect(() => {
+    if (tempQuantity !== '') {
+      setTempQuantity(editItemQuantity(index, +tempQuantity) ?? '');
+    }
+  }, [tempQuantity, editItemQuantity, index]);
+
   return (
     <tr
       onMouseEnter={() => setSelectedItem(index)}
@@ -53,8 +62,8 @@ function SummaryRow({
             className='w-[50px]'
             type='number'
             min={1}
-            value={item.quantity}
-            onChange={(e) => editItemQuantity(index, +e.target.value)}
+            value={tempQuantity}
+            onChange={(e) => setTempQuantity(e.target.value)}
           />
         ) : (
           <></>

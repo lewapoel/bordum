@@ -25,8 +25,8 @@ export type PackagingData = { [key: string]: PackagingDataItem };
 
 export type VerificationDataItem = {
   itemId: number;
-  actualStock: number;
-  qualityGoods: number;
+  actualStock: string | number;
+  qualityGoods: string | number;
   comment: string;
 };
 

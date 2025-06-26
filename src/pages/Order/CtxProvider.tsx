@@ -170,7 +170,11 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
             items: { [index]: { quantity: { $set: Math.max(1, quantity) } } },
           }),
         );
+
+        return Math.max(1, quantity);
       }
+
+      return null;
     },
     [order],
   );

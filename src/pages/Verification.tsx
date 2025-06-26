@@ -23,6 +23,7 @@ import { BitrixFile } from '../models/bitrix/disk.ts';
 import { QUOTE_STATUSES } from '../data/bitrix/const.ts';
 
 type RowElements = {
+  copyStock: HTMLButtonElement | null;
   actualStock: HTMLInputElement | null;
   qualityGoods: HTMLInputElement | null;
   comment: HTMLTextAreaElement | null;
@@ -131,20 +132,19 @@ export default function Verification() {
                 </tr>
               </thead>
               <tbody>
-                {group.items.map((item) => (
-                  <tr key={item.id}>
-                    <td>{item.productName}</td>
-                    <td>{item.unit}</td>
-                    <td>
-                      {Math.max(
-                        0,
-                        item.quantity -
-                          verificationData[item.id!.toString()].qualityGoods,
-                      )}
-                    </td>
-                    <td>{verificationData[item.id!].comment}</td>
-                  </tr>
-                ))}
+                {group.items.map((item) => {
+                  const qualityGoods =
+                    +verificationData[item.id!.toString()].qualityGoods || 0;
+
+                  return (
+                    <tr key={item.id}>
+                      <td>{item.productName}</td>
+                      <td>{item.unit}</td>
+                      <td>{Math.max(0, item.quantity - qualityGoods)}</td>
+                      <td>{verificationData[item.id!].comment}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </body>
@@ -187,13 +187,15 @@ export default function Verification() {
     };
 
     const itemsByGroups = order.items.reduce((acc: GroupsItems, item) => {
-      if (!acc[item.groupId]) {
-        acc[item.groupId] = {
-          groupName: ITEM_GROUPS[item.groupId],
-          items: [item],
-        };
-      } else {
-        acc[item.groupId].items.push(item);
+      if (Object.keys(ITEM_GROUPS).includes(item.groupId)) {
+        if (!acc[item.groupId]) {
+          acc[item.groupId] = {
+            groupName: ITEM_GROUPS[item.groupId],
+            items: [item],
+          };
+        } else {
+          acc[item.groupId].items.push(item);
+        }
       }
 
       return acc;
@@ -231,12 +233,11 @@ export default function Verification() {
 
     const newOrder = order.items
       .map((item) => {
+        const qualityGoods =
+          +verificationData[item.id!.toString()].qualityGoods || 0;
         const orderQuantity = Math.max(
           0,
-          Math.min(
-            item.quantity,
-            verificationData[item.id!.toString()].qualityGoods,
-          ),
+          Math.min(item.quantity, qualityGoods),
         );
 
         return { ...item, quantity: orderQuantity };
@@ -245,10 +246,9 @@ export default function Verification() {
 
     const subOrder = order.items
       .map((item) => {
-        const orderQuantity = Math.max(
-          0,
-          item.quantity - verificationData[item.id!.toString()].qualityGoods,
-        );
+        const qualityGoods =
+          +verificationData[item.id!.toString()].qualityGoods || 0;
+        const orderQuantity = Math.max(0, item.quantity - qualityGoods);
 
         return { ...item, quantity: orderQuantity };
       })
@@ -310,6 +310,11 @@ export default function Verification() {
             const selectedRow = rowsRef.current[selectedItem];
 
             switch (document.activeElement) {
+              case selectedRow.copyStock:
+                selectedRow.actualStock?.focus();
+                selectedRow.actualStock?.select();
+                break;
+
               case selectedRow.actualStock:
                 selectedRow.qualityGoods?.focus();
                 selectedRow.qualityGoods?.select();
@@ -320,8 +325,7 @@ export default function Verification() {
                 break;
 
               default:
-                selectedRow.actualStock?.focus();
-                selectedRow.actualStock?.select();
+                selectedRow.copyStock?.focus();
                 break;
             }
           }
@@ -360,6 +364,7 @@ export default function Verification() {
         } else {
           rowsRef.current = res.items.reduce((acc: RowsElements, item) => {
             acc[item.id!.toString()] = {
+              copyStock: null,
               actualStock: null,
               qualityGoods: null,
               comment: null,
@@ -431,10 +436,11 @@ export default function Verification() {
             <tbody>
               {order.items.map((item) => {
                 const verification = verificationData[item.id!.toString()];
-                const orderQuantity = Math.max(
-                  0,
-                  item.quantity - verification.qualityGoods,
-                );
+
+                const qualityGoods = +verification.qualityGoods || 0;
+                const actualStock = +verification.actualStock || 0;
+
+                const orderQuantity = Math.max(0, item.quantity - qualityGoods);
 
                 return (
                   <tr
@@ -450,6 +456,30 @@ export default function Verification() {
                     <td>{item.unit}</td>
                     <td>{stocks[+item.itemId].quantity}</td>
                     <td>
+                      <button
+                        ref={(el) => {
+                          if (rowsRef.current) {
+                            rowsRef.current[item.id!.toString()].copyStock = el;
+                          }
+                        }}
+                        className='w-full mb-5'
+                        onClick={() => {
+                          setVerificationData((prev) =>
+                            update(prev, {
+                              [item.id!]: {
+                                actualStock: {
+                                  $set: Math.max(
+                                    0,
+                                    +stocks[+item.itemId].quantity,
+                                  ),
+                                },
+                              },
+                            }),
+                          );
+                        }}
+                      >
+                        OK
+                      </button>
                       <input
                         type='number'
                         className='w-[100px]'
@@ -466,7 +496,11 @@ export default function Verification() {
                             update(prev, {
                               [item.id!]: {
                                 actualStock: {
-                                  $set: Math.max(0, +e.target.value),
+                                  $set:
+                                    isNaN(+e.target.value) ||
+                                    e.target.value === ''
+                                      ? e.target.value
+                                      : Math.max(0, +e.target.value),
                                 },
                               },
                             }),
@@ -491,10 +525,14 @@ export default function Verification() {
                             update(prev, {
                               [item.id!]: {
                                 qualityGoods: {
-                                  $set: Math.min(
-                                    verification.actualStock,
-                                    Math.max(0, +e.target.value),
-                                  ),
+                                  $set:
+                                    isNaN(+e.target.value) ||
+                                    e.target.value === ''
+                                      ? e.target.value
+                                      : Math.min(
+                                          actualStock,
+                                          Math.max(0, +e.target.value),
+                                        ),
                                 },
                               },
                             }),

@@ -23,11 +23,16 @@ export type ItemsGroup = {
   id: number;
   gidNumber: number;
   parentGidNumber: number;
+  parent?: ItemsGroup;
   code: string;
   name: string;
 };
 
+// Keyed by `code`
 export type ItemsGroups = { [key: string]: ItemsGroup };
+
+// Keyed by `gidNumber`
+type ItemsGroupsGid = { [key: string]: ItemsGroup };
 
 export function useGetItemsGroups(token: string) {
   return useQuery({
@@ -40,20 +45,32 @@ export function useGetItemsGroups(token: string) {
         .then(async (response): Promise<ItemsGroups> => {
           const data = await response.json();
 
-          return data
-            .map(
-              (item: any): ItemsGroup => ({
-                id: item['id'],
-                gidNumber: item['gidNumber'],
-                parentGidNumber: item['parentGidNumber'],
-                code: item['code'],
-                name: item['name'],
-              }),
-            )
-            .reduce((acc: ItemsGroups, item: ItemsGroup) => {
-              acc[item.code] = item;
+          const groups: Array<ItemsGroup> = data.map(
+            (item: any): ItemsGroup => ({
+              id: item['id'],
+              gidNumber: item['gidNumber'],
+              parentGidNumber: item['parentGidNumber'],
+              code: item['code'],
+              name: item['name'],
+            }),
+          );
+
+          const groupsByGid = groups.reduce(
+            (acc: ItemsGroupsGid, item: ItemsGroup) => {
+              acc[item.gidNumber] = item;
               return acc;
-            }, {});
+            },
+            {},
+          );
+
+          return groups.reduce((acc: ItemsGroups, item: ItemsGroup) => {
+            if (item.parentGidNumber !== 0 && item.parentGidNumber !== -1) {
+              item.parent = groupsByGid[item.parentGidNumber];
+            }
+
+            acc[item.code] = item;
+            return acc;
+          }, {});
         })
         .catch((error) => {
           console.error(error);

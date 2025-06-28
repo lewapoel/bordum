@@ -272,6 +272,21 @@ export default function Verification() {
     });
   }, [placementId, order, verificationData]);
 
+  const getFullCategoryName = useCallback(
+    (groupId: string) => {
+      const result: Array<string> = [];
+      let currentItem = itemsGroups?.[groupId];
+
+      while (currentItem) {
+        result.push(currentItem.name);
+        currentItem = currentItem.parent;
+      }
+
+      return result.join(' > ');
+    },
+    [itemsGroups],
+  );
+
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       switch (e.key) {
@@ -463,7 +478,7 @@ export default function Verification() {
                     key={item.id}
                   >
                     <td>{item.productName}</td>
-                    <td>{itemsGroups[item.groupId]?.name ?? ''}</td>
+                    <td>{getFullCategoryName(item.groupId)}</td>
                     <td>{item.quantity}</td>
                     <td>{item.unit}</td>
                     <td>{stocks[+item.itemId].quantity}</td>

@@ -191,10 +191,7 @@ export default function Verification() {
     };
 
     const itemsByGroups = order.items.reduce((acc: GroupsItems, item) => {
-      if (
-        itemsGroups &&
-        Object.keys(VERIFICATION_PDF_GROUPS).includes(item.groupId)
-      ) {
+      if (itemsGroups && VERIFICATION_PDF_GROUPS.includes(item.groupId)) {
         if (!acc[item.groupId]) {
           acc[item.groupId] = {
             groupName: itemsGroups[item.groupId].name,

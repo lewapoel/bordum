@@ -282,7 +282,7 @@ export default function Verification() {
         currentItem = currentItem.parent;
       }
 
-      return result.join(' > ');
+      return result.reverse().join(' > ');
     },
     [itemsGroups],
   );

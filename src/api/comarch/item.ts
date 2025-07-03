@@ -17,6 +17,7 @@ export type Item = {
   unit: string;
   prices: Prices;
   groupId: string;
+  vatRate: number;
 };
 
 export type ItemsGroup = {
@@ -99,6 +100,7 @@ export function useGetItems(token: string) {
               name: item['name'],
               unit: item['unit'],
               groupId: item['defaultGroup'],
+              vatRate: item['vatRate'],
               prices: item['prices'].reduce((prices: any, price: any) => {
                 prices[price['name']] = {
                   value: price['value'],

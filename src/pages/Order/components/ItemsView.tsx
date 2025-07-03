@@ -116,6 +116,7 @@ export default function ItemsView() {
           unit: item.unit,
           unitPrice:
             item.prices[ctx.selectedPrice!].value * (1 - +discount / 100),
+          taxRate: item.vatRate,
         });
 
         let resultLocalized: string;

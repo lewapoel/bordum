@@ -91,6 +91,7 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
             quantity: item['QUANTITY'],
             unit: item['MEASURE_NAME'],
             unitPrice: item['PRICE'],
+            taxRate: item['TAX_RATE'] ?? undefined,
           }),
         );
 
@@ -486,6 +487,7 @@ export async function updateOrder(
                   PRICE: item.unitPrice,
                   QUANTITY: item.quantity,
                   MEASURE_CODE: item.unitCode,
+                  TAX_RATE: item.taxRate,
                 }))
               : null,
         };

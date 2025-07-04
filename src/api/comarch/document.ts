@@ -195,6 +195,8 @@ export function useAddDocument(token: string) {
         alert(
           'Brakujące dane kodów magazynowych, dodaj wszystkie produkty od nowa',
         );
+      } else if (error.message.includes('Incorrect TIN')) {
+        alert('NIP podmiotu jest nieprawidłowy');
       } else if (error.message === 'MISSING_BUYER_ID') {
         alert('Brakujące dane nabywcy');
       } else if (error.message === 'MISSING_DATA') {

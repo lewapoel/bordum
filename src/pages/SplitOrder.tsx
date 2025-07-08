@@ -36,7 +36,6 @@ function SplitOrder() {
     () => reduceQuantity(order),
     [order, reduceQuantity],
   );
-  const orderSum = useMemo(() => reduceSum(order), [order, reduceSum]);
 
   const subOrderQuantity = useMemo(
     () => reduceQuantity(subOrder),
@@ -173,43 +172,6 @@ function SplitOrder() {
       {firstLoad ? (
         isDeal || hasDeal ? (
           <>
-            <h1 className='mb-5'>Oferta</h1>
-            <p className='font-bold mb-2'>
-              Łączna kwota oferty: {orderSum.toFixed(2)} zł
-            </p>
-            <table>
-              <thead>
-                <tr>
-                  <th>Lp.</th>
-                  <th>Nazwa towaru</th>
-                  <th>Ilość</th>
-                  <th>Jedn. miary</th>
-                  <th>Cena jedn.</th>
-                  <th>Wartość</th>
-                </tr>
-              </thead>
-              <tbody>
-                {order.length === 0 ? (
-                  <tr>
-                    <td colSpan={6}>Brak wybranych produktów.</td>
-                  </tr>
-                ) : (
-                  order.map((item, idx) => (
-                    <tr key={item.id}>
-                      <td>{idx + 1}</td>
-                      <td>{item.productName}</td>
-                      <td>{item.quantity}</td>
-                      <td>{item.unit}</td>
-                      <td>{item.unitPrice}</td>
-                      <td>{(item.unitPrice * item.quantity).toFixed(2)}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-
-            <hr />
-
             <h1 className='mb-5'>Podoferta</h1>
             <p className='font-bold mb-2'>
               Łączna kwota podoferty: {subOrderSum.toFixed(2)} zł
@@ -234,6 +196,7 @@ function SplitOrder() {
                   <th>Lp.</th>
                   <th>Nazwa towaru</th>
                   <th>Ilość</th>
+                  <th>Ilość do wydzielenia</th>
                   <th>Jedn. miary</th>
                   <th>Cena jedn.</th>
                   <th>Wartość</th>
@@ -249,6 +212,7 @@ function SplitOrder() {
                     <tr key={item.id}>
                       <td>{idx + 1}</td>
                       <td>{item.productName}</td>
+                      <td>{order[idx].quantity}</td>
                       <td>
                         <input
                           ref={(el) => {

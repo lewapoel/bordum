@@ -74,6 +74,11 @@ button {
   border-radius: 5px;
 }
 
+button.small {
+  font-size: 14px;
+  padding: 8px 10px;
+}
+
 button.confirm {
   @apply bg-green-500;
 }

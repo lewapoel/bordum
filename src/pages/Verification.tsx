@@ -480,57 +480,60 @@ export default function Verification() {
                     <td>{item.unit}</td>
                     <td>{stocks[+item.itemId].quantity}</td>
                     <td>
-                      <button
-                        ref={(el) => {
-                          if (rowsRef.current) {
-                            rowsRef.current[item.id!.toString()].copyStock = el;
-                          }
-                        }}
-                        className='w-full mb-5'
-                        onClick={() => {
-                          setVerificationData((prev) =>
-                            update(prev, {
-                              [item.id!]: {
-                                actualStock: {
-                                  $set: Math.max(
-                                    0,
-                                    +stocks[+item.itemId].quantity,
-                                  ),
+                      <div className='flex gap-2 justify-between items-center'>
+                        <input
+                          type='number'
+                          className='w-[100px]'
+                          min={0}
+                          ref={(el) => {
+                            if (rowsRef.current) {
+                              rowsRef.current[item.id!.toString()].actualStock =
+                                el;
+                            }
+                          }}
+                          value={verification.actualStock}
+                          onChange={(e) => {
+                            setVerificationData((prev) =>
+                              update(prev, {
+                                [item.id!]: {
+                                  actualStock: {
+                                    $set:
+                                      isNaN(+e.target.value) ||
+                                      e.target.value === ''
+                                        ? e.target.value
+                                        : Math.max(0, +e.target.value),
+                                  },
                                 },
-                              },
-                            }),
-                          );
-                        }}
-                      >
-                        OK
-                      </button>
-                      <input
-                        type='number'
-                        className='w-[100px]'
-                        min={0}
-                        ref={(el) => {
-                          if (rowsRef.current) {
-                            rowsRef.current[item.id!.toString()].actualStock =
-                              el;
-                          }
-                        }}
-                        value={verification.actualStock}
-                        onChange={(e) => {
-                          setVerificationData((prev) =>
-                            update(prev, {
-                              [item.id!]: {
-                                actualStock: {
-                                  $set:
-                                    isNaN(+e.target.value) ||
-                                    e.target.value === ''
-                                      ? e.target.value
-                                      : Math.max(0, +e.target.value),
+                              }),
+                            );
+                          }}
+                        />
+                        <button
+                          ref={(el) => {
+                            if (rowsRef.current) {
+                              rowsRef.current[item.id!.toString()].copyStock =
+                                el;
+                            }
+                          }}
+                          className='small'
+                          onClick={() => {
+                            setVerificationData((prev) =>
+                              update(prev, {
+                                [item.id!]: {
+                                  actualStock: {
+                                    $set: Math.max(
+                                      0,
+                                      +stocks[+item.itemId].quantity,
+                                    ),
+                                  },
                                 },
-                              },
-                            }),
-                          );
-                        }}
-                      />
+                              }),
+                            );
+                          }}
+                        >
+                          OK
+                        </button>
+                      </div>
                     </td>
                     <td>
                       <input

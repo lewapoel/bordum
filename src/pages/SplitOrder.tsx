@@ -9,6 +9,7 @@ function SplitOrder() {
   const [order, setOrder] = useState<Array<OrderItem>>([]);
   const [subOrder, setSubOrder] = useState<Array<OrderItem>>([]);
   const [firstLoad, setFirstLoad] = useState(false);
+  const [pending, setPending] = useState(false);
   const [isDeal, setIsDeal] = useState<boolean>(false);
   const [hasDeal, setHasDeal] = useState<boolean>(false);
 
@@ -98,11 +99,12 @@ function SplitOrder() {
       return;
     }
 
-    void splitOrder(placementId, {
+    setPending(true);
+    splitOrder(placementId, {
       order: orderResult,
       subOrder: subOrderResult,
       title: 'podoferta',
-    });
+    }).then(() => setPending(false));
   }, [
     orderQuantity,
     orderResult,
@@ -169,80 +171,87 @@ function SplitOrder() {
 
   return (
     <>
-      {firstLoad ? (
-        isDeal || hasDeal ? (
-          <>
-            <h1 className='mb-5'>Podoferta</h1>
-            <p className='font-bold mb-2'>
-              Łączna kwota podoferty: {subOrderSum.toFixed(2)} zł
-            </p>
+      {firstLoad && (isDeal || hasDeal) && !pending ? (
+        <>
+          <h1 className='mb-5'>Podoferta</h1>
+          <p className='font-bold mb-2'>
+            Łączna kwota podoferty: {subOrderSum.toFixed(2)} zł
+          </p>
 
-            <div className='justify-center flex items-center gap-2 mb-10'>
-              <button
-                className='place-order mt-5 confirm'
-                onClick={handleSplitOrder}
-              >
-                Podziel ofertę (ENTER)
-              </button>
-            </div>
+          <div className='justify-center flex items-center gap-2 mb-10'>
+            <button
+              className='place-order mt-5 confirm'
+              onClick={handleSplitOrder}
+            >
+              Podziel ofertę (ENTER)
+            </button>
+          </div>
 
-            <div className='text-[20px] justify-center flex items-center gap-4 mb-10'>
-              <p>Zmień pole (TAB)</p>
-            </div>
+          <div className='text-[20px] justify-center flex items-center gap-4 mb-10'>
+            <p>Zmień pole (TAB)</p>
+          </div>
 
-            <table>
-              <thead>
+          <table>
+            <thead>
+              <tr>
+                <th>Lp.</th>
+                <th>Nazwa towaru</th>
+                <th>Ilość</th>
+                <th>Ilość do wydzielenia</th>
+                <th>Jedn. miary</th>
+                <th>Cena jedn.</th>
+                <th>Wartość</th>
+              </tr>
+            </thead>
+            <tbody>
+              {subOrder.length === 0 ? (
                 <tr>
-                  <th>Lp.</th>
-                  <th>Nazwa towaru</th>
-                  <th>Ilość</th>
-                  <th>Ilość do wydzielenia</th>
-                  <th>Jedn. miary</th>
-                  <th>Cena jedn.</th>
-                  <th>Wartość</th>
+                  <td colSpan={6}>Brak produktów do podziału.</td>
                 </tr>
-              </thead>
-              <tbody>
-                {subOrder.length === 0 ? (
-                  <tr>
-                    <td colSpan={6}>Brak produktów do podziału.</td>
+              ) : (
+                subOrder.map((item, idx) => (
+                  <tr key={item.id}>
+                    <td>{idx + 1}</td>
+                    <td>{item.productName}</td>
+                    <td>{order[idx].quantity}</td>
+                    <td>
+                      <input
+                        ref={(el) => {
+                          quantitiesRef.current[idx] = el;
+                        }}
+                        type='number'
+                        min='0'
+                        max={order[idx].quantity} // can't exceed original quantity
+                        value={item.quantity}
+                        onChange={(e) =>
+                          updateSubOrderItem(idx, e.target.value)
+                        }
+                      />
+                    </td>
+                    <td>{item.unit}</td>
+                    <td>{item.unitPrice}</td>
+                    <td>{(item.unitPrice * item.quantity).toFixed(2)}</td>
                   </tr>
-                ) : (
-                  subOrder.map((item, idx) => (
-                    <tr key={item.id}>
-                      <td>{idx + 1}</td>
-                      <td>{item.productName}</td>
-                      <td>{order[idx].quantity}</td>
-                      <td>
-                        <input
-                          ref={(el) => {
-                            quantitiesRef.current[idx] = el;
-                          }}
-                          type='number'
-                          min='0'
-                          max={order[idx].quantity} // can't exceed original quantity
-                          value={item.quantity}
-                          onChange={(e) =>
-                            updateSubOrderItem(idx, e.target.value)
-                          }
-                        />
-                      </td>
-                      <td>{item.unit}</td>
-                      <td>{item.unitPrice}</td>
-                      <td>{(item.unitPrice * item.quantity).toFixed(2)}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </>
-        ) : (
-          <h1>
-            Dzielenie oferty dostępne tylko dla ofert powiązanych z dealem
-          </h1>
-        )
+                ))
+              )}
+            </tbody>
+          </table>
+        </>
       ) : (
-        <h1>Ładowanie danych oferty...</h1>
+        <>
+          {!firstLoad ? (
+            <h1>Ładowanie danych oferty...</h1>
+          ) : (
+            <>
+              {!isDeal && !hasDeal && (
+                <h1>
+                  Dzielenie oferty dostępne tylko dla ofert powiązanych z dealem
+                </h1>
+              )}
+              {pending && <h1>Tworzenie podoferty...</h1>}
+            </>
+          )}
+        </>
       )}
     </>
   );

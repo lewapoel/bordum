@@ -199,7 +199,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
   const newOrder = useCallback(async () => {
     if (order && deal) {
       setPendingOrder(true);
-      createOrderFromDeal(placementId, deal).then((orderId) => {
+      createOrderFromDeal(placementId).then((orderId) => {
         if (orderId) {
           void updateOrder(orderId, order.items, { ensureMeasures: true });
         } else {

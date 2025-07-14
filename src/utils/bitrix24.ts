@@ -12,7 +12,11 @@ import {
   USER_CURRENT,
   USER_GET,
 } from '../data/bitrix/mockBitrix.ts';
-import { EnumFieldMeta } from '../models/bitrix/field.ts';
+import {
+  EnumFieldMeta,
+  FieldMeta,
+  FieldsMeta,
+} from '../models/bitrix/field.ts';
 import { ORDER_VERIFICATION_DOCUMENTS_FIELD } from '../data/bitrix/field.ts';
 import { downloadBase64File } from './file.ts';
 
@@ -155,6 +159,52 @@ export function getCurrentPlacementId() {
   return id;
 }
 
+export type MatchedCustomField = {
+  source: FieldMeta;
+  destination: FieldMeta;
+};
+
+/**
+ * Finds matching fields between two entities (ex. quote and deal), using their labels
+ * @param source Fields of source
+ * @param destination Fields of destination
+ * @returns Matched fields between both sources
+ */
+export function findMatchingCustomFields(
+  source: FieldsMeta,
+  destination: FieldsMeta,
+): Array<MatchedCustomField> {
+  // Filter out non-custom fields and set the key to the label
+  const mapCustomFieldsByLabel = (fields: FieldsMeta) =>
+    Object.values(fields).reduce((acc: FieldsMeta, field) => {
+      // If formLabel not present, then it's not a custom field
+      if (field.formLabel) {
+        acc[field.formLabel.toLowerCase().trim()] = field;
+      }
+
+      return acc;
+    }, {});
+
+  const sourceByLabels = mapCustomFieldsByLabel(source);
+  const destinationByLabels = mapCustomFieldsByLabel(destination);
+
+  const result: Array<MatchedCustomField> = [];
+
+  Object.entries(sourceByLabels).forEach(([key, field]) => {
+    if (
+      key in destinationByLabels &&
+      destinationByLabels[key].type === field.type
+    ) {
+      result.push({
+        source: field,
+        destination: destinationByLabels[key],
+      });
+    }
+  });
+
+  return result;
+}
+
 /**
  * Translates an enum field between types (ex. from deal to quote). \
  * This is necessary because custom fields cannot be shared between types
@@ -171,6 +221,10 @@ export function translateEnumField(
   destField: EnumFieldMeta,
   field: string,
 ): string {
+  if (!field || !field.length) {
+    return field;
+  }
+
   const text = sourceField.items.find((item) => item.ID === field)?.VALUE;
   if (!text) {
     throw new Error(
@@ -188,4 +242,48 @@ export function translateEnumField(
   }
 
   return id;
+}
+
+export type FieldsValues = { [key: string]: any };
+
+/**
+ * Translates fields between types (ex. from deal to quote). \
+ * This is necessary because custom fields cannot be shared between types
+ * (deals cannot have same custom fields as quotes).
+ * @param matchedFields Matched fields between types
+ * @param values Values from the source
+ * @returns Translated fields values
+ */
+export function translateFields(
+  matchedFields: Array<MatchedCustomField>,
+  values: FieldsValues,
+): FieldsValues {
+  const result: FieldsValues = {};
+
+  matchedFields.forEach((field) => {
+    const sourceField = field.source;
+    const destField = field.destination;
+
+    if (sourceField.title in values) {
+      let resultValue: any;
+
+      switch (sourceField.type) {
+        case 'enumeration':
+          resultValue = translateEnumField(
+            sourceField as EnumFieldMeta,
+            destField as EnumFieldMeta,
+            values[sourceField.title],
+          );
+          break;
+
+        default:
+          resultValue = values[sourceField.title];
+          break;
+      }
+
+      result[destField.title] = resultValue;
+    }
+  });
+
+  return result;
 }

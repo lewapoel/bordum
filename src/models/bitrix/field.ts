@@ -1,15 +1,17 @@
-export type FieldMeta = {
+export type BaseFieldMeta = {
   type: string;
   title: string;
+  formLabel: string;
 };
-
-export type FieldsMeta = { [key: string]: FieldMeta };
 
 export type EnumFieldItem = {
   ID: string;
   VALUE: string;
 };
 
-export type EnumFieldMeta = FieldMeta & {
+export type EnumFieldMeta = BaseFieldMeta & {
   items: Array<EnumFieldItem>;
 };
+
+export type FieldMeta = BaseFieldMeta | EnumFieldMeta;
+export type FieldsMeta = { [key: string]: FieldMeta };

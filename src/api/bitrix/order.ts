@@ -1,4 +1,8 @@
-import { getBitrix24, translateEnumField } from '../../utils/bitrix24.ts';
+import {
+  findMatchingCustomFields,
+  getBitrix24,
+  translateFields,
+} from '../../utils/bitrix24.ts';
 import {
   OrderAdditionalData,
   OrderData,
@@ -8,21 +12,14 @@ import {
 } from '../../models/bitrix/order.ts';
 import { ensureMeasure, getMeasures } from './measure.ts';
 import {
-  CONNECTIONS,
   ORDER_ADDITIONAL_DATA_FIELD,
   ORDER_DELIVERY_CITY_FIELD,
   ORDER_DELIVERY_HOUSE_NUMBER_FIELD,
   ORDER_DELIVERY_POSTAL_CODE_FIELD,
   ORDER_DELIVERY_STREET_FIELD,
-  ORDER_DELIVERY_TYPE_FIELD,
-  ORDER_DEPOSIT_DUE_DATE_FIELD,
-  ORDER_DEPOSIT_REQUIRED_FIELD,
   ORDER_DOCUMENTS_ID_FIELD,
-  ORDER_INSTALLATION_SERVICE_FIELD,
   ORDER_MAIN_LINK_FIELD,
   ORDER_PACKAGING_DATA_FIELD,
-  ORDER_PAYMENT_TYPE_FIELD,
-  ORDER_PAYMENT_VARIANT_FIELD,
   ORDER_PROFORMA_DOCUMENT_FIELD,
   ORDER_RELEASE_DOCUMENT_FIELD,
   ORDER_VERIFICATION_DATA_FIELD,
@@ -31,9 +28,8 @@ import {
 import moment from 'moment';
 import { DocumentType } from '../comarch/document.ts';
 import sanitize from 'sanitize-filename';
-import { DealData } from '../../models/bitrix/deal.ts';
-import { EnumFieldMeta, FieldsMeta } from '../../models/bitrix/field.ts';
-import { getDealFields } from './deal.ts';
+import { FieldsMeta } from '../../models/bitrix/field.ts';
+import { getDealFields, getDealRaw } from './deal.ts';
 import { BitrixFile } from '../../models/bitrix/disk.ts';
 
 export async function getOrderFields(): Promise<FieldsMeta | null> {
@@ -190,13 +186,6 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
             houseNumber: data[ORDER_DELIVERY_HOUSE_NUMBER_FIELD] || undefined,
           },
           items: [],
-          depositRequired: data[ORDER_DEPOSIT_REQUIRED_FIELD] || undefined,
-          paymentVariant: data[ORDER_PAYMENT_VARIANT_FIELD] || undefined,
-          depositDueDate: data[ORDER_DEPOSIT_DUE_DATE_FIELD] || undefined,
-          paymentType: data[ORDER_PAYMENT_TYPE_FIELD] || undefined,
-          deliveryType: data[ORDER_DELIVERY_TYPE_FIELD] || undefined,
-          installationService:
-            data[ORDER_INSTALLATION_SERVICE_FIELD] || undefined,
         };
 
         bx24.callMethod(
@@ -241,19 +230,21 @@ export async function hasOrderDeals(placementId: number): Promise<boolean> {
 
 export async function createOrderFromDeal(
   dealId: number,
-  dealData: DealData,
 ): Promise<number | null> {
   const bx24 = getBitrix24();
   if (!bx24) {
     return null;
   }
 
+  const dealData = await getDealRaw(dealId);
   const dealFields = await getDealFields();
   const orderFields = await getOrderFields();
 
   if (!dealFields || !orderFields) {
     return null;
   }
+
+  const matchingFields = findMatchingCustomFields(dealFields, orderFields);
 
   return new Promise((resolve, reject) => {
     const addEstimateCallback = (result: any) => {
@@ -266,59 +257,17 @@ export async function createOrderFromDeal(
       }
     };
 
-    const {
-      DEPOSIT_REQUIRED: depositRequired,
-      PAYMENT_VARIANT: paymentVariant,
-      DEPOSIT_DUE_DATE: depositDueDate,
-      PAYMENT_TYPE: paymentType,
-      DELIVERY_TYPE: deliveryType,
-      INSTALLATION_SERVICE: installationService,
-    } = CONNECTIONS;
-
     try {
       const updateBody = {
         fields: {
           DEAL_ID: dealId,
           CONTACT_ID: dealData.contactId,
           COMPANY_ID: dealData.companyId,
-          [depositRequired.order]: dealData.depositRequired
-            ? translateEnumField(
-                dealFields[depositRequired.deal] as EnumFieldMeta,
-                orderFields[depositRequired.order] as EnumFieldMeta,
-                dealData.depositRequired,
-              )
-            : '',
-          [paymentVariant.order]: dealData.paymentVariant
-            ? translateEnumField(
-                dealFields[paymentVariant.deal] as EnumFieldMeta,
-                orderFields[paymentVariant.order] as EnumFieldMeta,
-                dealData.paymentVariant,
-              )
-            : '',
-          [depositDueDate.order]: dealData.depositDueDate,
-          [paymentType.order]: dealData.paymentType
-            ? translateEnumField(
-                dealFields[paymentType.deal] as EnumFieldMeta,
-                orderFields[paymentType.order] as EnumFieldMeta,
-                dealData.paymentType,
-              )
-            : '',
-          [deliveryType.order]: dealData.deliveryType
-            ? translateEnumField(
-                dealFields[deliveryType.deal] as EnumFieldMeta,
-                orderFields[deliveryType.order] as EnumFieldMeta,
-                dealData.deliveryType,
-              )
-            : '',
-          [installationService.order]: dealData.installationService
-            ? translateEnumField(
-                dealFields[installationService.deal] as EnumFieldMeta,
-                orderFields[installationService.order] as EnumFieldMeta,
-                dealData.installationService,
-              )
-            : '',
         },
       };
+
+      const translatedFields = translateFields(matchingFields, dealData);
+      updateBody.fields = { ...updateBody.fields, ...translatedFields };
 
       bx24.callMethod('crm.quote.add', updateBody, addEstimateCallback);
     } catch (error) {

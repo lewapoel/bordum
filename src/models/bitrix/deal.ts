@@ -18,13 +18,5 @@ export type ReturnDataItem = {
 export type ReturnData = { [key: string]: ReturnDataItem };
 
 export type DealData = CrmData & {
-  // Offering section
-  depositRequired?: string;
-  paymentVariant?: string;
-  depositDueDate?: string;
-  paymentType?: string;
-  deliveryType?: string;
-  installationService?: string;
-
   returnData?: ReturnData;
 };

@@ -261,8 +261,8 @@ export async function createOrderFromDeal(
       const updateBody = {
         fields: {
           DEAL_ID: dealId,
-          CONTACT_ID: dealData.contactId,
-          COMPANY_ID: dealData.companyId,
+          CONTACT_ID: dealData.CONTACT_ID,
+          COMPANY_ID: dealData.COMPANY_ID,
         },
       };
 

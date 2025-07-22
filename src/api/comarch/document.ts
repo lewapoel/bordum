@@ -6,6 +6,7 @@ import { getContact } from '../bitrix/contact.ts';
 import { getOrderDocuments, updateOrderDocument } from '../bitrix/order.ts';
 import { getDeal, updateDealReturnData } from '../bitrix/deal.ts';
 import moment from 'moment/moment';
+import removeAccents from 'remove-accents';
 
 export type AddDocument = {
   placementId: number;
@@ -56,7 +57,7 @@ export function useAddDocument(token: string) {
       let buyer;
       if (company) {
         buyer = {
-          code: company.nip ?? company.title,
+          code: company.nip ?? removeAccents(company.title),
           vatNumber: company.nip,
           name1: company.title,
           email: company.email,
@@ -64,7 +65,7 @@ export function useAddDocument(token: string) {
         };
       } else if (contact) {
         buyer = {
-          code: `${contact.name} ${contact.lastName}`,
+          code: removeAccents(`${contact.name} ${contact.lastName}`),
           name1: `${contact.name} ${contact.lastName}`,
           email: contact.email,
           phone1: contact.phone,

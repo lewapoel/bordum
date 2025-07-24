@@ -1,8 +1,17 @@
 import {
+  DocumentAttribute,
   ReleaseDocument,
   useGetReleaseDocuments,
+  useUpdateDocumentAttributes,
 } from '../api/comarch/document.ts';
-import { useContext, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { AuthContext } from '../api/comarch/auth.ts';
 import { getBitrix24 } from '../utils/bitrix24.ts';
 import { Highlight, useFuzzySearchList } from '@nozbe/microfuzz/react';
@@ -17,18 +26,32 @@ type Match = {
 type MultiMatch = {
   item: ReleaseDocument;
   highlights: {
+    recipient?: HighlightRanges | null;
     document?: HighlightRanges | null;
     offer?: HighlightRanges | null;
-    vatNumber?: HighlightRanges | null;
-    recipient?: HighlightRanges | null;
+    grossAmount?: HighlightRanges | null;
+    paidAmount?: HighlightRanges | null;
+    remainingAmount?: HighlightRanges | null;
   };
 };
 
 type SearchRef = {
+  recipient: HTMLInputElement | null;
   document: HTMLInputElement | null;
   offer: HTMLInputElement | null;
-  vatNumber: HTMLInputElement | null;
-  recipient: HTMLInputElement | null;
+  grossAmount: HTMLInputElement | null;
+  paidAmount: HTMLInputElement | null;
+  remainingAmount: HTMLInputElement | null;
+};
+
+type DocumentsUpdates = { paidAmount: string };
+
+type RowElements = {
+  paidAmount: HTMLInputElement | null;
+};
+
+type RowsElements = {
+  [key: number]: RowElements;
 };
 
 function useFilterBy(
@@ -40,10 +63,13 @@ function useFilterBy(
     list: documents ?? [],
     queryText,
     getText,
-    mapResultItem: ({ item, matches: [highlightRanges] }) => ({
-      item,
-      highlightRanges,
-    }),
+    mapResultItem: useCallback(
+      ({ item, matches: [highlightRanges] }) => ({
+        item,
+        highlightRanges,
+      }),
+      [],
+    ),
   });
 }
 
@@ -52,41 +78,66 @@ export default function ReleaseDocuments() {
   const documentsQuery = useGetReleaseDocuments(token);
   const documents = documentsQuery.data;
 
+  const updateDocumentAttributesMutation = useUpdateDocumentAttributes(token);
+
+  const [selectedItem, setSelectedItem] = useState<number>(0);
+  const [documentsUpdates, setDocumentsUpdates] = useState<DocumentsUpdates>();
+  const [lastSaved, setLastSaved] = useState<number>();
+  const [saving, setSaving] = useState(false);
+
+  const rowsRef = useRef<RowsElements>(null);
+
   const [searchTerm, setSearchTerm] = useState({
+    recipient: '',
     document: '',
     offer: '',
-    vatNumber: '',
-    recipient: '',
+    grossAmount: '',
+    paidAmount: '',
+    remainingAmount: '',
   });
   const searchBarRef = useRef<SearchRef>({
+    recipient: null,
     document: null,
     offer: null,
-    vatNumber: null,
-    recipient: null,
+    grossAmount: null,
+    paidAmount: null,
+    remainingAmount: null,
   });
+
+  const filteredByRecipient = useFilterBy(
+    documents ?? [],
+    searchTerm.recipient,
+    useCallback((item) => [item.recipientName], []),
+  );
 
   const filteredByDocument = useFilterBy(
     documents ?? [],
     searchTerm.document,
-    (item) => [item.fullNumber],
+    useCallback((item) => [item.fullNumber], []),
   );
 
   const filteredByOffer = useFilterBy(
     documents ?? [],
     searchTerm.offer,
-    (item) => [item.orderId],
+    useCallback((item) => [item.orderId], []),
   );
 
-  const filteredByRecipient = useFilterBy(
+  const filteredByGrossAmount = useFilterBy(
     documents ?? [],
-    searchTerm.recipient,
-    (item) => [item.recipientName],
+    searchTerm.grossAmount,
+    useCallback((item) => [item.grossAmount.toString()], []),
   );
 
-  const filteredByNip = useFilterBy(
+  const filteredByPaidAmount = useFilterBy(
     documents ?? [],
-    searchTerm.vatNumber,
-    (item) => [item.recipientVAT],
+    searchTerm.paidAmount,
+    useCallback((item) => [item.paidAmount.toString()], []),
+  );
+
+  const filteredByRemainingAmount = useFilterBy(
+    documents ?? [],
+    searchTerm.remainingAmount,
+    useCallback((item) => [item.remainingAmount.toString()], []),
   );
 
   const filteredDocuments: Array<MultiMatch> = useMemo(() => {
@@ -128,21 +179,154 @@ export default function ReleaseDocuments() {
       }
     };
 
-    addItems(filteredByDocument, 'document', true);
+    addItems(filteredByRecipient, 'recipient', true);
+    addItems(filteredByDocument, 'document');
     addItems(filteredByOffer, 'offer');
-    addItems(filteredByNip, 'nip');
-    addItems(filteredByRecipient, 'recipient');
+    addItems(filteredByGrossAmount, 'grossAmount');
+    addItems(filteredByPaidAmount, 'paidAmount');
+    addItems(filteredByRemainingAmount, 'remainingAmount');
 
     return Object.values(result);
-  }, [filteredByDocument, filteredByOffer, filteredByNip, filteredByRecipient]);
+  }, [
+    filteredByRecipient,
+    filteredByDocument,
+    filteredByOffer,
+    filteredByGrossAmount,
+    filteredByPaidAmount,
+    filteredByRemainingAmount,
+  ]);
 
-  return documents ? (
+  const saveData = useCallback(
+    (documentId: number) => {
+      if (!documents || !documentsUpdates) {
+        return;
+      }
+
+      const attributes: Array<DocumentAttribute> = [
+        {
+          code: 'ZAPLACONO',
+          value: documentsUpdates.paidAmount,
+        },
+      ];
+
+      setLastSaved(documentId);
+      setSaving(true);
+
+      updateDocumentAttributesMutation.mutate(
+        {
+          documentId,
+          attributes,
+        },
+        {
+          onSettled: () => {
+            setSaving(false);
+          },
+        },
+      );
+    },
+    [documents, documentsUpdates, updateDocumentAttributesMutation],
+  );
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      switch (e.key) {
+        case 'ArrowUp':
+          e.preventDefault();
+          setSelectedItem((prev) => Math.max(0, prev - 1));
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+
+          setSelectedItem((prev) =>
+            Math.min(prev + 1, filteredDocuments.length),
+          );
+          break;
+        case 'Tab':
+          e.preventDefault();
+
+          if (rowsRef.current && selectedItem in filteredDocuments) {
+            const selectedRow =
+              rowsRef.current[filteredDocuments[selectedItem].item.id];
+
+            switch (document.activeElement) {
+              default:
+                selectedRow.paidAmount?.focus();
+                selectedRow.paidAmount?.select();
+                break;
+            }
+          }
+
+          break;
+        case 'Enter':
+          e.preventDefault();
+
+          if (selectedItem in filteredDocuments) {
+            saveData(filteredDocuments[selectedItem].item.id);
+          }
+          break;
+        default:
+          break;
+      }
+    },
+    [selectedItem, saveData, filteredDocuments],
+  );
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleKeyDown]);
+
+  useEffect(() => {
+    if (selectedItem in filteredDocuments) {
+      setDocumentsUpdates({
+        paidAmount: filteredDocuments[selectedItem].item.paidAmount.toString(),
+      });
+    }
+  }, [selectedItem, filteredDocuments]);
+
+  useEffect(() => {
+    if (documents) {
+      rowsRef.current = documents.reduce((acc: RowsElements, item) => {
+        acc[item.id] = {
+          paidAmount: null,
+        };
+
+        return acc;
+      }, {});
+    }
+  }, [documents]);
+
+  return documents && documentsUpdates ? (
     <>
       <h1 className='mb-5'>Dokumenty WZ</h1>
+
+      <div className='text-[20px] justify-center flex items-center gap-4 mb-10'>
+        <p>Zmień zaznaczoną pozycję (↑/↓)</p>
+        <p>Zmień pole (TAB)</p>
+      </div>
 
       <table>
         <thead>
           <tr>
+            <th>
+              <p>Kontrahent</p>
+              <input
+                ref={(el) => {
+                  searchBarRef.current.recipient = el;
+                }}
+                type='text'
+                placeholder='Szukaj...'
+                value={searchTerm.recipient}
+                onChange={(e) =>
+                  setSearchTerm((prev) =>
+                    update(prev, { recipient: { $set: e.target.value } }),
+                  )
+                }
+                className='searchbar w-full'
+              />
+            </th>
             <th>
               <p>Numer dokumentu</p>
               <input
@@ -157,7 +341,7 @@ export default function ReleaseDocuments() {
                     update(prev, { document: { $set: e.target.value } }),
                   )
                 }
-                className='searchbar w-full max-w-[1000px]'
+                className='searchbar w-full'
               />
             </th>
             <th>
@@ -174,48 +358,78 @@ export default function ReleaseDocuments() {
                     update(prev, { offer: { $set: e.target.value } }),
                   )
                 }
-                className='searchbar w-full max-w-[1000px]'
+                className='searchbar w-full'
               />
             </th>
             <th>
-              <p>Kontrahent</p>
+              <p>Kwota brutto</p>
               <input
                 ref={(el) => {
-                  searchBarRef.current.recipient = el;
+                  searchBarRef.current.grossAmount = el;
                 }}
                 type='text'
                 placeholder='Szukaj...'
-                value={searchTerm.recipient}
+                value={searchTerm.grossAmount}
                 onChange={(e) =>
                   setSearchTerm((prev) =>
-                    update(prev, { recipient: { $set: e.target.value } }),
+                    update(prev, { grossAmount: { $set: e.target.value } }),
                   )
                 }
-                className='searchbar w-full max-w-[1000px]'
+                className='searchbar w-full'
               />
             </th>
             <th>
-              <p>NIP kontrahenta</p>
+              <p>Zapłacono</p>
               <input
                 ref={(el) => {
-                  searchBarRef.current.vatNumber = el;
+                  searchBarRef.current.paidAmount = el;
                 }}
                 type='text'
                 placeholder='Szukaj...'
-                value={searchTerm.vatNumber}
+                value={searchTerm.paidAmount}
                 onChange={(e) =>
                   setSearchTerm((prev) =>
-                    update(prev, { vatNumber: { $set: e.target.value } }),
+                    update(prev, { paidAmount: { $set: e.target.value } }),
                   )
                 }
-                className='searchbar w-full max-w-[1000px]'
+                className='searchbar w-full'
               />
+            </th>
+            <th>
+              <p>Pozostało</p>
+              <input
+                ref={(el) => {
+                  searchBarRef.current.remainingAmount = el;
+                }}
+                type='text'
+                placeholder='Szukaj...'
+                value={searchTerm.remainingAmount}
+                onChange={(e) =>
+                  setSearchTerm((prev) =>
+                    update(prev, { remainingAmount: { $set: e.target.value } }),
+                  )
+                }
+                className='searchbar w-full'
+              />
+            </th>
+            <th>
+              <p>Akcje</p>
             </th>
           </tr>
         </thead>
         <tbody>
-          {filteredDocuments.map(({ item, highlights }) => (
-            <tr key={item.id}>
+          {filteredDocuments.map(({ item, highlights }, idx) => (
+            <tr
+              onMouseEnter={() => setSelectedItem(idx)}
+              className={selectedItem === idx ? 'bg-gray-300' : ''}
+              key={item.id}
+            >
+              <td>
+                <Highlight
+                  text={item.recipientName}
+                  ranges={highlights.recipient!}
+                />
+              </td>
               <td>
                 <Highlight
                   text={item.fullNumber}
@@ -237,15 +451,57 @@ export default function ReleaseDocuments() {
               </td>
               <td>
                 <Highlight
-                  text={item.recipientName}
-                  ranges={highlights.recipient!}
+                  text={item.grossAmount.toFixed(2)}
+                  ranges={highlights.grossAmount!}
                 />
               </td>
               <td>
+                {selectedItem === idx ? (
+                  <input
+                    type='number'
+                    className='w-[150px]'
+                    min={0}
+                    ref={(el) => {
+                      if (rowsRef.current) {
+                        rowsRef.current[item.id].paidAmount = el;
+                      }
+                    }}
+                    value={documentsUpdates.paidAmount}
+                    onChange={(e) => {
+                      setDocumentsUpdates((prev) =>
+                        update(prev, {
+                          paidAmount: { $set: e.target.value },
+                        }),
+                      );
+                    }}
+                  />
+                ) : (
+                  <Highlight
+                    text={item.paidAmount.toFixed(2)}
+                    ranges={highlights.paidAmount!}
+                  />
+                )}
+              </td>
+              <td>
                 <Highlight
-                  text={item.recipientVAT}
-                  ranges={highlights.vatNumber!}
+                  text={item.remainingAmount.toFixed(2)}
+                  ranges={highlights.remainingAmount!}
                 />
+              </td>
+              <td>
+                <button
+                  className={
+                    saving && item.id === lastSaved ? 'disabled' : 'confirm'
+                  }
+                  disabled={saving && item.id === lastSaved}
+                  onClick={() => saveData(item.id)}
+                >
+                  {item.id === lastSaved
+                    ? saving
+                      ? 'Zapisywanie...'
+                      : 'Zapisano (ENTER)'
+                    : 'Zapisz (ENTER)'}
+                </button>
               </td>
             </tr>
           ))}

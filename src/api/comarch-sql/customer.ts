@@ -49,6 +49,7 @@ export function useGetCreditCustomers(token: string) {
 
 export function useGetCreditCustomer(token: string, code?: string) {
   return useQuery({
+    // eslint-disable-next-line
     queryKey: ['credit-customer', code],
     queryFn: () =>
       fetch(`${SQL_API_URL}/credit-customers/${code}`, {

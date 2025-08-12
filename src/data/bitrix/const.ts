@@ -23,6 +23,11 @@ export const SETTLEMENT_CATEGORIES = {
   NO_INVOICE: 36,
 };
 
+export const SETTLEMENT_CATEGORIES_NAMES: Record<number, string> = {
+  34: 'Faktura',
+  36: 'Gotówka',
+};
+
 export const ENTITY_TYPES = {
   SETTLEMENT: 1086,
 };

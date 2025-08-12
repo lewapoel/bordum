@@ -46,3 +46,37 @@ export function useGetCreditCustomers(token: string) {
     enabled: !!token,
   });
 }
+
+export function useGetCreditCustomer(token: string, code?: string) {
+  return useQuery({
+    queryKey: ['credit-customer', code],
+    queryFn: () =>
+      fetch(`${SQL_API_URL}/credit-customers/${code}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then(async (response): Promise<CreditCustomer | null> => {
+          const data = await response.json();
+
+          if (!data) {
+            return null;
+          }
+
+          return {
+            id: +data['id'],
+            code: data['code'],
+            vatNumber: data['vat_number'],
+            name: data['name'],
+            creditLimit: data['credit_limit']
+              ? +data['credit_limit']
+              : undefined,
+            invoicesUnpaid: data['invoices_unpaid'],
+          };
+        })
+        .catch((error) => {
+          console.error(error);
+          alert('Nie udało się pobrać salda klienta');
+          return null;
+        }),
+    enabled: !!token && !!code,
+  });
+}

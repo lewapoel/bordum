@@ -1,0 +1,162 @@
+import { useContext, useEffect, useMemo, useState } from 'react';
+import { AuthContext } from '../../components/AuthContext.tsx';
+import { useGetCreditCustomer } from '../../api/comarch-sql/customer.ts';
+import { SettlementData } from '../../models/bitrix/settlement.ts';
+import { getDueSettlements } from '../../api/bitrix/settlement.ts';
+import {
+  getBitrix24,
+  getCompanyCode,
+  getContactCode,
+  getCurrentPlacement,
+  getCurrentPlacementId,
+} from '../../utils/bitrix24.ts';
+import { getCompany } from '../../api/bitrix/company.ts';
+import { getContact } from '../../api/bitrix/contact.ts';
+import { formatMoney } from '../../utils/format.ts';
+import { SETTLEMENT_CATEGORIES_NAMES } from '../../data/bitrix/const.ts';
+
+export default function ClientBalance() {
+  const { sqlToken } = useContext(AuthContext);
+
+  const [error, setError] = useState(false);
+  const [code, setCode] = useState<string>();
+  const [settlements, setSettlements] = useState<Array<SettlementData>>();
+
+  const query = useGetCreditCustomer(sqlToken, code);
+  const client = query.data;
+
+  const creditLimit = useMemo(() => client?.creditLimit ?? 0, [client]);
+  const unpaidInvoices = useMemo(() => client?.invoicesUnpaid ?? 0, [client]);
+  const unpaidCash = useMemo(
+    () =>
+      settlements?.reduce((acc, settlement) => {
+        if (settlement.paymentLeft) {
+          acc += settlement.paymentLeft;
+        }
+
+        return acc;
+      }, 0) ?? 0,
+    [settlements],
+  );
+  const balanceLeft = useMemo(
+    () => creditLimit - unpaidInvoices - unpaidCash,
+    [creditLimit, unpaidInvoices, unpaidCash],
+  );
+
+  useEffect(() => {
+    const placement = getCurrentPlacement();
+    const placementId = getCurrentPlacementId();
+
+    if (!placement || !placementId) {
+      setError(true);
+    } else {
+      switch (placement) {
+        case 'CRM_COMPANY_DETAIL_TAB':
+          getCompany(+placementId).then((company) => {
+            if (company) {
+              setCode(getCompanyCode(company));
+
+              getDueSettlements({
+                companyId: +placementId,
+              }).then((res) => {
+                if (res) {
+                  setSettlements(Object.values(res)[0]);
+                }
+              });
+            } else {
+              setError(true);
+            }
+          });
+          break;
+
+        case 'CRM_CONTACT_DETAIL_TAB':
+          getContact(+placementId).then((contact) => {
+            if (contact) {
+              setCode(getContactCode(contact));
+
+              getDueSettlements({
+                contactId: +placementId,
+              }).then((res) => {
+                if (res) {
+                  setSettlements(Object.values(res)[0]);
+                }
+              });
+            } else {
+              setError(true);
+            }
+          });
+          break;
+
+        default:
+          setError(true);
+          break;
+      }
+    }
+  }, []);
+
+  return client && settlements && !error ? (
+    <>
+      <h1 className='mb-5'>Saldo klienta</h1>
+
+      <table>
+        <thead>
+          <tr>
+            <th>{client.name}</th>
+            <th>
+              Limit handlowy
+              <br />
+              {client.creditLimit ? formatMoney(client.creditLimit) : '-'}
+            </th>
+            <th>
+              Dostępne saldo
+              <br />
+              {formatMoney(balanceLeft)}
+            </th>
+          </tr>
+          <tr>
+            <th>Dokument</th>
+            <th>Rodzaj</th>
+            <th>Kwota (brutto)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {settlements.map((settlement) => (
+            <tr key={settlement.id}>
+              <td
+                className='underline cursor-pointer'
+                onClick={() => {
+                  if (settlement.order) {
+                    const bx24 = getBitrix24();
+                    if (!bx24) {
+                      return;
+                    }
+
+                    bx24.openPath(
+                      `/crm/type/7/details/${settlement.order?.id}/`,
+                    );
+                  }
+                }}
+              >
+                {settlement.order?.title}
+              </td>
+              <td>
+                {SETTLEMENT_CATEGORIES_NAMES[settlement.categoryId!] ??
+                  'Nieznany'}
+              </td>
+              <td>{formatMoney(settlement.paymentLeft ?? 0)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </>
+  ) : (
+    <>
+      {error && <h1>Wystąpił błąd</h1>}
+      {query.isLoading && <h1>Ładowanie danych klienta...</h1>}
+      {!query.isLoading && !settlements && <h1>Brak zaległości</h1>}
+      {!query.isLoading && settlements && !client && (
+        <h1>Nie znaleziono klienta w Comarch</h1>
+      )}
+    </>
+  );
+}

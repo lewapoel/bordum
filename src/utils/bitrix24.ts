@@ -149,7 +149,7 @@ export function getBitrix24() {
 
 export function getCurrentPlacementId() {
   if (isDev()) {
-    return 1;
+    return 6096;
   }
 
   const bx24 = getBitrix24();
@@ -165,6 +165,26 @@ export function getCurrentPlacementId() {
   }
 
   return id;
+}
+
+export function getCurrentPlacement() {
+  if (isDev()) {
+    return 'CRM_COMPANY_DETAIL_TAB';
+  }
+
+  const bx24 = getBitrix24();
+
+  // Error alert is shown in `getBitrix24`
+  if (!bx24) {
+    return null;
+  }
+
+  const placement = bx24.placement?.info?.()?.placement;
+  if (!placement) {
+    return null;
+  }
+
+  return placement;
 }
 
 export type MatchedCustomField = {

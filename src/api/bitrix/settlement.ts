@@ -8,8 +8,17 @@ import { SettlementData, Settlements } from '../../models/bitrix/settlement.ts';
 import { ENTITY_TYPES, SETTLEMENT_STAGES } from '../../data/bitrix/const.ts';
 import { getCompany } from './company.ts';
 import { getContact } from './contact.ts';
+import { getOrder } from './order.ts';
 
-export async function getDueSettlements(): Promise<Settlements | null> {
+export type DueSettlementsFilter = {
+  companyId?: number;
+  contactId?: number;
+  categoryId?: number;
+};
+
+export async function getDueSettlements(
+  filter?: DueSettlementsFilter,
+): Promise<Settlements | null> {
   const bx24 = getBitrix24();
 
   if (!bx24) {
@@ -29,13 +38,25 @@ export async function getDueSettlements(): Promise<Settlements | null> {
         for (const item of data['items']) {
           const companyId = item['companyId'];
           const contactId = item['contactId'];
+          const orderId = item['parentId7'];
+          const categoryId = +item['categoryId'];
 
           let company;
           let contact;
 
-          if (companyId) {
+          if (!filter?.categoryId || categoryId === filter.categoryId) {
+            continue;
+          }
+
+          if (
+            companyId &&
+            (!filter?.companyId || companyId === filter.companyId)
+          ) {
             company = await getCompany(companyId);
-          } else if (contactId) {
+          } else if (
+            contactId &&
+            (!filter?.contactId || contactId === filter.contactId)
+          ) {
             contact = await getContact(companyId);
           }
 
@@ -52,10 +73,16 @@ export async function getDueSettlements(): Promise<Settlements | null> {
             continue;
           }
 
+          let order;
+          if (orderId) {
+            order = await getOrder(orderId);
+          }
+
           const settlement: SettlementData = {
             id: item['id'],
             opportunity: item['opportunity'],
-            categoryId: item['categoryId'],
+            categoryId: categoryId,
+            order: order ? order : undefined,
             companyId: companyId && companyId !== 0 ? companyId : undefined,
             contactId: contactId && contactId !== 0 ? contactId : undefined,
             paymentLeft: item[SETTLEMENT_PAYMENT_LEFT_FIELD] ?? undefined,

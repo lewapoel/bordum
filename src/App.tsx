@@ -8,9 +8,10 @@ import Packaging from './pages/Packaging.tsx';
 import CreateOrder from './pages/Order/CreateOrder.tsx';
 import { ToastContainer } from 'react-toastify';
 import Verification from './pages/Verification.tsx';
-import ClientBalance from './pages/ClientBalance.tsx';
+import ClientBalances from './pages/ClientBalance/ClientBalances.tsx';
 import Return from './pages/Return.tsx';
 import './App.css';
+import ClientBalance from './pages/ClientBalance/ClientBalance.tsx';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,7 +38,11 @@ function App() {
                 <Route path='/create-order' element={<CreateOrder />} />
                 <Route path='/packaging' element={<Packaging />} />
                 <Route path='/verification' element={<Verification />} />
-                <Route path='/client-balance' element={<ClientBalance />} />
+                <Route path='/client-balance' element={<ClientBalances />} />
+                <Route
+                  path='/single-client-balance'
+                  element={<ClientBalance />}
+                />
                 <Route path='/return' element={<Return />} />
               </Routes>
             </header>

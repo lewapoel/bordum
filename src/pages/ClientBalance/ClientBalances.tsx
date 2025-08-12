@@ -1,31 +1,31 @@
-import { useContext, useEffect, useMemo, useState } from 'react';
-import { AuthContext } from '../components/AuthContext.tsx';
-import { useGetCreditCustomers } from '../api/comarch-sql/customer.ts';
-import { Settlements } from '../models/bitrix/settlement.ts';
-import { getDueSettlements } from '../api/bitrix/settlement.ts';
+import { useContext, useEffect, useState } from 'react';
+import { AuthContext } from '../../components/AuthContext.tsx';
+import { useGetCreditCustomers } from '../../api/comarch-sql/customer.ts';
+import { Settlements } from '../../models/bitrix/settlement.ts';
+import { getDueSettlements } from '../../api/bitrix/settlement.ts';
 import clsx from 'clsx';
-import { getBitrix24 } from '../utils/bitrix24.ts';
+import { getBitrix24 } from '../../utils/bitrix24.ts';
+import { SETTLEMENT_CATEGORIES } from '../../data/bitrix/const.ts';
 
-export default function ClientBalance() {
+export default function ClientBalances() {
   const { sqlToken } = useContext(AuthContext);
 
   const query = useGetCreditCustomers(sqlToken);
-
-  const filteredClients = useMemo(() => {
-    return query.data;
-  }, [query.data]);
+  const clients = query.data;
 
   const [settlements, setSettlements] = useState<Settlements>();
 
   useEffect(() => {
-    getDueSettlements().then((res) => {
+    getDueSettlements({
+      categoryId: SETTLEMENT_CATEGORIES.NO_INVOICE,
+    }).then((res) => {
       if (res) {
         setSettlements(res);
       }
     });
   }, []);
 
-  return filteredClients && settlements ? (
+  return clients && settlements ? (
     <>
       <h1 className='mb-5'>Salda klientów</h1>
 
@@ -40,7 +40,7 @@ export default function ClientBalance() {
           </tr>
         </thead>
         <tbody>
-          {filteredClients.map((client) => {
+          {clients.map((client) => {
             const settlement = settlements[client.code];
             const creditLimit = client.creditLimit ?? 0;
 

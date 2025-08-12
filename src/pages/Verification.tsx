@@ -15,13 +15,13 @@ import {
 } from '../models/bitrix/order.ts';
 import { VERIFICATION_PDF_GROUPS } from '../data/comarch/groups.ts';
 import { useGetStocks } from '../api/comarch/stock.ts';
-import { AuthContext } from '../api/comarch/auth.ts';
 import { Document, Font, Page, pdf } from '@react-pdf/renderer';
 import Html from 'react-pdf-html';
 import { blobToBase64 } from '../utils/blob.ts';
 import { BitrixFile } from '../models/bitrix/disk.ts';
 import { QUOTE_STATUSES } from '../data/bitrix/const.ts';
 import { useGetItemsGroups } from '../api/comarch/item.ts';
+import { AuthContext } from '../components/AuthContext.tsx';
 
 type RowElements = {
   copyStock: HTMLButtonElement | null;

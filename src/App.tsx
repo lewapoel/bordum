@@ -5,10 +5,10 @@ import { AuthProvider } from './components/AuthProvider.tsx';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import Packaging from './pages/Packaging.tsx';
-import ReleaseDocuments from './pages/ReleaseDocuments.tsx';
 import CreateOrder from './pages/Order/CreateOrder.tsx';
 import { ToastContainer } from 'react-toastify';
 import Verification from './pages/Verification.tsx';
+import ClientBalance from './pages/ClientBalance.tsx';
 import Return from './pages/Return.tsx';
 import './App.css';
 
@@ -37,10 +37,7 @@ function App() {
                 <Route path='/create-order' element={<CreateOrder />} />
                 <Route path='/packaging' element={<Packaging />} />
                 <Route path='/verification' element={<Verification />} />
-                <Route
-                  path='/release-documents'
-                  element={<ReleaseDocuments />}
-                />
+                <Route path='/client-balance' element={<ClientBalance />} />
                 <Route path='/return' element={<Return />} />
               </Routes>
             </header>

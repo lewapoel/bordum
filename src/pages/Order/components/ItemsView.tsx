@@ -7,7 +7,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import { AuthContext } from '../../../api/comarch/auth.ts';
 import { useGetWarehouses } from '../../../api/comarch/warehouse.ts';
 import {
   ItemWarehouses,
@@ -20,6 +19,7 @@ import clsx from 'clsx';
 import { HighlightRanges } from '@nozbe/microfuzz';
 import update from 'immutability-helper';
 import { toast } from 'react-toastify';
+import { AuthContext } from '../../../components/AuthContext.tsx';
 
 type Match = {
   item: ItemWarehouses;

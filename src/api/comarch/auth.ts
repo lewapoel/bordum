@@ -1,6 +1,5 @@
 import { API_PASSWORD, API_URL, API_USERNAME } from './const.ts';
 import { getCurrentTimestamp } from '../../utils/time.ts';
-import { createContext } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 export function useGetToken() {
@@ -29,5 +28,3 @@ export function useGetToken() {
         }),
   });
 }
-
-export const AuthContext = createContext<any>(null);

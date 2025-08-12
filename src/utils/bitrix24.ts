@@ -5,6 +5,7 @@ import {
   CRM_CONTACT_GET,
   CRM_DEAL_FIELDS,
   CRM_DEAL_GET,
+  CRM_ITEM_LIST,
   CRM_MEASURE_LIST,
   CRM_QUOTE_FIELDS,
   CRM_QUOTE_GET,
@@ -19,6 +20,9 @@ import {
 } from '../models/bitrix/field.ts';
 import { ORDER_VERIFICATION_DOCUMENTS_FIELD } from '../data/bitrix/field.ts';
 import { downloadBase64File } from './file.ts';
+import { Company } from '../models/bitrix/company.ts';
+import _ from 'lodash';
+import { Contact } from '../models/bitrix/contact.ts';
 
 type MockBitrixResult = {
   error: () => any;
@@ -110,6 +114,10 @@ const mockBX24 = {
         }
         break;
       }
+
+      case 'crm.item.list':
+        data = CRM_ITEM_LIST;
+        break;
 
       default:
         isError = true;
@@ -286,4 +294,12 @@ export function translateFields(
   });
 
   return result;
+}
+
+export function getCompanyCode(company: Company): string {
+  return company.nip ?? _.deburr(company.title);
+}
+
+export function getContactCode(contact: Contact): string {
+  return _.deburr(`${contact.name} ${contact.lastName}`);
 }

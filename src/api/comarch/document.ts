@@ -6,6 +6,7 @@ import { getContact } from '../bitrix/contact.ts';
 import { getOrderDocuments, updateOrderDocument } from '../bitrix/order.ts';
 import { getDeal, updateDealReturnData } from '../bitrix/deal.ts';
 import moment from 'moment/moment';
+import { getCompanyCode, getContactCode } from '../../utils/bitrix24.ts';
 import _ from 'lodash';
 
 export type AddDocument = {
@@ -57,7 +58,7 @@ export function useAddDocument(token: string) {
       let buyer;
       if (company) {
         buyer = {
-          code: company.nip ?? _.deburr(company.title),
+          code: getCompanyCode(company),
           vatNumber: company.nip,
           name1: company.title,
           email: company.email,
@@ -65,7 +66,7 @@ export function useAddDocument(token: string) {
         };
       } else if (contact) {
         buyer = {
-          code: _.deburr(`${contact.name} ${contact.lastName}`),
+          code: getContactCode(contact),
           name1: `${contact.name} ${contact.lastName}`,
           email: contact.email,
           phone1: contact.phone,

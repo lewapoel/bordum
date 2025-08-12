@@ -5,8 +5,8 @@ import update from 'immutability-helper';
 import { getCurrentUser } from '../api/bitrix/user.ts';
 import { OrderData, PackagingData } from '../models/bitrix/order.ts';
 import { DocumentType, useAddDocument } from '../api/comarch/document.ts';
-import { AuthContext } from '../api/comarch/auth.ts';
 import { User } from '../models/bitrix/user.ts';
+import { AuthContext } from '../components/AuthContext.tsx';
 
 type RowElements = {
   quality: HTMLSelectElement | null;

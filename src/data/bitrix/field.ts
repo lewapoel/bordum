@@ -22,3 +22,6 @@ export const COMPANY_NIP_FIELD = 'UF_CRM_1731450652';
 
 // User additional fields
 export const USER_DISCOUNT_FIELD = 'UF_USR_1744672369763';
+
+// Settlement additional fields
+export const SETTLEMENT_PAYMENT_LEFT_FIELD = 'ufCrm24_1754857804830';

@@ -8,7 +8,6 @@ import {
 } from '../../api/bitrix/order.ts';
 import { DocumentType, useAddDocument } from '../../api/comarch/document.ts';
 import { OrderContext, OrderType, OrderView } from '../../models/order.ts';
-import { AuthContext } from '../../api/comarch/auth.ts';
 import { getCurrentPlacementId } from '../../utils/bitrix24.ts';
 import { getDeal } from '../../api/bitrix/deal.ts';
 import {
@@ -24,6 +23,7 @@ import {
 import { CrmData } from '../../models/bitrix/crm.ts';
 import { getCurrentUser } from '../../api/bitrix/user.ts';
 import { DealData } from '../../models/bitrix/deal.ts';
+import { AuthContext } from '../../components/AuthContext.tsx';
 
 interface CtxProviderProps {
   children: ReactNode;

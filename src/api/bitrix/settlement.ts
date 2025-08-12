@@ -44,7 +44,7 @@ export async function getDueSettlements(
           let company;
           let contact;
 
-          if (!filter?.categoryId || categoryId === filter.categoryId) {
+          if (filter?.categoryId && categoryId !== filter.categoryId) {
             continue;
           }
 

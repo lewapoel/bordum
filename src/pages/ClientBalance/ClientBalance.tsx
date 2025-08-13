@@ -152,11 +152,18 @@ export default function ClientBalance() {
   ) : (
     <>
       {error && <h1>Wystąpił błąd</h1>}
-      {query.isLoading && <h1>Ładowanie danych klienta...</h1>}
-      {!query.isLoading && !settlements && <h1>Brak zaległości</h1>}
-      {!query.isLoading && settlements && !client && (
-        <h1>Nie znaleziono klienta w Comarch</h1>
+      {!error && (query.isLoading || !settlements) && (
+        <h1>Ładowanie danych klienta...</h1>
       )}
+      {!error &&
+        !query.isLoading &&
+        settlements &&
+        settlements.length === 0 && <h1>Brak zaległości</h1>}
+      {!error &&
+        !query.isLoading &&
+        settlements &&
+        settlements.length > 0 &&
+        !client && <h1>Nie znaleziono klienta w Comarch</h1>}
     </>
   );
 }

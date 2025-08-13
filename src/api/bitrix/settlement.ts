@@ -44,19 +44,9 @@ export async function getDueSettlements(
           let company;
           let contact;
 
-          if (filter?.categoryId && categoryId !== filter.categoryId) {
-            continue;
-          }
-
-          if (
-            companyId &&
-            (!filter?.companyId || companyId === filter.companyId)
-          ) {
+          if (companyId) {
             company = await getCompany(companyId);
-          } else if (
-            contactId &&
-            (!filter?.contactId || contactId === filter.contactId)
-          ) {
+          } else if (contactId) {
             contact = await getContact(contactId);
           }
 
@@ -99,18 +89,32 @@ export async function getDueSettlements(
       }
     };
 
+    const bitrixFilter: any = {
+      '@stageId': [
+        SETTLEMENT_STAGES.NO_INVOICE.PAYMENT_DUE,
+        SETTLEMENT_STAGES.NO_INVOICE.ACCEPT_CASH_PAYMENT,
+        SETTLEMENT_STAGES.INVOICE.PAYMENT_DUE,
+        SETTLEMENT_STAGES.INVOICE.AWAITING_PAYMENT,
+      ],
+    };
+
+    if (filter?.categoryId) {
+      bitrixFilter['categoryId'] = filter.categoryId;
+    }
+
+    if (filter?.companyId) {
+      bitrixFilter['companyId'] = filter.companyId;
+    }
+
+    if (filter?.contactId) {
+      bitrixFilter['contactId'] = filter.contactId;
+    }
+
     bx24.callMethod(
       'crm.item.list',
       {
         entityTypeId: ENTITY_TYPES.SETTLEMENT,
-        filter: {
-          '@stageId': [
-            SETTLEMENT_STAGES.NO_INVOICE.PAYMENT_DUE,
-            SETTLEMENT_STAGES.NO_INVOICE.ACCEPT_CASH_PAYMENT,
-            SETTLEMENT_STAGES.INVOICE.PAYMENT_DUE,
-            SETTLEMENT_STAGES.INVOICE.AWAITING_PAYMENT,
-          ],
-        },
+        filter: bitrixFilter,
       },
       getSettlementsCallback,
     );

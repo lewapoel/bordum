@@ -57,7 +57,7 @@ export async function getDueSettlements(
             contactId &&
             (!filter?.contactId || contactId === filter.contactId)
           ) {
-            contact = await getContact(companyId);
+            contact = await getContact(contactId);
           }
 
           if (!company && !contact) {

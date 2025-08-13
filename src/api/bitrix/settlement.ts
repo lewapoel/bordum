@@ -107,6 +107,7 @@ export async function getDueSettlements(
     }
 
     if (filter?.contactId) {
+      bitrixFilter['companyId'] = 0;
       bitrixFilter['contactId'] = filter.contactId;
     }
 

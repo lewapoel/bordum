@@ -25,6 +25,8 @@ export default function ClientBalances() {
     });
   }, []);
 
+  console.log(settlements);
+
   return clients && settlements ? (
     <>
       <h1 className='mb-5'>Salda klientów</h1>

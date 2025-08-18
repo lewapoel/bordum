@@ -2,14 +2,14 @@ import {
   findMatchingCustomFields,
   getBitrix24,
   translateFields,
-} from '../../utils/bitrix24.ts';
+} from '@/utils/bitrix24.ts';
 import {
   OrderAdditionalData,
   OrderData,
   OrderItem,
   PackagingData,
   VerificationData,
-} from '../../models/bitrix/order.ts';
+} from '@/models/bitrix/order.ts';
 import { ensureMeasure, getMeasures } from './measure.ts';
 import {
   ORDER_ADDITIONAL_DATA_FIELD,
@@ -20,17 +20,18 @@ import {
   ORDER_DOCUMENTS_ID_FIELD,
   ORDER_MAIN_LINK_FIELD,
   ORDER_PACKAGING_DATA_FIELD,
+  ORDER_PAYMENT_TYPE_FIELD,
   ORDER_PROFORMA_DOCUMENT_FIELD,
   ORDER_RELEASE_DOCUMENT_FIELD,
   ORDER_VERIFICATION_DATA_FIELD,
   ORDER_VERIFICATION_DOCUMENTS_FIELD,
-} from '../../data/bitrix/field.ts';
+} from '@/data/bitrix/field.ts';
 import moment from 'moment';
 import { DocumentType } from '../comarch/document.ts';
 import sanitize from 'sanitize-filename';
-import { FieldsMeta } from '../../models/bitrix/field.ts';
+import { FieldsMeta } from '@/models/bitrix/field.ts';
 import { getDealFields, getDealRaw } from './deal.ts';
-import { BitrixFile } from '../../models/bitrix/disk.ts';
+import { BitrixFile } from '@/models/bitrix/disk.ts';
 
 export async function getOrderFields(): Promise<FieldsMeta | null> {
   const bx24 = getBitrix24();
@@ -186,6 +187,7 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
             houseNumber: data[ORDER_DELIVERY_HOUSE_NUMBER_FIELD] || undefined,
           },
           items: [],
+          paymentType: data[ORDER_PAYMENT_TYPE_FIELD] || undefined,
         };
 
         bx24.callMethod(

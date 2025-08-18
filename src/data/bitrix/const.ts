@@ -6,6 +6,13 @@ export const QUOTE_STATUSES = {
   READY_TO_PACK: 'UC_IR88SF',
 };
 
+// Payment type field values for quotes
+export const QUOTE_PAYMENT_TYPES = {
+  TRANSFER: '338',
+  CASH: '340',
+  CREDIT_LIMIT: '3364',
+};
+
 // Stage field values for settlements
 export const SETTLEMENT_STAGES = {
   BALANCE: {

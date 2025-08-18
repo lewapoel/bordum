@@ -32,6 +32,7 @@ import { SettlementData } from '@/models/bitrix/settlement.ts';
 import { useGetCreditCustomer } from '@/api/comarch-sql/customer.ts';
 import { getClientDueSettlements } from '@/api/bitrix/settlement.ts';
 import { useGetSettlementsSummary } from '@/utils/settlements.ts';
+import { QUOTE_PAYMENT_TYPES } from '@/data/bitrix/const.ts';
 
 interface CtxProviderProps {
   children: ReactNode;
@@ -280,6 +281,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
         settlements: {
           client,
           limitLeft,
+          showWarning: order?.paymentType === QUOTE_PAYMENT_TYPES.CREDIT_LIMIT,
         },
       }}
     >

@@ -56,12 +56,5 @@ export type OrderData = CrmData & {
   verificationData?: VerificationData;
   deliveryAddress: OrderDeliveryAddress;
   items: Array<OrderItem>;
-
-  // Offer details section
-  depositRequired?: string;
-  paymentVariant?: string;
-  depositDueDate?: string;
   paymentType?: string;
-  deliveryType?: string;
-  installationService?: string;
 };

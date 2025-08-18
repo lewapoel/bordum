@@ -71,6 +71,8 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
       CustomerDefaultPrice.Default,
     );
 
+    let settlementsFetched = false;
+
     if (crm.companyId && +crm.companyId !== 0) {
       getCompany(crm.companyId).then((res) => {
         if (res) {
@@ -78,6 +80,8 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
           getClientDueSettlements({
             companyId: res.id,
           }).then((res) => setSettlements(res));
+
+          settlementsFetched = true;
         }
 
         if (res && res.nip) {
@@ -90,7 +94,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
 
     if (crm.contactId && +crm.contactId !== 0) {
       getContact(crm.contactId).then((res) => {
-        if (res) {
+        if (res && !settlementsFetched) {
           setCode(getContactCode(res));
           getClientDueSettlements({
             contactId: res.id,

@@ -291,6 +291,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
               onClick={() => {
                 setIgnoreLimit(true);
                 setExceededCreditVisible(false);
+                saveOrder();
               }}
               className='confirm'
             >

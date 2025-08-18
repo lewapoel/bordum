@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { OrderData, OrderItem } from '../../../models/bitrix/order.ts';
+import { OrderData, OrderItem } from '@/models/bitrix/order.ts';
 import {
   RefObject,
   useCallback,
@@ -9,8 +9,18 @@ import {
   useRef,
   useState,
 } from 'react';
-import { OrderContext, OrderType, OrderView } from '../../../models/order.ts';
-import { DocumentType } from '../../../api/comarch/document.ts';
+import { OrderContext, OrderType, OrderView } from '@/models/order.ts';
+import { DocumentType } from '@/api/comarch/document.ts';
+import { formatMoney } from '@/utils/format.ts';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog.tsx';
+import { Button } from '@/components/ui/button.tsx';
 
 interface SummaryRowProps {
   index: number;
@@ -84,6 +94,8 @@ interface SummaryViewProps {
 export default function SummaryView({ order, orderType }: SummaryViewProps) {
   const ctx = useContext(OrderContext);
 
+  const [exceededCreditVisible, setExceededCreditVisible] = useState(false);
+  const [ignoreLimit, setIgnoreLimit] = useState(false);
   const quantitiesRef = useRef<Array<HTMLInputElement | null>>([]);
 
   const sum = useMemo(
@@ -97,6 +109,17 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
 
   const saveOrder = useCallback(() => {
     if (ctx) {
+      if (
+        !ignoreLimit &&
+        ctx.settlements.client &&
+        ctx.settlements.limitLeft - sum < 0
+      ) {
+        setExceededCreditVisible(true);
+        return;
+      }
+
+      setIgnoreLimit(false);
+
       switch (orderType) {
         case OrderType.Create:
           if (ctx.order?.items && ctx.order.items.length > 0) {
@@ -110,7 +133,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
           break;
       }
     }
-  }, [ctx, orderType]);
+  }, [ctx, orderType, ignoreLimit, sum]);
 
   const selectItem = useCallback(() => {
     // Allow selecting only last additional row for creating new entries
@@ -247,10 +270,50 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
         </button>
       </div>
 
-      <div className='text-[20px] justify-center flex items-center gap-4 mb-10'>
+      <div className='text-[20px] justify-center flex items-center gap-4 mb-4'>
         <p>Zmień zaznaczoną pozycję (↑/↓)</p>
         <p>Dodaj/modyfikuj pozycję (ENTER)</p>
       </div>
+
+      <Dialog open={exceededCreditVisible}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>UWAGA!</DialogTitle>
+            <DialogDescription>
+              Przekroczono dostępny limit handlowy!
+            </DialogDescription>
+          </DialogHeader>
+
+          <div>Czy na pewno chcesz kontynuować?</div>
+
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                setIgnoreLimit(true);
+                setExceededCreditVisible(false);
+              }}
+              className='confirm'
+            >
+              TAK
+            </Button>
+            <Button
+              onClick={() => setExceededCreditVisible(false)}
+              className='delete'
+            >
+              NIE
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {ctx.settlements.client && (
+        <div className='text-[20px] flex items-center gap-4 mb-10 justify-center text-red-500'>
+          <p>{ctx.settlements.client?.name}</p>
+          <p>
+            Dostępny limit handlowy: {formatMoney(ctx.settlements.limitLeft)}
+          </p>
+        </div>
+      )}
 
       <h2 className='mb-5 font-bold'>Wartość całkowita: {sum.toFixed(2)} zł</h2>
       <table>

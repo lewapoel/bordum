@@ -1,6 +1,7 @@
 import { createContext } from 'react';
 import { DocumentType } from '../api/comarch/document.ts';
 import { OrderData, OrderItem } from './bitrix/order.ts';
+import { CreditCustomer } from '../api/comarch-sql/customer.ts';
 
 export enum OrderView {
   Summary,
@@ -30,6 +31,10 @@ export type OrderStore = {
   addDocument: {
     mutation: (documentType: DocumentType) => Promise<void>;
     pending: boolean;
+  };
+  settlements: {
+    client?: CreditCustomer | null;
+    limitLeft: number;
   };
 };
 export const OrderContext = createContext<OrderStore | null>(null);

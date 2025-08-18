@@ -1,20 +1,18 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../../components/AuthContext.tsx';
-import { useGetCreditCustomer } from '../../api/comarch-sql/customer.ts';
-import { SettlementData } from '../../models/bitrix/settlement.ts';
-import {
-  DueSettlementsFilter,
-  getDueSettlements,
-} from '../../api/bitrix/settlement.ts';
+import { useGetCreditCustomer } from '@/api/comarch-sql/customer.ts';
+import { SettlementData } from '@/models/bitrix/settlement.ts';
 import {
   getCompanyCode,
   getContactCode,
   getCurrentPlacement,
   getCurrentPlacementId,
-} from '../../utils/bitrix24.ts';
-import { getCompany } from '../../api/bitrix/company.ts';
-import { getContact } from '../../api/bitrix/contact.ts';
-import { formatMoney } from '../../utils/format.ts';
+} from '@/utils/bitrix24.ts';
+import { getCompany } from '@/api/bitrix/company.ts';
+import { getContact } from '@/api/bitrix/contact.ts';
+import { formatMoney } from '@/utils/format.ts';
+import { getClientDueSettlements } from '@/api/bitrix/settlement.ts';
+import { useGetSettlementsSummary } from '@/utils/settlements.ts';
 
 export default function ClientBalance() {
   const { sqlToken } = useContext(AuthContext);
@@ -26,41 +24,9 @@ export default function ClientBalance() {
   const query = useGetCreditCustomer(sqlToken, code);
   const client = query.data;
 
-  const creditLimit = useMemo(() => client?.creditLimit ?? 0, [client]);
-  const unpaidSettlements = useMemo(
-    () =>
-      settlements?.reduce((acc, settlement) => {
-        if (settlement.paymentLeft) {
-          acc += settlement.paymentLeft;
-        }
-
-        return acc;
-      }, 0) ?? 0,
-    [settlements],
-  );
-
-  const limitLeft = useMemo(
-    () => creditLimit - unpaidSettlements,
-    [creditLimit, unpaidSettlements],
-  );
-
-  const getClientDueSettlements = useCallback(
-    async (filter: DueSettlementsFilter) => {
-      const res = await getDueSettlements(filter);
-
-      if (res) {
-        const values = Object.values(res);
-
-        if (values.length === 0) {
-          return [];
-        } else {
-          return values[0];
-        }
-      }
-
-      return undefined;
-    },
-    [],
+  const [creditLimit, unpaidSettlements, limitLeft] = useGetSettlementsSummary(
+    client,
+    settlements,
   );
 
   useEffect(() => {
@@ -104,7 +70,7 @@ export default function ClientBalance() {
           break;
       }
     }
-  }, [getClientDueSettlements]);
+  }, []);
 
   return client && settlements && !error ? (
     <>

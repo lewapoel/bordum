@@ -1,29 +1,37 @@
 import { ReactNode, useCallback, useContext, useEffect, useState } from 'react';
-import { OrderData, OrderItem } from '../../models/bitrix/order.ts';
+import { OrderData, OrderItem } from '@/models/bitrix/order.ts';
 import update from 'immutability-helper';
 import {
   createOrderFromDeal,
   getOrder,
   updateOrder,
-} from '../../api/bitrix/order.ts';
-import { DocumentType, useAddDocument } from '../../api/comarch/document.ts';
-import { OrderContext, OrderType, OrderView } from '../../models/order.ts';
-import { getCurrentPlacementId } from '../../utils/bitrix24.ts';
-import { getDeal } from '../../api/bitrix/deal.ts';
+} from '@/api/bitrix/order.ts';
+import { DocumentType, useAddDocument } from '@/api/comarch/document.ts';
+import { OrderContext, OrderType, OrderView } from '@/models/order.ts';
+import {
+  getCompanyCode,
+  getContactCode,
+  getCurrentPlacementId,
+} from '@/utils/bitrix24.ts';
+import { getDeal } from '@/api/bitrix/deal.ts';
 import {
   CustomerDefaultPrice,
   getCustomerDefaultPriceName,
-} from '../../models/comarch/customer.ts';
-import { getCompany } from '../../api/bitrix/company.ts';
-import { getContact } from '../../api/bitrix/contact.ts';
+} from '@/models/comarch/customer.ts';
+import { getCompany } from '@/api/bitrix/company.ts';
+import { getContact } from '@/api/bitrix/contact.ts';
 import {
   useGetCustomerByName,
   useGetCustomerByNip,
-} from '../../api/comarch/customer.ts';
-import { CrmData } from '../../models/bitrix/crm.ts';
-import { getCurrentUser } from '../../api/bitrix/user.ts';
-import { DealData } from '../../models/bitrix/deal.ts';
+} from '@/api/comarch/customer.ts';
+import { CrmData } from '@/models/bitrix/crm.ts';
+import { getCurrentUser } from '@/api/bitrix/user.ts';
+import { DealData } from '@/models/bitrix/deal.ts';
 import { AuthContext } from '../../components/AuthContext.tsx';
+import { SettlementData } from '@/models/bitrix/settlement.ts';
+import { useGetCreditCustomer } from '@/api/comarch-sql/customer.ts';
+import { getClientDueSettlements } from '@/api/bitrix/settlement.ts';
+import { useGetSettlementsSummary } from '@/utils/settlements.ts';
 
 interface CtxProviderProps {
   children: ReactNode;
@@ -31,7 +39,7 @@ interface CtxProviderProps {
 }
 
 export default function CtxProvider({ children, orderType }: CtxProviderProps) {
-  const { token } = useContext(AuthContext);
+  const { token, sqlToken } = useContext(AuthContext);
   const [selectedItem, setSelectedItem] = useState(0);
   const [currentView, setCurrentView] = useState<OrderView>(OrderView.Summary);
 
@@ -51,6 +59,13 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
 
   const [pendingOrder, setPendingOrder] = useState<boolean>(false);
 
+  // Current client settlements
+  const [settlements, setSettlements] = useState<Array<SettlementData>>();
+  const [code, setCode] = useState<string>();
+  const creditCustomer = useGetCreditCustomer(sqlToken, code);
+  const client = creditCustomer.data;
+  const limitLeft = useGetSettlementsSummary(client, settlements)[2];
+
   const setClientData = useCallback((crm: CrmData) => {
     const defaultPriceName = getCustomerDefaultPriceName(
       CustomerDefaultPrice.Default,
@@ -58,6 +73,13 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
 
     if (crm.companyId && +crm.companyId !== 0) {
       getCompany(crm.companyId).then((res) => {
+        if (res) {
+          setCode(getCompanyCode(res));
+          getClientDueSettlements({
+            companyId: res.id,
+          }).then((res) => setSettlements(res));
+        }
+
         if (res && res.nip) {
           setCompanyNip(res.nip);
         } else {
@@ -68,6 +90,13 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
 
     if (crm.contactId && +crm.contactId !== 0) {
       getContact(crm.contactId).then((res) => {
+        if (res) {
+          setCode(getContactCode(res));
+          getClientDueSettlements({
+            contactId: res.id,
+          }).then((res) => setSettlements(res));
+        }
+
         if (res) {
           setCustomerName(`${res.name} ${res.lastName}`);
         } else {
@@ -244,9 +273,13 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
           mutation: addDocument,
           pending: addDocumentMutation.isPending,
         },
+        settlements: {
+          client,
+          limitLeft,
+        },
       }}
     >
-      {order && selectedPrice ? (
+      {order && selectedPrice && !creditCustomer.isLoading && settlements ? (
         <>{children}</>
       ) : (
         <h1>Ładowanie danych oferty...</h1>

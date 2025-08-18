@@ -2,14 +2,14 @@ import {
   getBitrix24,
   getCompanyCode,
   getContactCode,
-} from '../../utils/bitrix24.ts';
-import { SETTLEMENT_PAYMENT_LEFT_FIELD } from '../../data/bitrix/field.ts';
-import { SettlementData, Settlements } from '../../models/bitrix/settlement.ts';
+} from '@/utils/bitrix24.ts';
+import { SETTLEMENT_PAYMENT_LEFT_FIELD } from '@/data/bitrix/field.ts';
+import { SettlementData, Settlements } from '@/models/bitrix/settlement.ts';
 import {
   ENTITY_TYPES,
   SETTLEMENT_CATEGORIES,
   SETTLEMENT_STAGES,
-} from '../../data/bitrix/const.ts';
+} from '@/data/bitrix/const.ts';
 import { getCompany } from './company.ts';
 import { getContact } from './contact.ts';
 import { getOrder } from './order.ts';
@@ -118,4 +118,20 @@ export async function getDueSettlements(
       getSettlementsCallback,
     );
   });
+}
+
+export async function getClientDueSettlements(filter: DueSettlementsFilter) {
+  const res = await getDueSettlements(filter);
+
+  if (res) {
+    const values = Object.values(res);
+
+    if (values.length === 0) {
+      return [];
+    } else {
+      return values[0];
+    }
+  }
+
+  return undefined;
 }

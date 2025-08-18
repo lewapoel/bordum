@@ -91,6 +91,9 @@ export default function ClientBalance() {
     }
   }, []);
 
+  console.log('client', client);
+  console.log('settlements', settlements);
+
   return client && settlements && !error ? (
     <>
       <h1 className='mb-5'>Limit handlowy (brutto)</h1>
@@ -107,10 +110,12 @@ export default function ClientBalance() {
         <tbody>
           <tr>
             <td>{formatMoney(creditLimit)}</td>
-            <td className='text-orange-500'>
+            <td className='text-orange-500 font-bold'>
               {formatMoney(unpaidSettlements)}
             </td>
-            <td className='text-green-500'>{formatMoney(limitLeft)}</td>
+            <td className='text-green-500 font-bold'>
+              {formatMoney(limitLeft)}
+            </td>
           </tr>
         </tbody>
       </table>

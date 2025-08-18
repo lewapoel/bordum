@@ -1,8 +1,11 @@
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { AuthContext } from '../../components/AuthContext.tsx';
 import { useGetCreditCustomer } from '../../api/comarch-sql/customer.ts';
 import { SettlementData } from '../../models/bitrix/settlement.ts';
-import { getDueSettlements } from '../../api/bitrix/settlement.ts';
+import {
+  DueSettlementsFilter,
+  getDueSettlements,
+} from '../../api/bitrix/settlement.ts';
 import {
   getCompanyCode,
   getContactCode,
@@ -35,9 +38,29 @@ export default function ClientBalance() {
       }, 0) ?? 0,
     [settlements],
   );
+
   const limitLeft = useMemo(
     () => creditLimit - unpaidSettlements,
     [creditLimit, unpaidSettlements],
+  );
+
+  const getClientDueSettlements = useCallback(
+    async (filter: DueSettlementsFilter) => {
+      const res = await getDueSettlements(filter);
+
+      if (res) {
+        const values = Object.values(res);
+
+        if (values.length === 0) {
+          return [];
+        } else {
+          return values[0];
+        }
+      }
+
+      return undefined;
+    },
+    [],
   );
 
   useEffect(() => {
@@ -53,13 +76,9 @@ export default function ClientBalance() {
             if (company) {
               setCode(getCompanyCode(company));
 
-              getDueSettlements({
+              getClientDueSettlements({
                 companyId: +placementId,
-              }).then((res) => {
-                if (res) {
-                  setSettlements(Object.values(res)[0]);
-                }
-              });
+              }).then((res) => setSettlements(res));
             } else {
               setError(true);
             }
@@ -71,13 +90,9 @@ export default function ClientBalance() {
             if (contact) {
               setCode(getContactCode(contact));
 
-              getDueSettlements({
+              getClientDueSettlements({
                 contactId: +placementId,
-              }).then((res) => {
-                if (res) {
-                  setSettlements(Object.values(res)[0]);
-                }
-              });
+              }).then((res) => setSettlements(res));
             } else {
               setError(true);
             }
@@ -89,10 +104,7 @@ export default function ClientBalance() {
           break;
       }
     }
-  }, []);
-
-  console.log('client', client);
-  console.log('settlements', settlements);
+  }, [getClientDueSettlements]);
 
   return client && settlements && !error ? (
     <>

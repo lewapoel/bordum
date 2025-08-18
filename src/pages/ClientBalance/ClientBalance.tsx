@@ -4,7 +4,6 @@ import { useGetCreditCustomer } from '../../api/comarch-sql/customer.ts';
 import { SettlementData } from '../../models/bitrix/settlement.ts';
 import { getDueSettlements } from '../../api/bitrix/settlement.ts';
 import {
-  getBitrix24,
   getCompanyCode,
   getContactCode,
   getCurrentPlacement,
@@ -25,7 +24,7 @@ export default function ClientBalance() {
   const client = query.data;
 
   const creditLimit = useMemo(() => client?.creditLimit ?? 0, [client]);
-  const unpaidCash = useMemo(
+  const unpaidSettlements = useMemo(
     () =>
       settlements?.reduce((acc, settlement) => {
         if (settlement.paymentLeft) {
@@ -36,9 +35,9 @@ export default function ClientBalance() {
       }, 0) ?? 0,
     [settlements],
   );
-  const balanceLeft = useMemo(
-    () => creditLimit - unpaidCash,
-    [creditLimit, unpaidCash],
+  const limitLeft = useMemo(
+    () => creditLimit - unpaidSettlements,
+    [creditLimit, unpaidSettlements],
   );
 
   useEffect(() => {
@@ -94,52 +93,25 @@ export default function ClientBalance() {
 
   return client && settlements && !error ? (
     <>
-      <h1 className='mb-5'>Saldo klienta</h1>
+      <h1 className='mb-5'>Limit handlowy (brutto)</h1>
+      <h2 className='mb-5'>{client.name}</h2>
 
       <table>
         <thead>
           <tr>
-            <th>{client.name}</th>
-            <th>
-              Limit handlowy
-              <br />
-              {client.creditLimit ? formatMoney(client.creditLimit) : '-'}
-            </th>
-            <th>
-              Dostępne saldo
-              <br />
-              {formatMoney(balanceLeft)}
-            </th>
-          </tr>
-          <tr>
-            <th>Dokument</th>
-            <th>Rodzaj</th>
-            <th>Kwota (brutto)</th>
+            <th>Przyznany limit</th>
+            <th>Wykorzystany limit</th>
+            <th>Dostępny limit</th>
           </tr>
         </thead>
         <tbody>
-          {settlements.map((settlement) => (
-            <tr key={settlement.id}>
-              <td
-                className='underline cursor-pointer'
-                onClick={() => {
-                  if (settlement.order) {
-                    const bx24 = getBitrix24();
-                    if (!bx24) {
-                      return;
-                    }
-
-                    bx24.openPath(
-                      `/crm/type/7/details/${settlement.order?.id}/`,
-                    );
-                  }
-                }}
-              >
-                {settlement.order?.title}
-              </td>
-              <td>{formatMoney(settlement.paymentLeft ?? 0)}</td>
-            </tr>
-          ))}
+          <tr>
+            <td>{formatMoney(creditLimit)}</td>
+            <td className='text-orange-500'>
+              {formatMoney(unpaidSettlements)}
+            </td>
+            <td className='text-green-500'>{formatMoney(limitLeft)}</td>
+          </tr>
         </tbody>
       </table>
     </>

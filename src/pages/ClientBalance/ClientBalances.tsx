@@ -5,7 +5,6 @@ import { SettlementData, Settlements } from '../../models/bitrix/settlement.ts';
 import { getDueSettlements } from '../../api/bitrix/settlement.ts';
 import clsx from 'clsx';
 import { getBitrix24 } from '../../utils/bitrix24.ts';
-import { SETTLEMENT_CATEGORIES } from '../../data/bitrix/const.ts';
 import { formatMoney } from '../../utils/format.ts';
 
 export default function ClientBalances() {
@@ -45,9 +44,7 @@ export default function ClientBalances() {
   }, [settlements, clientsCodes]);
 
   useEffect(() => {
-    getDueSettlements({
-      categoryId: SETTLEMENT_CATEGORIES.BALANCE,
-    }).then((res) => {
+    getDueSettlements().then((res) => {
       if (res) {
         setSettlements(res);
       }

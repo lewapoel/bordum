@@ -5,7 +5,11 @@ import {
 } from '../../utils/bitrix24.ts';
 import { SETTLEMENT_PAYMENT_LEFT_FIELD } from '../../data/bitrix/field.ts';
 import { SettlementData, Settlements } from '../../models/bitrix/settlement.ts';
-import { ENTITY_TYPES, SETTLEMENT_STAGES } from '../../data/bitrix/const.ts';
+import {
+  ENTITY_TYPES,
+  SETTLEMENT_CATEGORIES,
+  SETTLEMENT_STAGES,
+} from '../../data/bitrix/const.ts';
 import { getCompany } from './company.ts';
 import { getContact } from './contact.ts';
 import { getOrder } from './order.ts';
@@ -13,7 +17,6 @@ import { getOrder } from './order.ts';
 export type DueSettlementsFilter = {
   companyId?: number;
   contactId?: number;
-  categoryId?: number;
 };
 
 export async function getDueSettlements(
@@ -90,15 +93,12 @@ export async function getDueSettlements(
     };
 
     const bitrixFilter: any = {
+      categoryId: SETTLEMENT_CATEGORIES.BALANCE,
       '@stageId': [
         SETTLEMENT_STAGES.BALANCE.DUE_PAYMENT,
         SETTLEMENT_STAGES.BALANCE.NEW_LIMIT_PAYMENT,
       ],
     };
-
-    if (filter?.categoryId) {
-      bitrixFilter['categoryId'] = filter.categoryId;
-    }
 
     if (filter?.companyId) {
       bitrixFilter['companyId'] = filter.companyId;

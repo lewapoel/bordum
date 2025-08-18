@@ -6,8 +6,7 @@ export type CreditCustomer = {
   code: string;
   vatNumber: string;
   name: string;
-  creditLimit?: number;
-  invoicesUnpaid: number;
+  creditLimit: number;
 };
 
 export function useGetCreditCustomers(token: string) {
@@ -31,10 +30,7 @@ export function useGetCreditCustomers(token: string) {
               code: customer['code'],
               vatNumber: customer['vat_number'],
               name: customer['name'],
-              creditLimit: customer['credit_limit']
-                ? +customer['credit_limit']
-                : undefined,
-              invoicesUnpaid: customer['invoices_unpaid'],
+              creditLimit: +customer['credit_limit'],
             }),
           );
         })
@@ -67,10 +63,7 @@ export function useGetCreditCustomer(token: string, code?: string) {
             code: data['code'],
             vatNumber: data['vat_number'],
             name: data['name'],
-            creditLimit: data['credit_limit']
-              ? +data['credit_limit']
-              : undefined,
-            invoicesUnpaid: data['invoices_unpaid'],
+            creditLimit: +data['credit_limit'],
           };
         })
         .catch((error) => {

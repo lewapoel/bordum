@@ -13,7 +13,6 @@ import {
 import { getCompany } from '../../api/bitrix/company.ts';
 import { getContact } from '../../api/bitrix/contact.ts';
 import { formatMoney } from '../../utils/format.ts';
-import { SETTLEMENT_CATEGORIES_NAMES } from '../../data/bitrix/const.ts';
 
 export default function ClientBalance() {
   const { sqlToken } = useContext(AuthContext);
@@ -26,7 +25,6 @@ export default function ClientBalance() {
   const client = query.data;
 
   const creditLimit = useMemo(() => client?.creditLimit ?? 0, [client]);
-  const unpaidInvoices = useMemo(() => client?.invoicesUnpaid ?? 0, [client]);
   const unpaidCash = useMemo(
     () =>
       settlements?.reduce((acc, settlement) => {
@@ -39,8 +37,8 @@ export default function ClientBalance() {
     [settlements],
   );
   const balanceLeft = useMemo(
-    () => creditLimit - unpaidInvoices - unpaidCash,
-    [creditLimit, unpaidInvoices, unpaidCash],
+    () => creditLimit - unpaidCash,
+    [creditLimit, unpaidCash],
   );
 
   useEffect(() => {
@@ -138,10 +136,6 @@ export default function ClientBalance() {
                 }}
               >
                 {settlement.order?.title}
-              </td>
-              <td>
-                {SETTLEMENT_CATEGORIES_NAMES[settlement.categoryId!] ??
-                  'Nieznany'}
               </td>
               <td>{formatMoney(settlement.paymentLeft ?? 0)}</td>
             </tr>

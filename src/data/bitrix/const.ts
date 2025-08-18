@@ -8,24 +8,14 @@ export const QUOTE_STATUSES = {
 
 // Stage field values for settlements
 export const SETTLEMENT_STAGES = {
-  INVOICE: {
-    AWAITING_PAYMENT: 'DT1086_34:NEW',
-    PAYMENT_DUE: 'DT1086_34:CLIENT',
-  },
-  NO_INVOICE: {
-    ACCEPT_CASH_PAYMENT: 'DT1086_36:NEW',
-    PAYMENT_DUE: 'DT1086_36:UC_UVHARI',
+  BALANCE: {
+    NEW_LIMIT_PAYMENT: 'DT1086_38:NEW',
+    DUE_PAYMENT: 'DT1086_38:PREPARATION',
   },
 };
 
 export const SETTLEMENT_CATEGORIES = {
-  INVOICE: 34,
-  NO_INVOICE: 36,
-};
-
-export const SETTLEMENT_CATEGORIES_NAMES: Record<number, string> = {
-  34: 'Faktura',
-  36: 'Gotówka',
+  BALANCE: 38,
 };
 
 export const ENTITY_TYPES = {

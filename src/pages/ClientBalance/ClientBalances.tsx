@@ -121,9 +121,8 @@ export default function ClientBalances() {
                 <td>{formatMoney(creditLimit)}</td>
                 <td
                   className={clsx(
-                    clientSettlements
-                      ? 'cursor-pointer underline'
-                      : 'text-red-500 font-bold',
+                    clientSettlements ? 'cursor-pointer underline' : '',
+                    'text-red-500 font-bold',
                   )}
                   onClick={() => navigateToClient(clientSettlements)}
                 >
@@ -134,9 +133,8 @@ export default function ClientBalances() {
                 </td>
                 <td
                   className={clsx(
-                    clientSettlements
-                      ? 'cursor-pointer underline'
-                      : 'text-blue-500 font-bold',
+                    clientSettlements ? 'cursor-pointer underline' : '',
+                    'text-blue-500 font-bold',
                   )}
                   onClick={() => navigateToClient(clientSettlements)}
                 >

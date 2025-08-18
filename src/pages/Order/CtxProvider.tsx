@@ -66,7 +66,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
   const client = creditCustomer.data;
   const limitLeft = useGetSettlementsSummary(client, settlements)[2];
 
-  const setClientData = useCallback((crm: CrmData) => {
+  const setClientData = useCallback(async (crm: CrmData) => {
     const defaultPriceName = getCustomerDefaultPriceName(
       CustomerDefaultPrice.Default,
     );
@@ -74,39 +74,39 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
     let settlementsFetched = false;
 
     if (crm.companyId && +crm.companyId !== 0) {
-      getCompany(crm.companyId).then((res) => {
-        if (res) {
-          setCode(getCompanyCode(res));
-          getClientDueSettlements({
-            companyId: res.id,
-          }).then((res) => setSettlements(res));
+      const res = await getCompany(crm.companyId);
 
-          settlementsFetched = true;
-        }
+      if (res) {
+        setCode(getCompanyCode(res));
+        getClientDueSettlements({
+          companyId: res.id,
+        }).then((res) => setSettlements(res));
 
-        if (res && res.nip) {
-          setCompanyNip(res.nip);
-        } else {
-          setSelectedPrice(defaultPriceName);
-        }
-      });
+        settlementsFetched = true;
+      }
+
+      if (res && res.nip) {
+        setCompanyNip(res.nip);
+      } else {
+        setSelectedPrice(defaultPriceName);
+      }
     }
 
     if (crm.contactId && +crm.contactId !== 0) {
-      getContact(crm.contactId).then((res) => {
-        if (res && !settlementsFetched) {
-          setCode(getContactCode(res));
-          getClientDueSettlements({
-            contactId: res.id,
-          }).then((res) => setSettlements(res));
-        }
+      const res = await getContact(crm.contactId);
 
-        if (res) {
-          setCustomerName(`${res.name} ${res.lastName}`);
-        } else {
-          setSelectedPrice(defaultPriceName);
-        }
-      });
+      if (res && !settlementsFetched) {
+        setCode(getContactCode(res));
+        getClientDueSettlements({
+          contactId: res.id,
+        }).then((res) => setSettlements(res));
+      }
+
+      if (res) {
+        setCustomerName(`${res.name} ${res.lastName}`);
+      } else {
+        setSelectedPrice(defaultPriceName);
+      }
     } else {
       setSelectedPrice(defaultPriceName);
     }
@@ -153,7 +153,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
               items: [],
               deliveryAddress: {},
             });
-            setClientData(res);
+            void setClientData(res);
           }
         });
         break;
@@ -167,7 +167,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
         getOrder(placementId).then((res) => {
           if (res) {
             setOrder(res);
-            setClientData(res);
+            void setClientData(res);
           }
         });
         break;

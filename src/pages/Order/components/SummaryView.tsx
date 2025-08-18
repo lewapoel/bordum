@@ -95,7 +95,6 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
   const ctx = useContext(OrderContext);
 
   const [exceededCreditVisible, setExceededCreditVisible] = useState(false);
-  const [ignoreLimit, setIgnoreLimit] = useState(false);
   const quantitiesRef = useRef<Array<HTMLInputElement | null>>([]);
 
   const sum = useMemo(
@@ -107,33 +106,34 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
     [order],
   );
 
-  const saveOrder = useCallback(() => {
-    if (ctx) {
-      if (
-        !ignoreLimit &&
-        ctx.settlements.client &&
-        ctx.settlements.limitLeft - sum < 0
-      ) {
-        setExceededCreditVisible(true);
-        return;
-      }
+  const saveOrder = useCallback(
+    (ignoreLimit: boolean = false) => {
+      if (ctx) {
+        if (
+          !ignoreLimit &&
+          ctx.settlements.client &&
+          ctx.settlements.limitLeft - sum < 0
+        ) {
+          setExceededCreditVisible(true);
+          return;
+        }
 
-      setIgnoreLimit(false);
-
-      switch (orderType) {
-        case OrderType.Create:
-          if (ctx.order?.items && ctx.order.items.length > 0) {
-            void ctx.createOrder();
-          } else {
-            alert('Nie można utworzyć pustej oferty');
-          }
-          break;
-        case OrderType.Edit:
-          void ctx.saveOrder();
-          break;
+        switch (orderType) {
+          case OrderType.Create:
+            if (ctx.order?.items && ctx.order.items.length > 0) {
+              void ctx.createOrder();
+            } else {
+              alert('Nie można utworzyć pustej oferty');
+            }
+            break;
+          case OrderType.Edit:
+            void ctx.saveOrder();
+            break;
+        }
       }
-    }
-  }, [ctx, orderType, ignoreLimit, sum]);
+    },
+    [ctx, orderType, sum],
+  );
 
   const selectItem = useCallback(() => {
     // Allow selecting only last additional row for creating new entries
@@ -262,7 +262,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
       )}
 
       <div className='justify-center flex items-center gap-2 mb-10'>
-        <button className='confirm' onClick={saveOrder}>
+        <button className='confirm' onClick={() => saveOrder()}>
           Zapisz (INSERT)
         </button>
         <button className='delete' onClick={ctx.removeItem}>
@@ -289,9 +289,8 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
           <DialogFooter>
             <Button
               onClick={() => {
-                setIgnoreLimit(true);
                 setExceededCreditVisible(false);
-                saveOrder();
+                saveOrder(true);
               }}
               className='confirm'
             >

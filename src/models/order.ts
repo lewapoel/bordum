@@ -35,7 +35,7 @@ export type OrderStore = {
   settlements: {
     client?: CreditCustomer | null;
     limitLeft: number;
-    showWarning: boolean;
+    allowWarning: boolean;
   };
 };
 export const OrderContext = createContext<OrderStore | null>(null);

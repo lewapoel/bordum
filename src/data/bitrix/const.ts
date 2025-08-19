@@ -13,6 +13,13 @@ export const QUOTE_PAYMENT_TYPES = {
   CREDIT_LIMIT: '3364',
 };
 
+// Payment type field values for deals
+export const DEAL_PAYMENT_TYPES = {
+  TRANSFER: '360',
+  CASH: '362',
+  CREDIT_LIMIT: '3362',
+};
+
 // Stage field values for settlements
 export const SETTLEMENT_STAGES = {
   BALANCE: {

@@ -1,7 +1,10 @@
-import { getBitrix24 } from '../../utils/bitrix24.ts';
-import { DealData, ReturnData } from '../../models/bitrix/deal.ts';
-import { DEAL_RETURN_DATA_FIELD } from '../../data/bitrix/field.ts';
-import { FieldsMeta } from '../../models/bitrix/field.ts';
+import { getBitrix24 } from '@/utils/bitrix24.ts';
+import { DealData, ReturnData } from '@/models/bitrix/deal.ts';
+import {
+  DEAL_PAYMENT_TYPE_FIELD,
+  DEAL_RETURN_DATA_FIELD,
+} from '@/data/bitrix/field.ts';
+import { FieldsMeta } from '@/models/bitrix/field.ts';
 
 export async function getDealFields(): Promise<FieldsMeta | null> {
   const bx24 = getBitrix24();
@@ -58,6 +61,7 @@ export async function getDeal(placementId: number): Promise<DealData | null> {
           returnData: returnData,
           companyId: companyId && companyId !== '0' ? companyId : undefined,
           contactId: contactId && contactId !== '0' ? contactId : undefined,
+          paymentType: data[DEAL_PAYMENT_TYPE_FIELD] || undefined,
         });
       }
     };

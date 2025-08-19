@@ -110,7 +110,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
     (ignoreLimit: boolean = false) => {
       if (ctx) {
         if (
-          ctx.settlements.showWarning &&
+          ctx.settlements.allowWarning &&
           !ignoreLimit &&
           ctx.settlements.client &&
           ctx.settlements.limitLeft - sum < 0

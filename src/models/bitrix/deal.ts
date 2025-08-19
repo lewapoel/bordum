@@ -18,5 +18,6 @@ export type ReturnDataItem = {
 export type ReturnData = { [key: string]: ReturnDataItem };
 
 export type DealData = CrmData & {
+  paymentType?: string;
   returnData?: ReturnData;
 };

@@ -1,11 +1,11 @@
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { AuthContext } from '../../components/AuthContext.tsx';
-import { useGetCreditCustomers } from '../../api/comarch-sql/customer.ts';
-import { SettlementData, Settlements } from '../../models/bitrix/settlement.ts';
-import { getDueSettlements } from '../../api/bitrix/settlement.ts';
+import { useGetCreditCustomers } from '@/api/comarch-sql/customer.ts';
+import { SettlementData, Settlements } from '@/models/bitrix/settlement.ts';
+import { getDueSettlements } from '@/api/bitrix/settlement.ts';
 import clsx from 'clsx';
-import { getBitrix24 } from '../../utils/bitrix24.ts';
-import { formatMoney } from '../../utils/format.ts';
+import { getBitrix24 } from '@/utils/bitrix24.ts';
+import { formatMoney } from '@/utils/format.ts';
 
 export default function ClientBalances() {
   const { sqlToken } = useContext(AuthContext);
@@ -114,29 +114,22 @@ export default function ClientBalances() {
 
             return (
               <tr key={client.id}>
-                <td>{client.name}</td>
-                <td>{formatMoney(creditLimit)}</td>
                 <td
                   className={clsx(
                     clientSettlements ? 'cursor-pointer underline' : '',
-                    'text-red-500 font-bold',
                   )}
                   onClick={() => navigateToClient(clientSettlements)}
                 >
+                  {client.name}
+                </td>
+                <td>{formatMoney(creditLimit)}</td>
+                <td className='text-red-500 font-bold'>
                   {formatMoney(unpaidSettlements)}
                 </td>
                 <td className='text-green-500 font-bold'>
                   {formatMoney(limitLeft)}
                 </td>
-                <td
-                  className={clsx(
-                    clientSettlements ? 'cursor-pointer underline' : '',
-                    'text-blue-500 font-bold',
-                  )}
-                  onClick={() => navigateToClient(clientSettlements)}
-                >
-                  {offerCount}
-                </td>
+                <td className='text-blue-500 font-bold'>{offerCount}</td>
               </tr>
             );
           })}

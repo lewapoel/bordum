@@ -7,19 +7,19 @@ import {
   useRef,
   useState,
 } from 'react';
-import { useGetWarehouses } from '../../../api/comarch/warehouse.ts';
+import { useGetWarehouses } from '@/api/comarch/warehouse.ts';
 import {
   ItemWarehouses,
   useGetItems,
   useGetItemsWarehouses,
-} from '../../../api/comarch/item.ts';
-import { OrderContext, OrderView } from '../../../models/order.ts';
+} from '@/api/comarch/item.ts';
+import { OrderContext, OrderView } from '@/models/order.ts';
 import { useFuzzySearchList, Highlight } from '@nozbe/microfuzz/react';
 import clsx from 'clsx';
 import { HighlightRanges } from '@nozbe/microfuzz';
 import update from 'immutability-helper';
 import { toast } from 'react-toastify';
-import { AuthContext } from '../../../components/AuthContext.tsx';
+import { AuthContext } from '@/components/AuthContext.tsx';
 
 type Match = {
   item: ItemWarehouses;
@@ -64,6 +64,18 @@ export default function ItemsView() {
     [itemsWarehousesQuery.data],
   );
 
+  const sortedItemsWarehouses = useMemo(
+    () =>
+      itemsWarehouses
+        ? itemsWarehouses.toSorted(
+            (a, b) =>
+              Math.max(...Object.values(b.quantities).map((x) => x.quantity)) -
+              Math.max(...Object.values(a.quantities).map((x) => x.quantity)),
+          )
+        : null,
+    [itemsWarehouses],
+  );
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItem, setSelectedItem] = useState(0);
 
@@ -74,7 +86,7 @@ export default function ItemsView() {
   const rowsRef = useRef<RowsElements>(null);
 
   const filteredList = useFuzzySearchList<ItemWarehouses, Match>({
-    list: itemsWarehouses ?? [],
+    list: sortedItemsWarehouses ?? [],
     queryText: searchTerm,
     key: 'name',
     mapResultItem: ({ item, matches: [highlightRanges] }) => ({
@@ -225,23 +237,26 @@ export default function ItemsView() {
   }, [handleKeyDown]);
 
   useEffect(() => {
-    if (itemsWarehouses) {
-      rowsRef.current = itemsWarehouses.reduce((acc: RowsElements, item) => {
-        acc[item.id] = {
-          quantity: null,
-          discount: null,
-        };
+    if (sortedItemsWarehouses) {
+      rowsRef.current = sortedItemsWarehouses.reduce(
+        (acc: RowsElements, item) => {
+          acc[item.id] = {
+            quantity: null,
+            discount: null,
+          };
 
-        return acc;
-      }, {});
+          return acc;
+        },
+        {},
+      );
     }
-  }, [itemsWarehouses]);
+  }, [sortedItemsWarehouses]);
 
   useEffect(() => {
     searchBarRef.current?.focus();
-  }, [itemsWarehouses]);
+  }, [sortedItemsWarehouses]);
 
-  return ctx && warehouses && itemsWarehouses ? (
+  return ctx && warehouses && sortedItemsWarehouses ? (
     <div>
       <h1 className='mb-5'>Wybór towaru</h1>
 

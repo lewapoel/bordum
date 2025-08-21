@@ -160,6 +160,27 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
     [order.items],
   );
 
+  const addDocument = useCallback(
+    (documentType: DocumentType) => {
+      if (orderType === OrderType.Edit && ctx) {
+        if (
+          documentType === DocumentType.RELEASE_DOCUMENT &&
+          ctx.settlements.allowWarning &&
+          ctx.settlements.client &&
+          ctx.settlements.limitLeft - sum < 0
+        ) {
+          alert(
+            'Przekroczono dostępny limit handlowy, nie można utworzyć dokumentu WZ',
+          );
+          return;
+        }
+
+        void ctx.addDocument.mutation(documentType);
+      }
+    },
+    [ctx, orderType, sum],
+  );
+
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       switch (e.key) {
@@ -197,14 +218,10 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
           }
           break;
         case 'Home':
-          if (orderType === OrderType.Edit && ctx) {
-            void ctx.addDocument.mutation(DocumentType.RELEASE_DOCUMENT);
-          }
+          addDocument(DocumentType.RELEASE_DOCUMENT);
           break;
         case 'PageUp':
-          if (orderType === OrderType.Edit && ctx) {
-            void ctx.addDocument.mutation(DocumentType.PROFORMA_DOCUMENT);
-          }
+          addDocument(DocumentType.PROFORMA_DOCUMENT);
           break;
         case 'Tab':
           e.preventDefault();
@@ -220,10 +237,10 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
     [
       ctx,
       order.items.length,
-      orderType,
       saveOrder,
       selectItem,
       selectRowQuantity,
+      addDocument,
     ],
   );
 
@@ -244,19 +261,11 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
 
       {orderType === OrderType.Edit && (
         <div className='justify-center flex items-center gap-2 mb-5'>
-          <button
-            onClick={() =>
-              ctx.addDocument.mutation(DocumentType.RELEASE_DOCUMENT)
-            }
-          >
+          <button onClick={() => addDocument(DocumentType.RELEASE_DOCUMENT)}>
             Utwórz dokument WZ (HOME)
           </button>
 
-          <button
-            onClick={() =>
-              ctx.addDocument.mutation(DocumentType.PROFORMA_DOCUMENT)
-            }
-          >
+          <button onClick={() => addDocument(DocumentType.PROFORMA_DOCUMENT)}>
             Utwórz fakturę proforma (PAGEUP)
           </button>
         </div>

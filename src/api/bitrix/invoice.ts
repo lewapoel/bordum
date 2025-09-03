@@ -11,8 +11,8 @@ import {
 } from '@/data/bitrix/const.ts';
 import { getCompany } from './company.ts';
 import { getContact } from './contact.ts';
-import { getOrder } from './order.ts';
 import { INVOICE_PAYMENT_TYPE_FIELD } from '@/data/bitrix/field.ts';
+import { getDealOrders } from '@/api/bitrix/deal.ts';
 
 export type DueInvoicesFilter = {
   companyId?: number;
@@ -41,7 +41,7 @@ export async function getDueInvoices(
         for (const item of data['items']) {
           const companyId = item['companyId'];
           const contactId = item['contactId'];
-          const orderId = item['parentId7'];
+          const dealId = item['parentId2'];
           const categoryId = +item['categoryId'];
 
           let company;
@@ -66,15 +66,15 @@ export async function getDueInvoices(
             continue;
           }
 
-          let order;
-          if (orderId) {
-            order = await getOrder(orderId);
+          let dealOrders;
+          if (dealId) {
+            dealOrders = await getDealOrders(dealId);
           }
 
           const invoice: InvoiceData = {
             id: item['id'],
             categoryId: categoryId,
-            order: order ? order : undefined,
+            dealOrders: dealOrders ? dealOrders : undefined,
             companyId: companyId && companyId !== 0 ? companyId : undefined,
             contactId: contactId && contactId !== 0 ? contactId : undefined,
             paymentLeft: item['opportunity'] ?? undefined,

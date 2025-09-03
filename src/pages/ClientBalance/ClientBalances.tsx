@@ -101,8 +101,8 @@ export default function ClientBalances() {
             const limitLeft = creditLimit - unpaidInvoices;
             const offerCount =
               clientInvoices?.reduce((acc, invoice) => {
-                if (invoice.order) {
-                  acc += 1;
+                if (invoice.dealOrders) {
+                  acc += invoice.dealOrders;
                 }
 
                 return acc;

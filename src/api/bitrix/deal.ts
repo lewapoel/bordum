@@ -70,6 +70,35 @@ export async function getDeal(placementId: number): Promise<DealData | null> {
   });
 }
 
+export async function getDealOrders(
+  placementId: number,
+): Promise<number | null> {
+  const bx24 = getBitrix24();
+
+  if (!bx24) {
+    return null;
+  }
+
+  return new Promise((resolve, reject) => {
+    const getOrdersCallback = (result: any) => {
+      if (result.error()) {
+        console.error(result.error());
+        alert('Nie udało się pobrać liczby ofert. Szczegóły w konsoli');
+        reject();
+      } else {
+        const data = result.data();
+        resolve(data?.length ?? 0);
+      }
+    };
+
+    bx24.callMethod(
+      'crm.quote.list',
+      { filter: { DEAL_ID: placementId } },
+      getOrdersCallback,
+    );
+  });
+}
+
 export async function getDealRaw(placementId: number): Promise<any | null> {
   const bx24 = getBitrix24();
 

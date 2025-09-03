@@ -32,7 +32,7 @@ export type OrderStore = {
     mutation: (documentType: DocumentType) => Promise<void>;
     pending: boolean;
   };
-  settlements: {
+  invoices: {
     client?: CreditCustomer | null;
     limitLeft: number;
     allowWarning: boolean;

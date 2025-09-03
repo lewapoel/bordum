@@ -3,25 +3,25 @@ import {
   getCompanyCode,
   getContactCode,
 } from '@/utils/bitrix24.ts';
-import { SETTLEMENT_PAYMENT_LEFT_FIELD } from '@/data/bitrix/field.ts';
-import { SettlementData, Settlements } from '@/models/bitrix/settlement.ts';
+import { InvoiceData, Invoices } from '@/models/bitrix/invoice.ts';
 import {
   ENTITY_TYPES,
-  SETTLEMENT_CATEGORIES,
-  SETTLEMENT_STAGES,
+  INVOICE_PAYMENT_TYPES,
+  INVOICE_STAGES,
 } from '@/data/bitrix/const.ts';
 import { getCompany } from './company.ts';
 import { getContact } from './contact.ts';
 import { getOrder } from './order.ts';
+import { INVOICE_PAYMENT_TYPE_FIELD } from '@/data/bitrix/field.ts';
 
-export type DueSettlementsFilter = {
+export type DueInvoicesFilter = {
   companyId?: number;
   contactId?: number;
 };
 
-export async function getDueSettlements(
-  filter?: DueSettlementsFilter,
-): Promise<Settlements | null> {
+export async function getDueInvoices(
+  filter?: DueInvoicesFilter,
+): Promise<Invoices | null> {
   const bx24 = getBitrix24();
 
   if (!bx24) {
@@ -29,14 +29,14 @@ export async function getDueSettlements(
   }
 
   return new Promise((resolve, reject) => {
-    const getSettlementsCallback = async (result: any) => {
+    const getInvoicesCallback = async (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert('Nie udało się pobrać listy rozliczeń. Szczegóły w konsoli');
+        alert('Nie udało się pobrać listy faktur. Szczegóły w konsoli');
         reject();
       } else {
         const data = result.data();
-        const settlements: Settlements = {};
+        const invoices: Invoices = {};
 
         for (const item of data['items']) {
           const companyId = item['companyId'];
@@ -71,33 +71,33 @@ export async function getDueSettlements(
             order = await getOrder(orderId);
           }
 
-          const settlement: SettlementData = {
+          const invoice: InvoiceData = {
             id: item['id'],
-            opportunity: item['opportunity'],
             categoryId: categoryId,
             order: order ? order : undefined,
             companyId: companyId && companyId !== 0 ? companyId : undefined,
             contactId: contactId && contactId !== 0 ? contactId : undefined,
-            paymentLeft: item[SETTLEMENT_PAYMENT_LEFT_FIELD] ?? undefined,
+            paymentLeft: item['opportunity'] ?? undefined,
           };
 
-          if (!settlements[code]) {
-            settlements[code] = [settlement];
+          if (!invoices[code]) {
+            invoices[code] = [invoice];
           } else {
-            settlements[code].push(settlement);
+            invoices[code].push(invoice);
           }
         }
 
-        resolve(settlements);
+        resolve(invoices);
       }
     };
 
     const bitrixFilter: any = {
-      categoryId: SETTLEMENT_CATEGORIES.BALANCE,
       '@stageId': [
-        SETTLEMENT_STAGES.BALANCE.DUE_PAYMENT,
-        SETTLEMENT_STAGES.BALANCE.NEW_LIMIT_PAYMENT,
+        INVOICE_STAGES.AWAITING_PAYMENT,
+        INVOICE_STAGES.OVERDUE,
+        INVOICE_STAGES.DEBT_COLLECTION,
       ],
+      [INVOICE_PAYMENT_TYPE_FIELD]: INVOICE_PAYMENT_TYPES.CREDIT_LIMIT,
     };
 
     if (filter?.companyId) {
@@ -112,16 +112,16 @@ export async function getDueSettlements(
     bx24.callMethod(
       'crm.item.list',
       {
-        entityTypeId: ENTITY_TYPES.SETTLEMENT,
+        entityTypeId: ENTITY_TYPES.INVOICE,
         filter: bitrixFilter,
       },
-      getSettlementsCallback,
+      getInvoicesCallback,
     );
   });
 }
 
-export async function getClientDueSettlements(filter: DueSettlementsFilter) {
-  const res = await getDueSettlements(filter);
+export async function getClientDueInvoices(filter: DueInvoicesFilter) {
+  const res = await getDueInvoices(filter);
 
   if (res) {
     const values = Object.values(res);

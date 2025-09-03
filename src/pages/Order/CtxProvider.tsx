@@ -28,10 +28,10 @@ import { CrmData } from '@/models/bitrix/crm.ts';
 import { getCurrentUser } from '@/api/bitrix/user.ts';
 import { DealData } from '@/models/bitrix/deal.ts';
 import { AuthContext } from '../../components/AuthContext.tsx';
-import { SettlementData } from '@/models/bitrix/settlement.ts';
+import { InvoiceData } from '@/models/bitrix/invoice.ts';
 import { useGetCreditCustomer } from '@/api/comarch-sql/customer.ts';
-import { getClientDueSettlements } from '@/api/bitrix/settlement.ts';
-import { useGetSettlementsSummary } from '@/utils/settlements.ts';
+import { getClientDueInvoices } from '@/api/bitrix/invoice.ts';
+import { useGetInvoicesSummary } from '@/utils/invoice.ts';
 import {
   DEAL_PAYMENT_TYPES,
   QUOTE_PAYMENT_TYPES,
@@ -63,30 +63,30 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
 
   const [pendingOrder, setPendingOrder] = useState<boolean>(false);
 
-  // Current client settlements
-  const [settlements, setSettlements] = useState<Array<SettlementData>>();
+  // Current client invoices
+  const [invoices, setInvoices] = useState<Array<InvoiceData>>();
   const [code, setCode] = useState<string>();
   const creditCustomer = useGetCreditCustomer(sqlToken, code);
   const client = creditCustomer.data;
-  const limitLeft = useGetSettlementsSummary(client, settlements)[2];
+  const limitLeft = useGetInvoicesSummary(client, invoices)[2];
 
   const setClientData = useCallback(async (crm: CrmData) => {
     const defaultPriceName = getCustomerDefaultPriceName(
       CustomerDefaultPrice.Default,
     );
 
-    let settlementsFetched = false;
+    let invoicesFetched = false;
 
     if (crm.companyId && +crm.companyId !== 0) {
       const res = await getCompany(crm.companyId);
 
       if (res) {
         setCode(getCompanyCode(res));
-        getClientDueSettlements({
+        getClientDueInvoices({
           companyId: res.id,
-        }).then((res) => setSettlements(res));
+        }).then((res) => setInvoices(res));
 
-        settlementsFetched = true;
+        invoicesFetched = true;
       }
 
       if (res && res.nip) {
@@ -99,11 +99,11 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
     if (crm.contactId && +crm.contactId !== 0) {
       const res = await getContact(crm.contactId);
 
-      if (res && !settlementsFetched) {
+      if (res && !invoicesFetched) {
         setCode(getContactCode(res));
-        getClientDueSettlements({
+        getClientDueInvoices({
           contactId: res.id,
-        }).then((res) => setSettlements(res));
+        }).then((res) => setInvoices(res));
       }
 
       if (res) {
@@ -281,7 +281,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
           mutation: addDocument,
           pending: addDocumentMutation.isPending,
         },
-        settlements: {
+        invoices: {
           client,
           limitLeft,
           allowWarning:
@@ -290,7 +290,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
         },
       }}
     >
-      {order && selectedPrice && !creditCustomer.isLoading && settlements ? (
+      {order && selectedPrice && !creditCustomer.isLoading && invoices ? (
         <>{children}</>
       ) : (
         <h1>Ładowanie danych oferty...</h1>

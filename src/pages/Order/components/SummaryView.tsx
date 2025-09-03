@@ -110,10 +110,10 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
     (ignoreLimit: boolean = false) => {
       if (ctx) {
         if (
-          ctx.settlements.allowWarning &&
+          ctx.invoices.allowWarning &&
           !ignoreLimit &&
-          ctx.settlements.client &&
-          ctx.settlements.limitLeft - sum < 0
+          ctx.invoices.client &&
+          ctx.invoices.limitLeft - sum < 0
         ) {
           setExceededCreditVisible(true);
           return;
@@ -165,9 +165,9 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
       if (orderType === OrderType.Edit && ctx) {
         if (
           documentType === DocumentType.RELEASE_DOCUMENT &&
-          ctx.settlements.allowWarning &&
-          ctx.settlements.client &&
-          ctx.settlements.limitLeft - sum < 0
+          ctx.invoices.allowWarning &&
+          ctx.invoices.client &&
+          ctx.invoices.limitLeft - sum < 0
         ) {
           alert(
             'Przekroczono dostępny limit handlowy, nie można utworzyć dokumentu WZ',
@@ -316,12 +316,10 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
         </DialogContent>
       </Dialog>
 
-      {ctx.settlements.client && (
+      {ctx.invoices.client && (
         <div className='text-[20px] flex items-center gap-4 mb-10 justify-center text-red-500'>
-          <p>{ctx.settlements.client?.name}</p>
-          <p>
-            Dostępny limit handlowy: {formatMoney(ctx.settlements.limitLeft)}
-          </p>
+          <p>{ctx.invoices.client?.name}</p>
+          <p>Dostępny limit handlowy: {formatMoney(ctx.invoices.limitLeft)}</p>
         </div>
       )}
 

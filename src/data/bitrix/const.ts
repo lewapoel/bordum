@@ -20,18 +20,22 @@ export const DEAL_PAYMENT_TYPES = {
   CREDIT_LIMIT: '3362',
 };
 
-// Stage field values for settlements
-export const SETTLEMENT_STAGES = {
-  BALANCE: {
-    NEW_LIMIT_PAYMENT: 'DT1086_38:NEW',
-    DUE_PAYMENT: 'DT1086_38:PREPARATION',
-  },
+// Payment type field values for invoices
+export const INVOICE_PAYMENT_TYPES = {
+  TRANSFER: '3404',
+  CASH: '3406',
+  CREDIT_LIMIT: '3408',
 };
 
-export const SETTLEMENT_CATEGORIES = {
-  BALANCE: 38,
+// Stage field values for invoices
+export const INVOICE_STAGES = {
+  AWAITING_PAYMENT: 'DT31_2:N',
+  OVERDUE: 'DT31_2:UC_MVUA7D',
+  DEBT_COLLECTION: 'DT31_2:UC_W9O8L3',
+  PAID: 'DT31_2:P',
+  PAYMENT_REJECTED: 'DT31_2:D',
 };
 
 export const ENTITY_TYPES = {
-  SETTLEMENT: 1086,
+  INVOICE: 31,
 };

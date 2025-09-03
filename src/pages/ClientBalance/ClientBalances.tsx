@@ -1,8 +1,8 @@
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { AuthContext } from '../../components/AuthContext.tsx';
 import { useGetCreditCustomers } from '@/api/comarch-sql/customer.ts';
-import { SettlementData, Settlements } from '@/models/bitrix/settlement.ts';
-import { getDueSettlements } from '@/api/bitrix/settlement.ts';
+import { InvoiceData, Invoices } from '@/models/bitrix/invoice.ts';
+import { getDueInvoices } from '@/api/bitrix/invoice.ts';
 import clsx from 'clsx';
 import { getBitrix24 } from '@/utils/bitrix24.ts';
 import { formatMoney } from '@/utils/format.ts';
@@ -13,7 +13,7 @@ export default function ClientBalances() {
   const query = useGetCreditCustomers(sqlToken);
   const clients = query.data;
 
-  const [settlements, setSettlements] = useState<Settlements>();
+  const [invoices, setinvoices] = useState<Invoices>();
 
   const clientsCodes = useMemo(() => {
     if (clients) {
@@ -24,13 +24,13 @@ export default function ClientBalances() {
   }, [clients]);
 
   const usedLimitSum = useMemo(() => {
-    if (settlements) {
-      return Object.entries(settlements).reduce((acc, [code, settlements]) => {
-        // Is the settlement connected with a client existing in Comarch?
+    if (invoices) {
+      return Object.entries(invoices).reduce((acc, [code, clientInvoices]) => {
+        // Is the invoice connected with a client existing in Comarch?
         if (clientsCodes.includes(code)) {
-          const sum = settlements.reduce((settlementsAcc, settlement) => {
-            settlementsAcc += settlement.paymentLeft ?? 0;
-            return settlementsAcc;
+          const sum = clientInvoices.reduce((invoicesAcc, invoice) => {
+            invoicesAcc += invoice.paymentLeft ?? 0;
+            return invoicesAcc;
           }, 0);
 
           acc += sum;
@@ -41,36 +41,32 @@ export default function ClientBalances() {
     }
 
     return 0;
-  }, [settlements, clientsCodes]);
+  }, [invoices, clientsCodes]);
 
   useEffect(() => {
-    getDueSettlements().then((res) => {
+    getDueInvoices().then((res) => {
       if (res) {
-        setSettlements(res);
+        setinvoices(res);
       }
     });
   }, []);
 
-  const navigateToClient = (clientSettlements: Array<SettlementData>) => {
-    if (clientSettlements) {
+  const navigateToClient = (clientInvoices: Array<InvoiceData>) => {
+    if (clientInvoices) {
       const bx24 = getBitrix24();
       if (!bx24) {
         return;
       }
 
-      if (clientSettlements[0].companyId) {
-        bx24.openPath(
-          `/crm/company/details/${clientSettlements[0].companyId}/`,
-        );
-      } else if (clientSettlements[0].contactId) {
-        bx24.openPath(
-          `/crm/contact/details/${clientSettlements[0].contactId}/`,
-        );
+      if (clientInvoices[0].companyId) {
+        bx24.openPath(`/crm/company/details/${clientInvoices[0].companyId}/`);
+      } else if (clientInvoices[0].contactId) {
+        bx24.openPath(`/crm/contact/details/${clientInvoices[0].contactId}/`);
       }
     }
   };
 
-  return clients && settlements ? (
+  return clients && invoices ? (
     <>
       <h1 className='mb-5'>Limity handlowe (brutto)</h1>
       <h2 className='mb-5'>
@@ -92,20 +88,20 @@ export default function ClientBalances() {
         </thead>
         <tbody>
           {clients.map((client) => {
-            const clientSettlements = settlements[client.code];
+            const clientInvoices = invoices[client.code];
             const creditLimit = client.creditLimit;
-            const unpaidSettlements =
-              clientSettlements?.reduce((acc, settlement) => {
-                if (settlement.paymentLeft) {
-                  acc += settlement.paymentLeft;
+            const unpaidInvoices =
+              clientInvoices?.reduce((acc, invoice) => {
+                if (invoice.paymentLeft) {
+                  acc += invoice.paymentLeft;
                 }
 
                 return acc;
               }, 0) ?? 0;
-            const limitLeft = creditLimit - unpaidSettlements;
+            const limitLeft = creditLimit - unpaidInvoices;
             const offerCount =
-              clientSettlements?.reduce((acc, settlement) => {
-                if (settlement.order) {
+              clientInvoices?.reduce((acc, invoice) => {
+                if (invoice.order) {
                   acc += 1;
                 }
 
@@ -116,15 +112,15 @@ export default function ClientBalances() {
               <tr key={client.id}>
                 <td
                   className={clsx(
-                    clientSettlements ? 'cursor-pointer underline' : '',
+                    clientInvoices ? 'cursor-pointer underline' : '',
                   )}
-                  onClick={() => navigateToClient(clientSettlements)}
+                  onClick={() => navigateToClient(clientInvoices)}
                 >
                   {client.name}
                 </td>
                 <td>{formatMoney(creditLimit)}</td>
                 <td className='text-red-500 font-bold'>
-                  {formatMoney(unpaidSettlements)}
+                  {formatMoney(unpaidInvoices)}
                 </td>
                 <td className='text-green-500 font-bold'>
                   {formatMoney(limitLeft)}
@@ -136,7 +132,7 @@ export default function ClientBalances() {
         </tbody>
       </table>
     </>
-  ) : query.isLoading || !settlements ? (
+  ) : query.isLoading || !invoices ? (
     <h1>Ładowanie listy klientów...</h1>
   ) : (
     <h1>Brak klientów</h1>

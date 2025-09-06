@@ -1,5 +1,5 @@
 import { API_URL } from './const.ts';
-import { Stock, Stocks, getStocks } from './stock.ts';
+import { Stock, getStocks } from './stock.ts';
 import { Warehouse } from './warehouse.ts';
 import { useQuery } from '@tanstack/react-query';
 
@@ -119,26 +119,6 @@ export function useGetItems(token: string) {
         }),
     enabled: !!token,
   });
-}
-
-export type WarehouseItem = Item & {
-  quantity: number;
-};
-
-export async function getWarehouseItems(
-  items: Array<Item>,
-  stocks: Stocks,
-): Promise<Array<WarehouseItem> | null> {
-  if (!items || !stocks) {
-    return null;
-  }
-
-  return items
-    .map((item: any) => ({
-      ...item,
-      quantity: stocks[item.id.toString()].quantity,
-    }))
-    .filter((item: any) => item.quantity > 0);
 }
 
 export type Quantities = { [warehouseId: number]: Stock };

@@ -1,5 +1,5 @@
-import { UploadedFile, BitrixFile } from '../../models/bitrix/disk.ts';
-import { fetchDiskApi } from '../../utils/bitrix24.ts';
+import { UploadedFile, BitrixFile } from '@/models/bitrix/disk.ts';
+import { fetchDiskApi } from '@/utils/bitrix24.ts';
 
 export async function folderUploadFile(
   folderId: number,

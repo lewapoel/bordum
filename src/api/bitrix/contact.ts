@@ -1,5 +1,5 @@
-import { getBitrix24 } from '../../utils/bitrix24.ts';
-import { Contact } from '../../models/bitrix/contact.ts';
+import { getBitrix24 } from '@/utils/bitrix24.ts';
+import { Contact } from '@/models/bitrix/contact.ts';
 
 export async function getContact(contactId: number): Promise<Contact | null> {
   const bx24 = getBitrix24();

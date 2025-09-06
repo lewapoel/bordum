@@ -1,7 +1,7 @@
 import SummaryView from './components/SummaryView.tsx';
 import { useContext } from 'react';
 import ItemsView from './components/ItemsView.tsx';
-import { OrderContext, OrderType, OrderView } from '../../models/order.ts';
+import { OrderContext, OrderType, OrderView } from '@/models/order.ts';
 import CtxProvider from './CtxProvider.tsx';
 
 function OrderCtx() {

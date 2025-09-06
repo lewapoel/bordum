@@ -1,4 +1,4 @@
-import { DEFAULT_PRICE } from '../../data/comarch/prices.ts';
+import { DEFAULT_PRICE } from '@/data/comarch/prices.ts';
 
 export enum CustomerDefaultPrice {
   Default = 0,

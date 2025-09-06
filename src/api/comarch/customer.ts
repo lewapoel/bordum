@@ -1,6 +1,6 @@
 import { API_URL } from './const.ts';
 import { useQuery } from '@tanstack/react-query';
-import { CustomerDefaultPrice } from '../../models/comarch/customer.ts';
+import { CustomerDefaultPrice } from '@/models/comarch/customer.ts';
 
 export type Customer = {
   id: number;

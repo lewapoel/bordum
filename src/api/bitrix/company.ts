@@ -1,6 +1,6 @@
-import { getBitrix24 } from '../../utils/bitrix24.ts';
-import { COMPANY_NIP_FIELD } from '../../data/bitrix/field.ts';
-import { Company } from '../../models/bitrix/company.ts';
+import { getBitrix24 } from '@/utils/bitrix24.ts';
+import { COMPANY_NIP_FIELD } from '@/data/bitrix/field.ts';
+import { Company } from '@/models/bitrix/company.ts';
 
 export async function getCompany(companyId: number): Promise<Company | null> {
   const bx24 = getBitrix24();

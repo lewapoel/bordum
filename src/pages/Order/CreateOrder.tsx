@@ -1,4 +1,4 @@
-import { OrderContext, OrderType, OrderView } from '../../models/order.ts';
+import { OrderContext, OrderType, OrderView } from '@/models/order.ts';
 import SummaryView from './components/SummaryView.tsx';
 import ItemsView from './components/ItemsView.tsx';
 import CtxProvider from './CtxProvider.tsx';

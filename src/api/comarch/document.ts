@@ -1,13 +1,12 @@
 import { API_URL } from './const.ts';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { OrderData } from '../../models/bitrix/order.ts';
+import { useMutation } from '@tanstack/react-query';
+import { OrderData } from '@/models/bitrix/order.ts';
 import { getCompany } from '../bitrix/company.ts';
 import { getContact } from '../bitrix/contact.ts';
 import { getOrderDocuments, updateOrderDocument } from '../bitrix/order.ts';
 import { getDeal, updateDealReturnData } from '../bitrix/deal.ts';
 import moment from 'moment/moment';
-import { getCompanyCode, getContactCode } from '../../utils/bitrix24.ts';
-import _ from 'lodash';
+import { getCompanyCode, getContactCode } from '@/utils/bitrix24.ts';
 
 export type AddDocument = {
   placementId: number;
@@ -214,134 +213,5 @@ export function useAddDocument(token: string) {
         alert('Wystąpił błąd przy dodawaniu dokumentu. Sprawdź konsolę');
       }
     },
-  });
-}
-
-export type UpdateDocumentAttributes = {
-  documentId: number;
-  attributes: Array<DocumentAttribute>;
-};
-
-export function useUpdateDocumentAttributes(token: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationKey: ['update-document-attributes'],
-    mutationFn: async ({
-      documentId,
-      attributes,
-    }: UpdateDocumentAttributes) => {
-      if (attributes.length === 0) {
-        throw new Error('NO_ATTRIBUTE_PROVIDED');
-      }
-
-      const response = await fetch(
-        `${API_URL}/DocumentsAttribute/${documentId}`,
-        {
-          method: 'PUT',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ attributes }),
-        },
-      );
-
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(error);
-      }
-    },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['documents'] });
-      alert('Zaktualizowano dokument pomyślnie');
-    },
-    onError: (error) => {
-      if (error.message === 'NO_ATTRIBUTE_PROVIDED') {
-        alert('Nie podano danych do zaktualizowania');
-      } else if (error.message.includes("Document doesn't exist")) {
-        alert('Dokument o podanym ID nie istnieje');
-      } else {
-        console.error(error.message);
-        alert('Wystąpił błąd przy dodawaniu dokumentu. Sprawdź konsolę');
-      }
-    },
-  });
-}
-
-export type DocumentAttribute = {
-  code: string;
-  value: string;
-};
-
-export type DocumentAttributes = { [key: string]: DocumentAttribute };
-
-export type ReleaseDocument = {
-  id: number;
-  fullNumber: string;
-  recipientVAT: string;
-  recipientName: string;
-  orderId: string;
-  grossAmount: number;
-  paidAmount: number;
-  remainingAmount: number;
-};
-
-export function useGetReleaseDocuments(token: string) {
-  return useQuery({
-    // eslint-disable-next-line
-    queryKey: ['documents', 'release'],
-    queryFn: () =>
-      fetch(`${API_URL}/Documents?type=306`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then(async (response): Promise<Array<ReleaseDocument>> => {
-          const data = await response.json();
-          let releaseDocuments: Array<ReleaseDocument> = data;
-
-          if (!Array.isArray(data)) {
-            releaseDocuments = [data];
-          }
-
-          return releaseDocuments.map((document: any): ReleaseDocument => {
-            const description = document['description'];
-            let orderId: string | undefined;
-
-            if (isNaN(+description)) {
-              const match = document['description'].match(/Oferta nr\s+(\d+)/i);
-              orderId = match?.[1];
-            } else if (+description !== 0) {
-              orderId = description;
-            }
-
-            const attributes = document['attributes'].reduce(
-              (acc: DocumentAttributes, item: DocumentAttribute) => {
-                acc[item.code] = _.pick(item, ['code', 'value']);
-                return acc;
-              },
-              {},
-            );
-
-            const partialResult = {
-              id: +document['id'],
-              orderId: orderId ?? '',
-              fullNumber: document['fullNumber'],
-              recipientName: `${document['recipient']['name1']} (${document['recipient']['name2']})`,
-              recipientVAT: document['recipient']['vatNumber'],
-              grossAmount: document['grossAmount'],
-            };
-
-            const paidAmount = +(attributes?.['ZAPLACONO']?.value ?? '0');
-            const remainingAmount = partialResult.grossAmount - paidAmount;
-
-            return { ...partialResult, paidAmount, remainingAmount };
-          });
-        })
-        .catch((error) => {
-          console.error(error);
-          alert('Nie udało się pobrać dokumentów WZ');
-          return null;
-        }),
-    enabled: !!token,
   });
 }

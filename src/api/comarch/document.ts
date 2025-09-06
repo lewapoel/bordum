@@ -126,7 +126,7 @@ export function useAddDocument(token: string) {
         body.foreignNumber = order.title;
         body.description = order.id;
       } else {
-        body.description = `Proszę uwzględnić numer oferty w tytule płatności: "Oferta nr ${order.id}"`;
+        body.description = `Towar wydany z oferty: ${order.id}`;
       }
 
       let response = await fetch(`${API_URL}/Documents`, {

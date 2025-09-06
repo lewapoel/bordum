@@ -12,6 +12,7 @@ import ClientBalances from './pages/ClientBalance/ClientBalances.tsx';
 import Return from './pages/Return.tsx';
 import './App.css';
 import ClientBalance from './pages/ClientBalance/ClientBalance.tsx';
+import { useLayoutEffect, useRef, useState } from 'react';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,14 +25,68 @@ const queryClient = new QueryClient({
 });
 
 function App() {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [zoom, setZoom] = useState(1);
+
+  useLayoutEffect(() => {
+    function updateZoom() {
+      if (!contentRef.current) {
+        return;
+      }
+
+      // Adjust for padding
+      const offsetWidth = contentRef.current.offsetWidth + 80;
+      if (offsetWidth === 0) {
+        return;
+      }
+
+      const newZoom = Math.min(1, window.innerWidth / offsetWidth);
+      setZoom(newZoom);
+    }
+
+    updateZoom();
+
+    // Track content resize
+    const ro = new ResizeObserver(updateZoom);
+    if (contentRef.current) {
+      ro.observe(contentRef.current);
+    }
+
+    // Track window resize
+    window.addEventListener('resize', updateZoom);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', updateZoom);
+    };
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <ToastContainer />
       <ReactQueryDevtools initialIsOpen={false} />
       <AuthProvider>
         <Router>
-          <div className='app'>
-            <header className='app-header'>
+          <div className='app p-4'>
+            <div className='flex items-center gap-2 text-2xl'>
+              <label htmlFor='zoom'>Zoom:</label>
+              <input
+                id='zoom'
+                type='range'
+                min='0.1'
+                max='1'
+                step='0.1'
+                value={zoom}
+                onChange={(e) => setZoom(parseFloat(e.target.value))}
+              />
+              <span>{(zoom * 100).toFixed(0)}%</span>
+            </div>
+
+            <header
+              ref={contentRef}
+              style={{ scale: zoom }}
+              className='app-header w-max origin-top-left mx-auto'
+            >
               <Routes>
                 <Route path='/split-order' element={<SplitOrder />} />
                 <Route path='/order' element={<Order />} />

@@ -209,19 +209,25 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
         case 'Enter':
           selectItem();
           break;
-        case 'Insert':
-          saveOrder();
+        case '1':
+          if (e.altKey) {
+            saveOrder();
+          }
           break;
         case 'Delete':
           if (ctx) {
             ctx.removeItem();
           }
           break;
-        case 'Home':
-          addDocument(DocumentType.RELEASE_DOCUMENT);
+        case '2':
+          if (e.altKey) {
+            addDocument(DocumentType.RELEASE_DOCUMENT);
+          }
           break;
-        case 'PageUp':
-          addDocument(DocumentType.PROFORMA_DOCUMENT);
+        case '3':
+          if (e.altKey) {
+            addDocument(DocumentType.PROFORMA_DOCUMENT);
+          }
           break;
         case 'Tab':
           e.preventDefault();
@@ -262,18 +268,18 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
       {orderType === OrderType.Edit && (
         <div className='justify-center flex items-center gap-2 mb-5'>
           <button onClick={() => addDocument(DocumentType.RELEASE_DOCUMENT)}>
-            Utwórz dokument WZ (HOME)
+            Utwórz dokument WZ (Alt+2)
           </button>
 
           <button onClick={() => addDocument(DocumentType.PROFORMA_DOCUMENT)}>
-            Utwórz fakturę proforma (PAGEUP)
+            Utwórz fakturę proforma (Alt+3)
           </button>
         </div>
       )}
 
       <div className='justify-center flex items-center gap-2 mb-10'>
         <button className='confirm' onClick={() => saveOrder()}>
-          Zapisz (INSERT)
+          Zapisz (Alt+1)
         </button>
         <button className='delete' onClick={ctx.removeItem}>
           Usuń zaznaczoną pozycję (DELETE)

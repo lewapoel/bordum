@@ -181,8 +181,10 @@ export default function Return() {
             return prev;
           });
           break;
-        case 'Insert':
-          void saveData();
+        case '1':
+          if (e.altKey) {
+            void saveData();
+          }
           break;
         case 'Delete':
           removeItem();
@@ -324,7 +326,7 @@ export default function Return() {
 
           <div className='justify-center flex items-center gap-2 mb-10'>
             <button className='confirm' onClick={() => saveData()}>
-              Zapisz (INSERT)
+              Zapisz (Alt+1)
             </button>
             <button className='delete' onClick={() => removeItem()}>
               Usuń zaznaczoną pozycję (DELETE)

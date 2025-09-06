@@ -313,14 +313,20 @@ export default function Verification() {
             return prev;
           });
           break;
-        case 'Insert':
-          saveData();
+        case '1':
+          if (e.altKey) {
+            saveData();
+          }
           break;
-        case 'Home':
-          void generatePdfs();
+        case '2':
+          if (e.altKey) {
+            void generatePdfs();
+          }
           break;
-        case 'End':
-          generateOrder();
+        case '3':
+          if (e.altKey) {
+            generateOrder();
+          }
           break;
         case 'Tab':
           e.preventDefault();
@@ -424,17 +430,17 @@ export default function Verification() {
 
           <div className='justify-center flex items-center gap-2 mb-5'>
             <button onClick={() => generatePdfs()}>
-              Wygeneruj braki (HOME)
+              Wygeneruj braki (Alt+2)
             </button>
 
             <button onClick={() => generateOrder()}>
-              Wydziel braki do oferty (END)
+              Wydziel braki do oferty (Alt+3)
             </button>
           </div>
 
           <div className='justify-center flex items-center gap-2 mb-10'>
             <button className='confirm' onClick={() => saveData()}>
-              Zapisz (INSERT)
+              Zapisz (Alt+1)
             </button>
           </div>
 

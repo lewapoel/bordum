@@ -46,6 +46,7 @@ export async function getDueInvoices(
 
           let company;
           let contact;
+          let clientName;
 
           if (companyId) {
             company = await getCompany(companyId);
@@ -60,8 +61,10 @@ export async function getDueInvoices(
           let code;
           if (company) {
             code = getCompanyCode(company);
+            clientName = company.title;
           } else if (contact) {
             code = getContactCode(contact);
+            clientName = `${contact.name} ${contact.lastName}`;
           } else {
             continue;
           }
@@ -75,6 +78,7 @@ export async function getDueInvoices(
             id: item['id'],
             categoryId: categoryId,
             dealOrders: dealOrders ? dealOrders : undefined,
+            clientName: clientName,
             companyId: companyId && companyId !== 0 ? companyId : undefined,
             contactId: contactId && contactId !== 0 ? contactId : undefined,
             paymentLeft: item['opportunity'] ?? undefined,

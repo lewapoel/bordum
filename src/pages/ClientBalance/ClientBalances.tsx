@@ -13,7 +13,7 @@ export default function ClientBalances() {
   const query = useGetCreditCustomers(sqlToken);
   const clients = query.data;
 
-  const [invoices, setinvoices] = useState<Invoices>();
+  const [invoices, setInvoices] = useState<Invoices>();
 
   const clientsCodes = useMemo(() => {
     if (clients) {
@@ -46,7 +46,7 @@ export default function ClientBalances() {
   useEffect(() => {
     getDueInvoices().then((res) => {
       if (res) {
-        setinvoices(res);
+        setInvoices(res);
       }
     });
   }, []);
@@ -89,6 +89,12 @@ export default function ClientBalances() {
         <tbody>
           {clients.map((client) => {
             const clientInvoices = invoices[client.code];
+
+            // Use client name from Bitrix24 if available, otherwise use Comarch
+            const clientName = clientInvoices
+              ? clientInvoices[0].clientName
+              : client.name;
+
             const creditLimit = client.creditLimit;
             const unpaidInvoices =
               clientInvoices?.reduce((acc, invoice) => {
@@ -116,7 +122,7 @@ export default function ClientBalances() {
                   )}
                   onClick={() => navigateToClient(clientInvoices)}
                 >
-                  {client.name}
+                  {clientName}
                 </td>
                 <td>{formatMoney(creditLimit)}</td>
                 <td className='text-red-500 font-bold'>

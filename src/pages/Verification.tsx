@@ -433,15 +433,18 @@ export default function Verification() {
 
     getOrder(placementId).then((res) => {
       if (res) {
-        setOrder(res);
-
-        if (res.items.length === 0) {
+        if (res.items.length === 0 || !res.verificationData) {
           setStatus(Status.EMPTY);
         } else if (
           res.items.some((item) => item.itemId === '' || item.groupId === '')
         ) {
           setStatus(Status.INVALID);
         } else {
+          res.items = res.items.filter((item) =>
+            Object.keys(res.verificationData!).includes(item.id!.toString()),
+          );
+          setOrder(res);
+
           rowsRef.current = res.items.reduce((acc: RowsElements, item) => {
             acc[item.id!.toString()] = {
               copyStock: null,
@@ -453,9 +456,7 @@ export default function Verification() {
             return acc;
           }, {});
 
-          if (res.verificationData) {
-            setVerificationData(res.verificationData);
-          }
+          setVerificationData(res.verificationData);
         }
       }
     });
@@ -522,109 +523,103 @@ export default function Verification() {
               {order.items.map((item) => {
                 const verification = verificationData[item.id!.toString()];
 
-                const qualityGoods = +verification?.qualityGoods || 0;
-                const actualStock = +verification?.actualStock || 0;
+                const qualityGoods = +verification.qualityGoods || 0;
+                const actualStock = +verification.actualStock || 0;
 
                 const orderQuantity = Math.max(0, item.quantity - qualityGoods);
 
                 return (
-                  verification && (
-                    <tr
-                      onClick={() => setSelectedItem(item.id!.toString())}
-                      className={
-                        selectedItem === item.id!.toString()
-                          ? 'bg-gray-300'
-                          : ''
-                      }
-                      key={item.id}
-                    >
-                      <td>{item.productName}</td>
-                      <td>{getFullCategoryName(item.groupId)}</td>
-                      <td>{item.quantity}</td>
-                      <td>{item.unit}</td>
-                      <td>{stocks[+item.itemId].quantity}</td>
-                      <td>
-                        <div className='flex gap-2 justify-between items-center'>
-                          <input
-                            type='number'
-                            className='w-[100px]'
-                            min={0}
-                            ref={(el) => {
-                              if (rowsRef.current) {
-                                rowsRef.current[
-                                  item.id!.toString()
-                                ].actualStock = el;
-                              }
-                            }}
-                            value={verification.actualStock}
-                            onChange={(e) =>
-                              updateActualStock(item.id!, e.target.value)
-                            }
-                          />
-                          <button
-                            ref={(el) => {
-                              if (rowsRef.current) {
-                                rowsRef.current[item.id!.toString()].copyStock =
-                                  el;
-                              }
-                            }}
-                            className='small'
-                            onClick={() =>
-                              updateActualStock(
-                                item.id!,
-                                stocks[+item.itemId].quantity,
-                              )
-                            }
-                          >
-                            OK
-                          </button>
-                        </div>
-                      </td>
-                      <td>
+                  <tr
+                    onClick={() => setSelectedItem(item.id!.toString())}
+                    className={
+                      selectedItem === item.id!.toString() ? 'bg-gray-300' : ''
+                    }
+                    key={item.id}
+                  >
+                    <td>{item.productName}</td>
+                    <td>{getFullCategoryName(item.groupId)}</td>
+                    <td>{item.quantity}</td>
+                    <td>{item.unit}</td>
+                    <td>{stocks[+item.itemId].quantity}</td>
+                    <td>
+                      <div className='flex gap-2 justify-between items-center'>
                         <input
                           type='number'
                           className='w-[100px]'
                           min={0}
                           ref={(el) => {
                             if (rowsRef.current) {
-                              rowsRef.current[
-                                item.id!.toString()
-                              ].qualityGoods = el;
+                              rowsRef.current[item.id!.toString()].actualStock =
+                                el;
                             }
                           }}
-                          value={verification.qualityGoods}
+                          value={verification.actualStock}
                           onChange={(e) =>
-                            updateQualityGoods(
-                              item.id!,
-                              actualStock,
-                              e.target.value,
-                            )
+                            updateActualStock(item.id!, e.target.value)
                           }
                         />
-                      </td>
-                      <td>{orderQuantity}</td>
-                      <td>
-                        <textarea
+                        <button
                           ref={(el) => {
                             if (rowsRef.current) {
-                              rowsRef.current[item.id!].comment = el;
+                              rowsRef.current[item.id!.toString()].copyStock =
+                                el;
                             }
                           }}
-                          placeholder='Komentarz'
-                          value={verification.comment}
-                          onChange={(e) => {
-                            setVerificationData((prev) =>
-                              update(prev, {
-                                [item.id!]: {
-                                  comment: { $set: e.target.value },
-                                },
-                              }),
-                            );
-                          }}
-                        />
-                      </td>
-                    </tr>
-                  )
+                          className='small'
+                          onClick={() =>
+                            updateActualStock(
+                              item.id!,
+                              stocks[+item.itemId].quantity,
+                            )
+                          }
+                        >
+                          OK
+                        </button>
+                      </div>
+                    </td>
+                    <td>
+                      <input
+                        type='number'
+                        className='w-[100px]'
+                        min={0}
+                        ref={(el) => {
+                          if (rowsRef.current) {
+                            rowsRef.current[item.id!.toString()].qualityGoods =
+                              el;
+                          }
+                        }}
+                        value={verification.qualityGoods}
+                        onChange={(e) =>
+                          updateQualityGoods(
+                            item.id!,
+                            actualStock,
+                            e.target.value,
+                          )
+                        }
+                      />
+                    </td>
+                    <td>{orderQuantity}</td>
+                    <td>
+                      <textarea
+                        ref={(el) => {
+                          if (rowsRef.current) {
+                            rowsRef.current[item.id!].comment = el;
+                          }
+                        }}
+                        placeholder='Komentarz'
+                        value={verification.comment}
+                        onChange={(e) => {
+                          setVerificationData((prev) =>
+                            update(prev, {
+                              [item.id!]: {
+                                comment: { $set: e.target.value },
+                              },
+                            }),
+                          );
+                        }}
+                      />
+                    </td>
+                  </tr>
                 );
               })}
             </tbody>

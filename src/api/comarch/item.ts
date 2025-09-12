@@ -136,7 +136,7 @@ export function useGetItemsWarehouses(
 ) {
   return useQuery({
     // eslint-disable-next-line
-    queryKey: ['itemsWarehouses', items?.length, warehouses?.length],
+    queryKey: ['items-warehouses', items?.length, warehouses?.length],
     queryFn: async () => {
       if (!items || !warehouses) {
         return null;

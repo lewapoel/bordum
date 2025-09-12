@@ -284,6 +284,60 @@ export default function Verification() {
     [itemsGroups],
   );
 
+  const updateQualityGoods = useCallback(
+    (itemId: number, actualStock: number, newValue?: string | number) => {
+      if (stocks) {
+        const isInvalidValue =
+          newValue !== undefined && (isNaN(+newValue) || newValue === '');
+
+        setVerificationData((prev) =>
+          update(prev, {
+            [itemId]: {
+              qualityGoods: {
+                $set: isInvalidValue
+                  ? newValue
+                  : Math.min(
+                      actualStock,
+                      Math.max(
+                        0,
+                        Number(newValue) ||
+                          Number(prev?.[itemId]?.qualityGoods) ||
+                          0,
+                      ),
+                    ),
+              },
+            },
+          }),
+        );
+      }
+    },
+    [stocks],
+  );
+
+  const updateActualStock = useCallback(
+    (itemId: number, newValue: string | number) => {
+      if (stocks) {
+        const isInvalidValue = isNaN(+newValue) || newValue === '';
+        const newActualStock = isInvalidValue
+          ? newValue
+          : Math.max(0, +newValue);
+
+        setVerificationData((prev) =>
+          update(prev, {
+            [itemId]: {
+              actualStock: {
+                $set: newActualStock,
+              },
+            },
+          }),
+        );
+
+        updateQualityGoods(itemId, +newActualStock || 0);
+      }
+    },
+    [stocks, updateQualityGoods],
+  );
+
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       switch (e.key) {
@@ -498,21 +552,9 @@ export default function Verification() {
                             }
                           }}
                           value={verification.actualStock}
-                          onChange={(e) => {
-                            setVerificationData((prev) =>
-                              update(prev, {
-                                [item.id!]: {
-                                  actualStock: {
-                                    $set:
-                                      isNaN(+e.target.value) ||
-                                      e.target.value === ''
-                                        ? e.target.value
-                                        : Math.max(0, +e.target.value),
-                                  },
-                                },
-                              }),
-                            );
-                          }}
+                          onChange={(e) =>
+                            updateActualStock(item.id!, e.target.value)
+                          }
                         />
                         <button
                           ref={(el) => {
@@ -522,20 +564,12 @@ export default function Verification() {
                             }
                           }}
                           className='small'
-                          onClick={() => {
-                            setVerificationData((prev) =>
-                              update(prev, {
-                                [item.id!]: {
-                                  actualStock: {
-                                    $set: Math.max(
-                                      0,
-                                      +stocks[+item.itemId].quantity,
-                                    ),
-                                  },
-                                },
-                              }),
-                            );
-                          }}
+                          onClick={() =>
+                            updateActualStock(
+                              item.id!,
+                              stocks[+item.itemId].quantity,
+                            )
+                          }
                         >
                           OK
                         </button>
@@ -553,24 +587,13 @@ export default function Verification() {
                           }
                         }}
                         value={verification.qualityGoods}
-                        onChange={(e) => {
-                          setVerificationData((prev) =>
-                            update(prev, {
-                              [item.id!]: {
-                                qualityGoods: {
-                                  $set:
-                                    isNaN(+e.target.value) ||
-                                    e.target.value === ''
-                                      ? e.target.value
-                                      : Math.min(
-                                          actualStock,
-                                          Math.max(0, +e.target.value),
-                                        ),
-                                },
-                              },
-                            }),
-                          );
-                        }}
+                        onChange={(e) =>
+                          updateQualityGoods(
+                            item.id!,
+                            actualStock,
+                            e.target.value,
+                          )
+                        }
                       />
                     </td>
                     <td>{orderQuantity}</td>

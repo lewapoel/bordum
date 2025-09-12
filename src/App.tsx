@@ -75,7 +75,7 @@ function App() {
                 type='range'
                 min='0.1'
                 max='1'
-                step='0.1'
+                step='0.01'
                 value={zoom}
                 onChange={(e) => setZoom(parseFloat(e.target.value))}
               />

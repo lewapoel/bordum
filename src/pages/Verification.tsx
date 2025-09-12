@@ -13,7 +13,6 @@ import {
   OrderItem,
   VerificationData,
 } from '../models/bitrix/order.ts';
-import { VERIFICATION_PDF_GROUPS } from '../data/comarch/groups.ts';
 import { useGetStocks } from '../api/comarch/stock.ts';
 import { Document, Font, Page, pdf } from '@react-pdf/renderer';
 import Html from 'react-pdf-html';
@@ -191,7 +190,7 @@ export default function Verification() {
     };
 
     const itemsByGroups = order.items.reduce((acc: GroupsItems, item) => {
-      if (itemsGroups && VERIFICATION_PDF_GROUPS.includes(item.groupId)) {
+      if (itemsGroups) {
         if (!acc[item.groupId]) {
           acc[item.groupId] = {
             groupName: itemsGroups[item.groupId].name,
@@ -609,7 +608,9 @@ export default function Verification() {
                         onChange={(e) => {
                           setVerificationData((prev) =>
                             update(prev, {
-                              [item.id!]: { comment: { $set: e.target.value } },
+                              [item.id!]: {
+                                comment: { $set: e.target.value },
+                              },
                             }),
                           );
                         }}

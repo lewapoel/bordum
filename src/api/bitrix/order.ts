@@ -32,6 +32,7 @@ import sanitize from 'sanitize-filename';
 import { FieldsMeta } from '@/models/bitrix/field.ts';
 import { getDealFields, getDealRaw } from './deal.ts';
 import { BitrixFile } from '@/models/bitrix/disk.ts';
+import { VERIFICATION_GROUPS } from '@/data/comarch/groups.ts';
 
 export async function getOrderFields(): Promise<FieldsMeta | null> {
   const bx24 = getBitrix24();
@@ -115,7 +116,7 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
 
         orderData.verificationData = orderData.items.reduce(
           (acc: VerificationData, item) => {
-            if (item.id) {
+            if (item.id && VERIFICATION_GROUPS.includes(item.groupId)) {
               if (orderData.verificationData?.[item.id]) {
                 acc[item.id] = orderData.verificationData[item.id];
               } else {

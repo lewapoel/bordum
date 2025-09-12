@@ -46,43 +46,45 @@ enum Status {
   SAVING,
 }
 
+const SECRET_URL_PARAM = import.meta.env.SECRET_URL_PARAM;
+
 Font.register({
   family: 'NotoSans',
   fonts: [
     {
-      src: '/fonts/NotoSans-Thin.ttf',
+      src: `/fonts/NotoSans-Thin.ttf?${SECRET_URL_PARAM}`,
       fontWeight: 100,
     },
     {
-      src: '/fonts/NotoSans-ExtraLight.ttf',
+      src: `/fonts/NotoSans-ExtraLight.ttf?${SECRET_URL_PARAM}`,
       fontWeight: 200,
     },
     {
-      src: '/fonts/NotoSans-Light.ttf',
+      src: `/fonts/NotoSans-Light.ttf?${SECRET_URL_PARAM}`,
       fontWeight: 300,
     },
     {
-      src: '/fonts/NotoSans-Regular.ttf',
+      src: `/fonts/NotoSans-Regular.ttf?${SECRET_URL_PARAM}`,
       fontWeight: 400,
     },
     {
-      src: '/fonts/NotoSans-Medium.ttf',
+      src: `/fonts/NotoSans-Medium.ttf?${SECRET_URL_PARAM}`,
       fontWeight: 500,
     },
     {
-      src: '/fonts/NotoSans-SemiBold.ttf',
+      src: `/fonts/NotoSans-SemiBold.ttf?${SECRET_URL_PARAM}`,
       fontWeight: 600,
     },
     {
-      src: '/fonts/NotoSans-Bold.ttf',
+      src: `/fonts/NotoSans-Bold.ttf?${SECRET_URL_PARAM}`,
       fontWeight: 700,
     },
     {
-      src: '/fonts/NotoSans-ExtraBold.ttf',
+      src: `/fonts/NotoSans-ExtraBold.ttf?${SECRET_URL_PARAM}`,
       fontWeight: 800,
     },
     {
-      src: '/fonts/NotoSans-Black.ttf',
+      src: `/fonts/NotoSans-Black.ttf?${SECRET_URL_PARAM}`,
       fontWeight: 900,
     },
   ],

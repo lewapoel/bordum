@@ -297,7 +297,7 @@ export default function Packaging() {
 
                 return (
                   <tr
-                    onMouseEnter={() => setSelectedItem(itemId)}
+                    onClick={() => setSelectedItem(itemId)}
                     className={bgClassName}
                     key={item.id}
                   >

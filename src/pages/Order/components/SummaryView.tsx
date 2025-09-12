@@ -25,17 +25,15 @@ import { Button } from '@/components/ui/button.tsx';
 interface SummaryRowProps {
   index: number;
   selectedItem: number;
-  setSelectedItem: (index: number) => void;
   item?: OrderItem;
   editItemQuantity: (index: number, quantity: number) => number | null;
   className?: string;
-  selectItem: () => void;
+  selectItem: (index: number) => void;
   quantitiesRef: RefObject<Array<HTMLInputElement | null>>;
 }
 
 function SummaryRow({
   index,
-  setSelectedItem,
   selectItem,
   selectedItem,
   item,
@@ -53,8 +51,9 @@ function SummaryRow({
 
   return (
     <tr
-      onMouseEnter={() => setSelectedItem(index)}
-      onClick={() => selectItem()}
+      onClick={() => {
+        selectItem(index);
+      }}
       className={clsx(
         selectedItem === index ? 'bg-gray-300' : '',
         'cursor-pointer',
@@ -136,12 +135,19 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
     [ctx, orderType, sum],
   );
 
-  const selectItem = useCallback(() => {
-    // Allow selecting only last additional row for creating new entries
-    if (ctx && ctx.selectedItem === order.items.length) {
-      ctx.setCurrentView(OrderView.Items);
-    }
-  }, [ctx, order.items.length]);
+  const selectItem = useCallback(
+    (index: number) => {
+      if (ctx) {
+        ctx.setSelectedItem(index);
+
+        // Allow selecting only last additional row for creating new entries
+        if (index === order.items.length) {
+          ctx.setCurrentView(OrderView.Items);
+        }
+      }
+    },
+    [ctx, order.items.length],
+  );
 
   const selectRowQuantity = useCallback(
     (index: number) => {
@@ -207,7 +213,9 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
           }
           break;
         case 'Enter':
-          selectItem();
+          if (ctx) {
+            selectItem(ctx.selectedItem);
+          }
           break;
         case '1':
           if (e.altKey) {
@@ -347,7 +355,6 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
               quantitiesRef={quantitiesRef}
               selectItem={selectItem}
               key={idx}
-              setSelectedItem={ctx.setSelectedItem}
               editItemQuantity={ctx.editItemQuantity}
               selectedItem={ctx.selectedItem}
               index={idx}
@@ -358,7 +365,6 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
             quantitiesRef={quantitiesRef}
             selectItem={selectItem}
             editItemQuantity={ctx.editItemQuantity}
-            setSelectedItem={ctx.setSelectedItem}
             selectedItem={ctx.selectedItem}
             index={order.items.length}
           />

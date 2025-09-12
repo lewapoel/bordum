@@ -355,7 +355,7 @@ export default function Return() {
             <tbody>
               {Object.entries(returnData).map(([itemId, returnData]) => (
                 <tr
-                  onMouseEnter={() => setSelectedItem(itemId)}
+                  onClick={() => setSelectedItem(itemId)}
                   className={selectedItem === itemId ? 'bg-gray-300' : ''}
                   key={itemId}
                 >

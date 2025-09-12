@@ -338,7 +338,7 @@ export default function ItemsView() {
               <tr
                 key={item.id}
                 className={clsx(selectedItem === idx ? 'bg-gray-300' : '')}
-                onMouseEnter={() => setSelectedItem(idx)}
+                onClick={() => setSelectedItem(idx)}
               >
                 <td>
                   <Highlight text={item.name} ranges={highlightRanges} />

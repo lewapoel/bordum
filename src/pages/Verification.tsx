@@ -529,7 +529,7 @@ export default function Verification() {
 
                 return (
                   <tr
-                    onMouseEnter={() => setSelectedItem(item.id!.toString())}
+                    onClick={() => setSelectedItem(item.id!.toString())}
                     className={
                       selectedItem === item.id!.toString() ? 'bg-gray-300' : ''
                     }

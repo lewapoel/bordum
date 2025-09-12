@@ -7,6 +7,7 @@ import { OrderData, PackagingData } from '../models/bitrix/order.ts';
 import { DocumentType, useAddDocument } from '../api/comarch/document.ts';
 import { User } from '../models/bitrix/user.ts';
 import { AuthContext } from '../components/AuthContext.tsx';
+import clsx from 'clsx';
 
 type RowElements = {
   quality: HTMLSelectElement | null;
@@ -282,131 +283,142 @@ export default function Packaging() {
               </tr>
             </thead>
             <tbody>
-              {order.items.map((item) => (
-                <tr
-                  onMouseEnter={() => setSelectedItem(item.id!.toString())}
-                  className={
-                    selectedItem === item.id!.toString() ? 'bg-gray-300' : ''
-                  }
-                  key={item.id}
-                >
-                  <td>{item.productName}</td>
-                  <td>{item.quantity}</td>
-                  <td>{item.unit}</td>
-                  <td>
-                    <select
-                      ref={(el) => {
-                        if (rowsRef.current) {
-                          rowsRef.current[item.id!.toString()].quality = el;
-                        }
-                      }}
-                      value={packagingData[item.id!.toString()].quality}
-                      onChange={(e) => {
-                        setPackagingData((prev) =>
-                          update(prev, {
-                            [item.id!]: {
-                              quality: { $set: +e.target.value },
-                            },
-                          }),
-                        );
-                      }}
-                    >
-                      {qualities.map((quality, idx) => (
-                        <option value={quality} key={idx}>
-                          {quality}
+              {order.items.map((item) => {
+                const itemId = item.id!.toString();
+                const selected = selectedItem === itemId;
+                const reservationCreated =
+                  packagingData[itemId].reservationCreated;
+
+                const bgClassName = clsx({
+                  'bg-green-600': selected && reservationCreated,
+                  'bg-green-300': reservationCreated && !selected,
+                  'bg-gray-300': selected && !reservationCreated,
+                });
+
+                return (
+                  <tr
+                    onMouseEnter={() => setSelectedItem(itemId)}
+                    className={bgClassName}
+                    key={item.id}
+                  >
+                    <td>{item.productName}</td>
+                    <td>{item.quantity}</td>
+                    <td>{item.unit}</td>
+                    <td>
+                      <select
+                        ref={(el) => {
+                          if (rowsRef.current) {
+                            rowsRef.current[itemId].quality = el;
+                          }
+                        }}
+                        value={packagingData[itemId].quality}
+                        onChange={(e) => {
+                          setPackagingData((prev) =>
+                            update(prev, {
+                              [item.id!]: {
+                                quality: { $set: +e.target.value },
+                              },
+                            }),
+                          );
+                        }}
+                      >
+                        {qualities.map((quality, idx) => (
+                          <option value={quality} key={idx}>
+                            {quality}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td>
+                      <select
+                        ref={(el) => {
+                          if (rowsRef.current) {
+                            rowsRef.current[item.id!].packer = el;
+                          }
+                        }}
+                        value={packagingData[item.id!].packerId}
+                        onChange={(e) => {
+                          setPackagingData((prev) =>
+                            update(prev, {
+                              [item.id!]: {
+                                packerId: { $set: +e.target.value },
+                              },
+                            }),
+                          );
+                        }}
+                      >
+                        <option value='0' disabled>
+                          Wybierz z listy...
                         </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td>
-                    <select
-                      ref={(el) => {
-                        if (rowsRef.current) {
-                          rowsRef.current[item.id!].packer = el;
+                        {users.map((user) => (
+                          <option value={user.id} key={user.id}>
+                            {user.firstName} {user.lastName}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td>
+                      <input
+                        ref={(el) => {
+                          if (rowsRef.current) {
+                            rowsRef.current[item.id!].date = el;
+                          }
+                        }}
+                        type='date'
+                        value={packagingData[item.id!].date}
+                        onChange={(e) => {
+                          setPackagingData((prev) =>
+                            update(prev, {
+                              [item.id!]: { date: { $set: e.target.value } },
+                            }),
+                          );
+                        }}
+                      />
+                    </td>
+                    <td>
+                      <textarea
+                        ref={(el) => {
+                          if (rowsRef.current) {
+                            rowsRef.current[item.id!].comment = el;
+                          }
+                        }}
+                        placeholder='Komentarz'
+                        className='disabled:cursor-not-allowed'
+                        disabled={packagingData[item.id!].quality >= 8}
+                        value={
+                          packagingData[item.id!].quality >= 8
+                            ? 'n/d'
+                            : packagingData[item.id!].comment
                         }
-                      }}
-                      value={packagingData[item.id!].packerId}
-                      onChange={(e) => {
-                        setPackagingData((prev) =>
-                          update(prev, {
-                            [item.id!]: {
-                              packerId: { $set: +e.target.value },
-                            },
-                          }),
-                        );
-                      }}
-                    >
-                      <option value='0' disabled>
-                        Wybierz z listy...
-                      </option>
-                      {users.map((user) => (
-                        <option value={user.id} key={user.id}>
-                          {user.firstName} {user.lastName}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td>
-                    <input
-                      ref={(el) => {
-                        if (rowsRef.current) {
-                          rowsRef.current[item.id!].date = el;
+                        onChange={(e) => {
+                          setPackagingData((prev) =>
+                            update(prev, {
+                              [item.id!]: { comment: { $set: e.target.value } },
+                            }),
+                          );
+                        }}
+                      />
+                    </td>
+                    <td>
+                      <button
+                        className={
+                          saving && itemId === lastSaved
+                            ? 'disabled'
+                            : 'confirm'
                         }
-                      }}
-                      type='date'
-                      value={packagingData[item.id!].date}
-                      onChange={(e) => {
-                        setPackagingData((prev) =>
-                          update(prev, {
-                            [item.id!]: { date: { $set: e.target.value } },
-                          }),
-                        );
-                      }}
-                    />
-                  </td>
-                  <td>
-                    <textarea
-                      ref={(el) => {
-                        if (rowsRef.current) {
-                          rowsRef.current[item.id!].comment = el;
-                        }
-                      }}
-                      placeholder='Komentarz'
-                      className='disabled:cursor-not-allowed'
-                      disabled={packagingData[item.id!].quality >= 8}
-                      value={
-                        packagingData[item.id!].quality >= 8
-                          ? 'n/d'
-                          : packagingData[item.id!].comment
-                      }
-                      onChange={(e) => {
-                        setPackagingData((prev) =>
-                          update(prev, {
-                            [item.id!]: { comment: { $set: e.target.value } },
-                          }),
-                        );
-                      }}
-                    />
-                  </td>
-                  <td>
-                    <button
-                      className={
-                        saving && item.id!.toString() === lastSaved
-                          ? 'disabled'
-                          : 'confirm'
-                      }
-                      disabled={saving && item.id!.toString() === lastSaved}
-                      onClick={() => saveData(item.id!.toString())}
-                    >
-                      {item.id!.toString() === lastSaved
-                        ? saving
-                          ? 'Zapisywanie...'
-                          : 'Zapisano (ENTER)'
-                        : 'Zapisz (ENTER)'}
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                        disabled={saving && itemId === lastSaved}
+                        onClick={() => saveData(itemId)}
+                      >
+                        {itemId === lastSaved
+                          ? saving
+                            ? 'Zapisywanie...'
+                            : 'Zapisano (ENTER)'
+                          : 'Zapisz (ENTER)'}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
 

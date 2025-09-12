@@ -522,103 +522,109 @@ export default function Verification() {
               {order.items.map((item) => {
                 const verification = verificationData[item.id!.toString()];
 
-                const qualityGoods = +verification.qualityGoods || 0;
-                const actualStock = +verification.actualStock || 0;
+                const qualityGoods = +verification?.qualityGoods || 0;
+                const actualStock = +verification?.actualStock || 0;
 
                 const orderQuantity = Math.max(0, item.quantity - qualityGoods);
 
                 return (
-                  <tr
-                    onClick={() => setSelectedItem(item.id!.toString())}
-                    className={
-                      selectedItem === item.id!.toString() ? 'bg-gray-300' : ''
-                    }
-                    key={item.id}
-                  >
-                    <td>{item.productName}</td>
-                    <td>{getFullCategoryName(item.groupId)}</td>
-                    <td>{item.quantity}</td>
-                    <td>{item.unit}</td>
-                    <td>{stocks[+item.itemId].quantity}</td>
-                    <td>
-                      <div className='flex gap-2 justify-between items-center'>
+                  verification && (
+                    <tr
+                      onClick={() => setSelectedItem(item.id!.toString())}
+                      className={
+                        selectedItem === item.id!.toString()
+                          ? 'bg-gray-300'
+                          : ''
+                      }
+                      key={item.id}
+                    >
+                      <td>{item.productName}</td>
+                      <td>{getFullCategoryName(item.groupId)}</td>
+                      <td>{item.quantity}</td>
+                      <td>{item.unit}</td>
+                      <td>{stocks[+item.itemId].quantity}</td>
+                      <td>
+                        <div className='flex gap-2 justify-between items-center'>
+                          <input
+                            type='number'
+                            className='w-[100px]'
+                            min={0}
+                            ref={(el) => {
+                              if (rowsRef.current) {
+                                rowsRef.current[
+                                  item.id!.toString()
+                                ].actualStock = el;
+                              }
+                            }}
+                            value={verification.actualStock}
+                            onChange={(e) =>
+                              updateActualStock(item.id!, e.target.value)
+                            }
+                          />
+                          <button
+                            ref={(el) => {
+                              if (rowsRef.current) {
+                                rowsRef.current[item.id!.toString()].copyStock =
+                                  el;
+                              }
+                            }}
+                            className='small'
+                            onClick={() =>
+                              updateActualStock(
+                                item.id!,
+                                stocks[+item.itemId].quantity,
+                              )
+                            }
+                          >
+                            OK
+                          </button>
+                        </div>
+                      </td>
+                      <td>
                         <input
                           type='number'
                           className='w-[100px]'
                           min={0}
                           ref={(el) => {
                             if (rowsRef.current) {
-                              rowsRef.current[item.id!.toString()].actualStock =
-                                el;
+                              rowsRef.current[
+                                item.id!.toString()
+                              ].qualityGoods = el;
                             }
                           }}
-                          value={verification.actualStock}
+                          value={verification.qualityGoods}
                           onChange={(e) =>
-                            updateActualStock(item.id!, e.target.value)
-                          }
-                        />
-                        <button
-                          ref={(el) => {
-                            if (rowsRef.current) {
-                              rowsRef.current[item.id!.toString()].copyStock =
-                                el;
-                            }
-                          }}
-                          className='small'
-                          onClick={() =>
-                            updateActualStock(
+                            updateQualityGoods(
                               item.id!,
-                              stocks[+item.itemId].quantity,
+                              actualStock,
+                              e.target.value,
                             )
                           }
-                        >
-                          OK
-                        </button>
-                      </div>
-                    </td>
-                    <td>
-                      <input
-                        type='number'
-                        className='w-[100px]'
-                        min={0}
-                        ref={(el) => {
-                          if (rowsRef.current) {
-                            rowsRef.current[item.id!.toString()].qualityGoods =
-                              el;
-                          }
-                        }}
-                        value={verification.qualityGoods}
-                        onChange={(e) =>
-                          updateQualityGoods(
-                            item.id!,
-                            actualStock,
-                            e.target.value,
-                          )
-                        }
-                      />
-                    </td>
-                    <td>{orderQuantity}</td>
-                    <td>
-                      <textarea
-                        ref={(el) => {
-                          if (rowsRef.current) {
-                            rowsRef.current[item.id!].comment = el;
-                          }
-                        }}
-                        placeholder='Komentarz'
-                        value={verification.comment}
-                        onChange={(e) => {
-                          setVerificationData((prev) =>
-                            update(prev, {
-                              [item.id!]: {
-                                comment: { $set: e.target.value },
-                              },
-                            }),
-                          );
-                        }}
-                      />
-                    </td>
-                  </tr>
+                        />
+                      </td>
+                      <td>{orderQuantity}</td>
+                      <td>
+                        <textarea
+                          ref={(el) => {
+                            if (rowsRef.current) {
+                              rowsRef.current[item.id!].comment = el;
+                            }
+                          }}
+                          placeholder='Komentarz'
+                          value={verification.comment}
+                          onChange={(e) => {
+                            setVerificationData((prev) =>
+                              update(prev, {
+                                [item.id!]: {
+                                  comment: { $set: e.target.value },
+                                },
+                              }),
+                            );
+                          }}
+                        />
+                      </td>
+                    </tr>
+                  )
                 );
               })}
             </tbody>

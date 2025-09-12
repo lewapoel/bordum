@@ -46,7 +46,7 @@ enum Status {
   SAVING,
 }
 
-const SECRET_URL_PARAM = import.meta.env.SECRET_URL_PARAM;
+const SECRET_URL_PARAM = import.meta.env.VITE_SECRET_URL_PARAM;
 
 Font.register({
   family: 'NotoSans',

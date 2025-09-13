@@ -10,7 +10,7 @@ import {
 } from '@/utils/bitrix24.ts';
 import { getCompany } from '@/api/bitrix/company.ts';
 import { getContact } from '@/api/bitrix/contact.ts';
-import { formatMoney } from '@/utils/format.ts';
+import { formatMoney } from '@/utils/money.ts';
 import { getClientDueInvoices } from '@/api/bitrix/invoice.ts';
 import { useGetInvoicesSummary } from '@/utils/invoice.ts';
 

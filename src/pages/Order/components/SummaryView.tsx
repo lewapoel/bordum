@@ -11,7 +11,7 @@ import {
 } from 'react';
 import { OrderContext, OrderType, OrderView } from '@/models/order.ts';
 import { DocumentType } from '@/api/comarch/document.ts';
-import { formatMoney } from '@/utils/format.ts';
+import { formatMoney } from '@/utils/money.ts';
 import {
   Dialog,
   DialogContent,

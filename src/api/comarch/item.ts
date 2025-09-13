@@ -1,7 +1,9 @@
 import { API_URL } from './const.ts';
-import { Stock, getStocks } from './stock.ts';
+import { getStocks, Stock } from './stock.ts';
 import { Warehouse } from './warehouse.ts';
 import { useQuery } from '@tanstack/react-query';
+import { convertItemPrices } from '@/utils/item.ts';
+import { PriceType } from '@/data/comarch/prices.ts';
 
 export type Price = {
   value: number;
@@ -94,22 +96,26 @@ export function useGetItems(token: string) {
           const data = await response.json();
 
           return data.map(
-            (item: any): Item => ({
-              id: item['id'],
-              code: item['code'],
-              name: item['name'],
-              unit: item['unit'],
-              groupId: item['defaultGroup'],
-              vatRate: item['vatRate'],
-              prices: item['prices'].reduce((prices: any, price: any) => {
-                prices[price['name']] = {
-                  value: price['value'],
-                  currency: price['currency'],
-                };
+            (item: any): Item =>
+              convertItemPrices(
+                {
+                  id: item['id'],
+                  code: item['code'],
+                  name: item['name'],
+                  unit: item['unit'],
+                  groupId: item['defaultGroup'],
+                  vatRate: item['vatRate'],
+                  prices: item['prices'].reduce((prices: any, price: any) => {
+                    prices[price['name']] = {
+                      value: price['value'],
+                      currency: price['currency'],
+                    };
 
-                return prices;
-              }, {}),
-            }),
+                    return prices;
+                  }, {}),
+                },
+                PriceType.BRUTTO,
+              ),
           );
         })
         .catch((error) => {

@@ -5,7 +5,7 @@ import { InvoiceData, Invoices } from '@/models/bitrix/invoice.ts';
 import { getDueInvoices } from '@/api/bitrix/invoice.ts';
 import clsx from 'clsx';
 import { getBitrix24 } from '@/utils/bitrix24.ts';
-import { formatMoney } from '@/utils/format.ts';
+import { formatMoney } from '@/utils/money.ts';
 
 export default function ClientBalances() {
   const { sqlToken } = useContext(AuthContext);

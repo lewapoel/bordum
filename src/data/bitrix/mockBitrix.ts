@@ -178,10 +178,8 @@ export const CRM_QUOTE_GET = {
   UF_CRM_6734B4EF9978C: '',
   UF_CRM_6734B4EFB734D: {
     id: 37166,
-    showUrl:
-      '/bitrix/components/bitrix/crm.quote.show/show_file.php?ownerId=702&fieldName=UF_CRM_6734B4EFB734D&dynamic=Y&fileId=37166',
-    downloadUrl:
-      '/bitrix/components/bitrix/crm.quote.show/show_file.php?auth=fa10c468007533610072883900000001f0f1073813f5f83d98db2166fbd3ea9b27f4e9&ownerId=702&fieldName=UF_CRM_6734B4EFB734D&dynamic=Y&fileId=37166',
+    showUrl: '',
+    downloadUrl: '',
   },
   UF_CRM_QUOTE_1732655059093: '338',
   UF_CRM_QUOTE_1732655328792: '342',

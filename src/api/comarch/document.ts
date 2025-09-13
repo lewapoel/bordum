@@ -7,6 +7,8 @@ import { getOrderDocuments, updateOrderDocument } from '../bitrix/order.ts';
 import { getDeal, updateDealReturnData } from '../bitrix/deal.ts';
 import moment from 'moment/moment';
 import { getCompanyCode, getContactCode } from '@/utils/bitrix24.ts';
+import { convertItemPrice } from '@/utils/item.ts';
+import { PriceType } from '@/data/comarch/prices.ts';
 
 export type AddDocument = {
   placementId: number;
@@ -113,7 +115,12 @@ export function useAddDocument(token: string) {
         elements: order.items.map((item) => ({
           code: item.warehouseCode,
           quantity: item.quantity,
-          totalGrossValue: item.unitPrice * item.quantity,
+          totalNetValue: convertItemPrice(
+            item.unitPrice * item.quantity,
+            item.taxRate ?? 23,
+            PriceType.BRUTTO,
+            PriceType.NETTO,
+          ),
           setCustomValue: true,
         })),
         payer: buyerNoAddress,

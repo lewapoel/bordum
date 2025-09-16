@@ -238,7 +238,11 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
       setPendingOrder(true);
       createOrderFromDeal(placementId).then((orderId) => {
         if (orderId) {
-          void updateOrder(orderId, order.items, { ensureMeasures: true });
+          updateOrder(orderId, order.items, { ensureMeasures: true }).then(
+            () => {
+              window.location.reload();
+            },
+          );
         } else {
           alert('Utworzona oferta nie ma identyfikatora');
         }

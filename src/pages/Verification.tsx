@@ -238,14 +238,20 @@ export default function Verification() {
 
     const newOrder = order.items
       .map((item) => {
-        const qualityGoods =
-          +verificationData[item.id!.toString()].qualityGoods || 0;
-        const orderQuantity = Math.max(
-          0,
-          Math.min(item.quantity, qualityGoods),
-        );
+        const itemId = item.id!.toString();
 
-        return { ...item, quantity: orderQuantity };
+        if (itemId in verificationData) {
+          const qualityGoods =
+            +verificationData[item.id!.toString()].qualityGoods || 0;
+          const orderQuantity = Math.max(
+            0,
+            Math.min(item.quantity, qualityGoods),
+          );
+
+          return { ...item, quantity: orderQuantity };
+        } else {
+          return item; // Retain non-verifiable items in main order
+        }
       })
       .filter((item) => item.quantity > 0);
 

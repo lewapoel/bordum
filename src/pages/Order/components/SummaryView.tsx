@@ -68,7 +68,7 @@ function SummaryRow({
             ref={(el) => {
               quantitiesRef.current[index] = el;
             }}
-            className='w-[50px]'
+            className='w-[100px]'
             type='number'
             min={1}
             value={tempQuantity}

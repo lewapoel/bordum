@@ -33,6 +33,7 @@ import { FieldsMeta } from '@/models/bitrix/field.ts';
 import { getDealFields, getDealRaw } from './deal.ts';
 import { BitrixFile } from '@/models/bitrix/disk.ts';
 import { VERIFICATION_GROUPS } from '@/data/comarch/groups.ts';
+import { calculateUnitPrice } from '@/utils/item.ts';
 
 export async function getOrderFields(): Promise<FieldsMeta | null> {
   const bx24 = getBitrix24();
@@ -437,7 +438,7 @@ export async function updateOrder(
             order.length !== 0
               ? order.map((item) => ({
                   PRODUCT_NAME: item.productName,
-                  PRICE: item.unitPrice,
+                  PRICE: calculateUnitPrice(item),
                   QUANTITY: item.quantity,
                   MEASURE_CODE: item.unitCode,
                   TAX_RATE: item.taxRate,

@@ -89,7 +89,7 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
             productName: item['PRODUCT_NAME'],
             quantity: item['QUANTITY'],
             unit: item['MEASURE_NAME'],
-            unitPrice: item['PRICE'],
+            unitPrice: item['PRICE_BRUTTO'],
             taxRate: item['TAX_RATE'] ?? undefined,
             discountRate: item['DISCOUNT_RATE'] ?? undefined,
           }),

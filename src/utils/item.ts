@@ -41,5 +41,5 @@ export function convertItemPrice(
 }
 
 export function calculateUnitPrice(item: OrderItem): number {
-  return item.unitPrice * (1 - (item.discountRate ?? 0) / 100);
+  return roundMoney(item.unitPrice * (1 - (item.discountRate ?? 0) / 100));
 }

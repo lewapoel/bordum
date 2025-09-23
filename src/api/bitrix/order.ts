@@ -443,6 +443,7 @@ export async function updateOrder(
                   TAX_RATE: item.taxRate,
                   TAX_INCLUDED: 'Y',
                   DISCOUNT_RATE: item.discountRate,
+                  DISCOUNT_TYPE_ID: 2,
                 }))
               : null,
         };

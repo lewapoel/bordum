@@ -126,8 +126,8 @@ export default function ItemsView() {
           productName: item.name,
           quantity: +quantity,
           unit: item.unit,
-          unitPrice:
-            item.prices[ctx.selectedPrice!].value * (1 - +discount / 100),
+          unitPrice: item.prices[ctx.selectedPrice!].value,
+          discountRate: +discount,
           taxRate: item.vatRate,
         });
 

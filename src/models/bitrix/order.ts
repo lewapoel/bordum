@@ -11,6 +11,7 @@ export type OrderItem = {
   unitCode?: string;
   unitPrice: number;
   taxRate?: number;
+  discountRate?: number;
 };
 
 export type PackagingDataItem = {

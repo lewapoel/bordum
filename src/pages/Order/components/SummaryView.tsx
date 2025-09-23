@@ -21,6 +21,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog.tsx';
 import { Button } from '@/components/ui/button.tsx';
+import { calculateUnitPrice } from '@/utils/item.ts';
 
 interface SummaryRowProps {
   index: number;
@@ -79,8 +80,10 @@ function SummaryRow({
         )}
       </td>
       <td>{item?.unit}</td>
-      <td>{item?.unitPrice.toFixed(2)}</td>
-      <td>{item ? (item.unitPrice * item.quantity).toFixed(2) : null}</td>
+      <td>{item ? calculateUnitPrice(item).toFixed(2) : null}</td>
+      <td>
+        {item ? (calculateUnitPrice(item) * item.quantity).toFixed(2) : null}
+      </td>
     </tr>
   );
 }
@@ -99,7 +102,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
   const sum = useMemo(
     () =>
       order.items.reduce((acc, item) => {
-        acc += item.unitPrice * item.quantity;
+        acc += calculateUnitPrice(item) * item.quantity;
         return acc;
       }, 0),
     [order],

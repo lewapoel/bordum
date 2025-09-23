@@ -78,10 +78,8 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
       } else {
         const data = result.data();
 
-        orderData.items = data.map((item: any, idx: number): OrderItem => {
-          const discountRate = item['DISCOUNT_RATE'] ?? 0;
-
-          return {
+        orderData.items = data.map(
+          (item: any, idx: number): OrderItem => ({
             id: item['ID'],
             warehouseCode:
               orderData.additionalData?.warehouseCodes?.[idx] ?? '',
@@ -90,10 +88,11 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
             productName: item['PRODUCT_NAME'],
             quantity: item['QUANTITY'],
             unit: item['MEASURE_NAME'],
-            unitPrice: +item['PRICE'] * (1 - discountRate / 100),
+            unitPrice: item['PRICE'],
             taxRate: item['TAX_RATE'] ?? undefined,
-          };
-        });
+            discountRate: item['DISCOUNT_RATE'] ?? undefined,
+          }),
+        );
 
         orderData.packagingData = orderData.items.reduce(
           (acc: PackagingData, item) => {

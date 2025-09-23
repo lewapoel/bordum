@@ -1,6 +1,7 @@
 import { Item } from '@/api/comarch/item.ts';
 import { PRICES_TYPE_MAP, PriceType } from '@/data/comarch/prices.ts';
 import { roundMoney } from '@/utils/money.ts';
+import { OrderItem } from '@/models/bitrix/order.ts';
 
 export function convertItemPrices(item: Item, convertTo: PriceType): Item {
   Object.entries(item.prices).forEach(([priceKey, price]) => {
@@ -37,4 +38,8 @@ export function convertItemPrice(
   }
 
   return roundMoney(value * multiplier);
+}
+
+export function calculateUnitPrice(item: OrderItem): number {
+  return item.unitPrice * (1 - (item.discountRate ?? 0) / 100);
 }

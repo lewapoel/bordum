@@ -157,7 +157,7 @@ export default function Packaging() {
           });
           break;
         case 'Enter':
-          saveData(selectedItem);
+          void saveData(selectedItem);
           break;
         case 'Tab':
           e.preventDefault();

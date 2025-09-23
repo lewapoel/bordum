@@ -440,6 +440,7 @@ export async function updateOrder(
                   QUANTITY: item.quantity,
                   MEASURE_CODE: item.unitCode,
                   TAX_RATE: item.taxRate,
+                  TAX_INCLUDED: 'Y',
                 }))
               : null,
         };

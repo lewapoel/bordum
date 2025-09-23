@@ -480,6 +480,7 @@ export async function updateOrder(
 export async function updateOrderPackagingData(
   placementId: number,
   packagingData: PackagingData,
+  silentSuccess: boolean = false,
 ) {
   const bx24 = getBitrix24();
   if (!bx24) {
@@ -493,7 +494,9 @@ export async function updateOrderPackagingData(
         alert('Nie udało się zapisać oferty. Szczegóły w konsoli');
         reject();
       } else {
-        alert('Dane pakowania zapisane pomyślnie');
+        if (!silentSuccess) {
+          alert('Dane pakowania zapisane pomyślnie');
+        }
         resolve(true);
       }
     };

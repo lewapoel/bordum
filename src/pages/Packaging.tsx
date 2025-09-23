@@ -76,16 +76,6 @@ export default function Packaging() {
       setLastSaved(itemId);
       setSaving(true);
 
-      if (!data.reservationCreated) {
-        data.reservationCreated = true;
-        void addDocumentMutation.mutate({
-          order,
-          placementId,
-          documentType: DocumentType.RESERVATION_DOCUMENT,
-          exportDocument: false,
-        });
-      }
-
       updateOrderPackagingData(
         placementId,
         Object.fromEntries(
@@ -101,7 +91,24 @@ export default function Packaging() {
             ];
           }),
         ),
-      ).then(() => {
+        true,
+      ).then(async () => {
+        if (!data.reservationCreated) {
+          data.reservationCreated = true;
+
+          await addDocumentMutation.mutateAsync({
+            order,
+            placementId,
+            documentType: DocumentType.RESERVATION_DOCUMENT,
+            exportDocument: false,
+            silentSuccess: true,
+          });
+
+          alert('Dane pakowania oraz dokument zostały utworzone');
+        } else {
+          alert('Dane pakowania zapisane pomyślnie');
+        }
+
         setSaving(false);
       });
     },

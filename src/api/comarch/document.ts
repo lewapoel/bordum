@@ -13,6 +13,7 @@ export type AddDocument = {
   order: OrderData;
   documentType: DocumentType;
   exportDocument?: boolean;
+  silentSuccess?: boolean;
 };
 
 export enum DocumentType {
@@ -29,6 +30,7 @@ export function useAddDocument(token: string) {
       placementId,
       documentType,
       exportDocument = true,
+      silentSuccess = false,
     }: AddDocument) => {
       if (!order.companyId && !order.contactId) {
         throw new Error('MISSING_BUYER_ID');
@@ -189,8 +191,14 @@ export function useAddDocument(token: string) {
           await updateDealReturnData(order.dealId, returnData, false);
         }
       }
+
+      return { silentSuccess };
     },
-    onSuccess: () => alert('Utworzono dokument pomyślnie'),
+    onSuccess: (data) => {
+      if (!data?.silentSuccess) {
+        alert('Utworzono dokument pomyślnie');
+      }
+    },
     onError: (error) => {
       if (error.message.includes('The code field is required')) {
         alert(

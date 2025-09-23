@@ -68,7 +68,7 @@ function SummaryRow({
             ref={(el) => {
               quantitiesRef.current[index] = el;
             }}
-            className='w-[100px]'
+            className='w-[100px] text-center'
             type='number'
             min={1}
             value={tempQuantity}
@@ -267,7 +267,8 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
 
   useEffect(() => {
     selectRowQuantity(0);
-  }, [selectRowQuantity]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return ctx && !ctx.addDocument.pending && !ctx.pendingOrder ? (
     <div className='flex flex-col items-center'>

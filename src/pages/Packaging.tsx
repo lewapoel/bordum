@@ -52,7 +52,7 @@ export default function Packaging() {
   const addDocumentMutation = useAddDocument(token);
 
   const saveData = useCallback(
-    (itemId: string) => {
+    async (itemId: string) => {
       if (!packagingData || !originalPackagingData || !order) {
         return;
       }
@@ -76,7 +76,23 @@ export default function Packaging() {
       setLastSaved(itemId);
       setSaving(true);
 
-      updateOrderPackagingData(
+      let documentCreated = false;
+
+      // If none of the items were saved, it means the reservation document hasn't been generated yet
+      if (Object.values(packagingData).every((x) => !x.saved)) {
+        await addDocumentMutation.mutateAsync({
+          order,
+          placementId,
+          documentType: DocumentType.RESERVATION_DOCUMENT,
+          exportDocument: false,
+          silentSuccess: true,
+        });
+
+        documentCreated = true;
+      }
+
+      data.saved = true;
+      await updateOrderPackagingData(
         placementId,
         Object.fromEntries(
           Object.entries(originalPackagingData).map(([key, item]) => {
@@ -92,25 +108,15 @@ export default function Packaging() {
           }),
         ),
         true,
-      ).then(async () => {
-        if (!data.reservationCreated) {
-          data.reservationCreated = true;
+      );
 
-          await addDocumentMutation.mutateAsync({
-            order,
-            placementId,
-            documentType: DocumentType.RESERVATION_DOCUMENT,
-            exportDocument: false,
-            silentSuccess: true,
-          });
+      if (documentCreated) {
+        alert('Dane pakowania oraz dokument rezerwacji zostały utworzone');
+      } else {
+        alert('Dane pakowania zapisane pomyślnie');
+      }
 
-          alert('Dane pakowania oraz dokument zostały utworzone');
-        } else {
-          alert('Dane pakowania zapisane pomyślnie');
-        }
-
-        setSaving(false);
-      });
+      setSaving(false);
     },
     [
       packagingData,
@@ -293,13 +299,12 @@ export default function Packaging() {
               {order.items.map((item) => {
                 const itemId = item.id!.toString();
                 const selected = selectedItem === itemId;
-                const reservationCreated =
-                  packagingData[itemId].reservationCreated;
+                const saved = packagingData[itemId].saved;
 
                 const bgClassName = clsx({
-                  'bg-green-600': selected && reservationCreated,
-                  'bg-green-300': reservationCreated && !selected,
-                  'bg-gray-300': selected && !reservationCreated,
+                  'bg-green-600': selected && saved,
+                  'bg-green-300': saved && !selected,
+                  'bg-gray-300': selected && !saved,
                 });
 
                 return (

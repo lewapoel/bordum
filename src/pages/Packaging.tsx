@@ -304,7 +304,7 @@ export default function Packaging() {
                 const isPackageable = itemId in packagingData;
 
                 const selected = selectedItem === itemId;
-                const saved = packagingData[itemId].saved;
+                const saved = packagingData[itemId]?.saved;
 
                 const bgClassName = clsx({
                   'bg-green-600': selected && saved,

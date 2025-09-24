@@ -48,9 +48,12 @@ export function useGetCreditCustomer(token: string, code?: string) {
     // eslint-disable-next-line
     queryKey: ['credit-customer', code],
     queryFn: () =>
-      fetch(`${SQL_API_URL}/credit-customers/${code!.trim()}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      fetch(
+        `${SQL_API_URL}/credit-customers/${encodeURIComponent(code!.trim())}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      )
         .then(async (response): Promise<CreditCustomer | null> => {
           const data = await response.json();
 

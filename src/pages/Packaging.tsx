@@ -101,7 +101,7 @@ export default function Packaging() {
       });
 
       const newOriginalPackagingData = update(originalPackagingData, {
-        [itemId]: { $merge: updatedFields },
+        [itemId]: { $set: newPackagingData[itemId] },
       });
 
       await updateOrderPackagingData(

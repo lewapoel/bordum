@@ -32,7 +32,10 @@ import sanitize from 'sanitize-filename';
 import { FieldsMeta } from '@/models/bitrix/field.ts';
 import { getDealFields, getDealRaw } from './deal.ts';
 import { BitrixFile } from '@/models/bitrix/disk.ts';
-import { VERIFICATION_GROUPS } from '@/data/comarch/groups.ts';
+import {
+  PACKAGING_GROUPS,
+  VERIFICATION_GROUPS,
+} from '@/data/comarch/groups.ts';
 import { calculateUnitPrice } from '@/utils/item.ts';
 
 export async function getOrderFields(): Promise<FieldsMeta | null> {
@@ -82,9 +85,8 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
         orderData.items = data.map(
           (item: any, idx: number): OrderItem => ({
             id: item['ID'],
-            warehouseCode:
-              orderData.additionalData?.warehouseCodes?.[idx] ?? '',
-            groupId: orderData.additionalData?.groupIds?.[idx] ?? '',
+            code: orderData.additionalData?.itemCodes?.[idx] ?? '',
+            groups: orderData.additionalData?.itemGroups?.[idx] ?? [],
             itemId: orderData.additionalData?.itemIds?.[idx] ?? '',
             productName: item['PRODUCT_NAME'],
             quantity: item['QUANTITY'],
@@ -97,7 +99,10 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
 
         orderData.packagingData = orderData.items.reduce(
           (acc: PackagingData, item) => {
-            if (item.id) {
+            if (
+              item.id &&
+              item.groups.some((group) => PACKAGING_GROUPS.includes(group))
+            ) {
               if (orderData.packagingData?.[item.id]) {
                 acc[item.id] = orderData.packagingData[item.id];
               } else {
@@ -118,7 +123,10 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
 
         orderData.verificationData = orderData.items.reduce(
           (acc: VerificationData, item) => {
-            if (item.id && VERIFICATION_GROUPS.includes(item.groupId)) {
+            if (
+              item.id &&
+              item.groups.some((group) => VERIFICATION_GROUPS.includes(group))
+            ) {
               if (orderData.verificationData?.[item.id]) {
                 acc[item.id] = orderData.verificationData[item.id];
               } else {
@@ -458,9 +466,9 @@ export async function updateOrder(
     };
 
     const additionalData: OrderAdditionalData = {
-      warehouseCodes: order.map((item) => item.warehouseCode),
+      itemCodes: order.map((item) => item.code),
       itemIds: order.map((item) => item.itemId),
-      groupIds: order.map((item) => item.groupId),
+      itemGroups: order.map((item) => item.groups),
     };
 
     const updateBody: any = {

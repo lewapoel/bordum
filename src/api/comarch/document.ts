@@ -114,7 +114,7 @@ export function useAddDocument(token: string) {
         paymentMethod: 'przelew',
         currency: 'PLN',
         elements: order.items.map((item) => ({
-          code: item.warehouseCode,
+          code: item.code,
           quantity: item.quantity,
           totalGrossValue: calculateUnitPrice(item) * item.quantity,
           setCustomValue: true,

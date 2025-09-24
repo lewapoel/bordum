@@ -21,6 +21,7 @@ import { BitrixFile } from '../models/bitrix/disk.ts';
 import { QUOTE_STATUSES } from '../data/bitrix/const.ts';
 import { useGetItemsGroups } from '../api/comarch/item.ts';
 import { AuthContext } from '../components/AuthContext.tsx';
+import { VERIFICATION_GROUPS } from '@/data/comarch/groups.ts';
 
 type RowElements = {
   copyStock: HTMLButtonElement | null;
@@ -192,14 +193,18 @@ export default function Verification() {
     };
 
     const itemsByGroups = order.items.reduce((acc: GroupsItems, item) => {
-      if (itemsGroups) {
-        if (!acc[item.groupId]) {
-          acc[item.groupId] = {
-            groupName: itemsGroups[item.groupId].name,
+      const group = item.groups.find((group) =>
+        VERIFICATION_GROUPS.includes(group),
+      );
+
+      if (group && itemsGroups) {
+        if (!acc[group]) {
+          acc[group] = {
+            groupName: itemsGroups[group].name,
             items: [item],
           };
         } else {
-          acc[item.groupId].items.push(item);
+          acc[group].items.push(item);
         }
       }
 
@@ -451,7 +456,9 @@ export default function Verification() {
         ) {
           setStatus(Status.EMPTY);
         } else if (
-          res.items.some((item) => item.itemId === '' || item.groupId === '')
+          res.items.some(
+            (item) => item.itemId === '' || item.groups.length === 0,
+          )
         ) {
           setStatus(Status.INVALID);
         } else {
@@ -538,20 +545,25 @@ export default function Verification() {
 
                 const verification = verificationData[itemId];
 
+                const itemGroup = item.groups.find((group) =>
+                  VERIFICATION_GROUPS.includes(group),
+                );
+
                 const qualityGoods = +verification?.qualityGoods || 0;
                 const actualStock = +verification?.actualStock || 0;
 
                 const orderQuantity = Math.max(0, item.quantity - qualityGoods);
 
                 return (
-                  isVerifiable && (
+                  isVerifiable &&
+                  itemGroup && (
                     <tr
                       onClick={() => setSelectedItem(itemId)}
                       className={selectedItem === itemId ? 'bg-gray-300' : ''}
                       key={item.id}
                     >
                       <td>{item.productName}</td>
-                      <td>{getFullCategoryName(item.groupId)}</td>
+                      <td>{getFullCategoryName(itemGroup)}</td>
                       <td>{item.quantity}</td>
                       <td>{item.unit}</td>
                       <td>{stocks[+item.itemId].quantity}</td>

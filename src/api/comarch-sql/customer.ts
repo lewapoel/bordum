@@ -20,7 +20,7 @@ export function useGetCreditCustomers(token: string) {
         .then(async (response): Promise<Array<CreditCustomer> | null> => {
           const data = await response.json();
 
-          if (!data) {
+          if (!response.ok || !data) {
             return null;
           }
 
@@ -54,7 +54,7 @@ export function useGetCreditCustomer(token: string, code?: string) {
         .then(async (response): Promise<CreditCustomer | null> => {
           const data = await response.json();
 
-          if (!data) {
+          if (!response.ok || !data) {
             return null;
           }
 

@@ -4,6 +4,7 @@ import { Warehouse } from './warehouse.ts';
 import { useQuery } from '@tanstack/react-query';
 import { convertItemPrices } from '@/utils/item.ts';
 import { PriceType } from '@/data/comarch/prices.ts';
+import { getProductGroups, GroupsCodes } from '@/api/comarch-sql/product.ts';
 
 export type Price = {
   value: number;
@@ -18,7 +19,7 @@ export type Item = {
   name: string;
   unit: string;
   prices: Prices;
-  groupId: string;
+  groups: GroupsCodes;
   vatRate: number;
 };
 
@@ -84,12 +85,17 @@ export function useGetItemsGroups(token: string) {
   });
 }
 
-export function useGetItems(token: string) {
+export function useGetItems(token: string, sqlToken: string) {
   return useQuery({
     // eslint-disable-next-line
     queryKey: ['items'],
-    queryFn: () =>
-      fetch(`${API_URL}/Items?limit=999999999`, {
+    queryFn: async () => {
+      const productGroups = await getProductGroups(sqlToken);
+      if (!productGroups) {
+        return null;
+      }
+
+      return fetch(`${API_URL}/Items?limit=999999999`, {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then(async (response): Promise<Array<Item>> => {
@@ -103,7 +109,7 @@ export function useGetItems(token: string) {
                   code: item['code'],
                   name: item['name'],
                   unit: item['unit'],
-                  groupId: item['defaultGroup'],
+                  groups: productGroups[item['code']],
                   vatRate: item['vatRate'],
                   prices: item['prices'].reduce((prices: any, price: any) => {
                     prices[price['name']] = {
@@ -122,7 +128,8 @@ export function useGetItems(token: string) {
           console.error(error);
           alert('Nie udało się pobrać przedmiotów');
           return null;
-        }),
+        });
+    },
     enabled: !!token,
   });
 }

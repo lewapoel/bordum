@@ -1,9 +1,10 @@
 import { CrmData } from './crm.ts';
+import { GroupsCodes } from '@/api/comarch-sql/product.ts';
 
 export type OrderItem = {
   id?: number;
-  warehouseCode: string;
-  groupId: string;
+  code: string;
+  groups: GroupsCodes;
   itemId: string;
   productName: string;
   quantity: number;
@@ -34,10 +35,10 @@ export type VerificationDataItem = {
 
 export type VerificationData = { [key: string]: VerificationDataItem };
 
-// Meant for internal use only, use `OrderItem` and its props instead
+// Meant for Bitrix API use only, use `OrderItem` and its props instead
 export type OrderAdditionalData = {
-  warehouseCodes?: Array<string>;
-  groupIds?: Array<string>;
+  itemCodes?: Array<string>;
+  itemGroups?: Array<GroupsCodes>;
   itemIds?: Array<string>;
 };
 

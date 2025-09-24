@@ -44,11 +44,11 @@ type Discounts = {
 };
 
 export default function ItemsView() {
-  const { token } = useContext(AuthContext);
+  const { token, sqlToken } = useContext(AuthContext);
   const ctx = useContext(OrderContext);
 
   const warehousesQuery = useGetWarehouses(token);
-  const itemsQuery = useGetItems(token);
+  const itemsQuery = useGetItems(token, sqlToken);
   const itemsWarehousesQuery = useGetItemsWarehouses(
     token,
     itemsQuery.data,
@@ -120,8 +120,8 @@ export default function ItemsView() {
         }
 
         const result = ctx.saveItem({
-          warehouseCode: item.code,
-          groupId: item.groupId,
+          code: item.code,
+          groups: item.groups,
           itemId: item.id.toString(),
           productName: item.name,
           quantity: +quantity,

@@ -91,24 +91,27 @@ export default function Packaging() {
         documentCreated = true;
       }
 
-      data.saved = true;
+      const updatedFields = {
+        saved: true,
+        comment: data.quality < 8 ? data.comment : '',
+      };
+
+      const newPackagingData = update(packagingData, {
+        [itemId]: { $merge: updatedFields },
+      });
+
+      const newOriginalPackagingData = update(originalPackagingData, {
+        [itemId]: { $merge: updatedFields },
+      });
+
       await updateOrderPackagingData(
         placementId,
-        Object.fromEntries(
-          Object.entries(originalPackagingData).map(([key, item]) => {
-            const packageItem = key === itemId ? data : item;
-
-            return [
-              key,
-              {
-                ...packageItem,
-                comment: packageItem.quality < 8 ? packageItem.comment : '', // make sure unnecessary comments don't get saved
-              },
-            ];
-          }),
-        ),
+        newOriginalPackagingData,
         true,
       );
+
+      setPackagingData(newPackagingData);
+      setOriginalPackagingData(newOriginalPackagingData);
 
       if (documentCreated) {
         alert('Dane pakowania oraz dokument rezerwacji zostały utworzone');

@@ -1,10 +1,11 @@
 import { API_URL } from './const.ts';
 import { getStocks, Stock } from './stock.ts';
 import { Warehouse } from './warehouse.ts';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { convertItemPrices } from '@/utils/item.ts';
 import { PriceType } from '@/data/comarch/prices.ts';
 import { getProductGroups, GroupsCodes } from '@/api/comarch-sql/product.ts';
+import { v4 as uuidv4 } from 'uuid';
 
 export type Price = {
   value: number;
@@ -177,5 +178,69 @@ export function useGetItemsWarehouses(
       return results;
     },
     enabled: !!token && !!items && !!warehouses,
+  });
+}
+
+export function useAddEditItem(token: string, sqlToken: string) {
+  return useMutation({
+    mutationKey: ['add-edit-item'],
+    mutationFn: async (item: ItemWarehouses) => {
+      const productGroups = await getProductGroups(sqlToken);
+      if (!productGroups) {
+        throw new Error('Missing product groups');
+      }
+
+      let response = await fetch(`${API_URL}/Items/${item.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const baseItem = await response.json();
+      if (!response.ok || !baseItem) {
+        throw new Error(await response.text());
+      }
+
+      baseItem.name = item.name;
+      baseItem.unit = item.unit;
+      baseItem.code = uuidv4().replace(/-/g, '').slice(0, 32);
+
+      response = await fetch(`${API_URL}/Items`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(baseItem),
+      });
+
+      const addedItem = await response.json();
+
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+
+      return convertItemPrices(
+        {
+          id: addedItem['id'],
+          code: addedItem['code'],
+          name: addedItem['name'],
+          unit: addedItem['unit'],
+          groups: productGroups[addedItem['code']],
+          vatRate: addedItem['vatRate'],
+          prices: addedItem['prices'].reduce((prices: any, price: any) => {
+            prices[price['name']] = {
+              value: price['value'],
+              currency: price['currency'],
+            };
+
+            return prices;
+          }, {}),
+        },
+        PriceType.BRUTTO,
+      );
+    },
+    onError: (error) => {
+      console.error(error);
+      alert('Wystąpił błąd przy dodawaniu edycji przedmiotu. Sprawdź konsolę');
+    },
   });
 }

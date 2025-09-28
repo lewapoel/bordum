@@ -186,6 +186,7 @@ async function fixAddedItem(
   sqlToken: string,
   item: Item,
   addedItem: any,
+  defaultPriceValue: number,
 ): Promise<Item> {
   const groupsSet = await setProductGroups(
     sqlToken,
@@ -200,7 +201,7 @@ async function fixAddedItem(
     sqlToken,
     addedItem['code'],
     DEFAULT_PRICE,
-    item.prices[DEFAULT_PRICE].value,
+    defaultPriceValue,
   );
   if (!priceSet) {
     throw new Error();
@@ -245,7 +246,12 @@ export function useAddEditItem(token: string, sqlToken: string) {
       }
 
       const addedItem = await response.json();
-      return await fixAddedItem(sqlToken, item, addedItem);
+      return await fixAddedItem(
+        sqlToken,
+        item,
+        addedItem,
+        baseItem['prices'][0]['value'],
+      );
     },
     onError: (error) => {
       console.error(error);
@@ -289,7 +295,12 @@ export function useAddItem(token: string, sqlToken: string) {
       }
 
       const addedItem = await response.json();
-      return await fixAddedItem(sqlToken, item, addedItem);
+      return await fixAddedItem(
+        sqlToken,
+        item,
+        addedItem,
+        item.prices[DEFAULT_PRICE].value,
+      );
     },
     onError: (error) => {
       console.error(error);

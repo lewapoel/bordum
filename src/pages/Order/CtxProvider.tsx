@@ -106,6 +106,8 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
         getClientDueInvoices({
           contactId: res.id,
         }).then((res) => setInvoices(res));
+
+        invoicesFetched = true;
       }
 
       if (res) {
@@ -113,8 +115,10 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
       } else {
         setSelectedPrice(defaultPriceName);
       }
-    } else {
-      setSelectedPrice(defaultPriceName);
+    }
+
+    if (!invoicesFetched) {
+      alert('Brakujące dane firmy/kontaktu');
     }
   }, []);
 

@@ -24,3 +24,31 @@ export async function getProductGroups(
       return null;
     });
 }
+
+export async function setProductGroups(
+  token: string,
+  code: string,
+  groups: GroupsCodes,
+): Promise<boolean> {
+  return fetch(`${SQL_API_URL}/product-groups`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      product_code: code,
+      group_codes: groups,
+    }),
+  })
+    .then(async (response): Promise<boolean> => {
+      const data = await response.json();
+
+      return response.ok && data['success'];
+    })
+    .catch((error) => {
+      console.error(error);
+      alert('Nie udało się ustawić grupy produktu');
+      return false;
+    });
+}

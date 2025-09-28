@@ -4,12 +4,17 @@ import { Warehouse } from './warehouse.ts';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { convertItemPrices } from '@/utils/item.ts';
 import { PriceType } from '@/data/comarch/prices.ts';
-import { getProductGroups, GroupsCodes } from '@/api/comarch-sql/product.ts';
+import {
+  getProductGroups,
+  GroupsCodes,
+  setProductGroups,
+} from '@/api/comarch-sql/product.ts';
 import { v4 as uuidv4 } from 'uuid';
 
 export type Price = {
   value: number;
   currency: string;
+  type: number;
 };
 
 export type Prices = { [key: string]: Price };
@@ -112,14 +117,18 @@ export function useGetItems(token: string, sqlToken: string) {
                   unit: item['unit'],
                   groups: productGroups[item['code']],
                   vatRate: item['vatRate'],
-                  prices: item['prices'].reduce((prices: any, price: any) => {
-                    prices[price['name']] = {
-                      value: price['value'],
-                      currency: price['currency'],
-                    };
+                  prices: item['prices'].reduce(
+                    (prices: Prices, price: any) => {
+                      prices[price['name']] = {
+                        value: price['value'],
+                        currency: price['currency'],
+                        type: price['type'],
+                      };
 
-                    return prices;
-                  }, {}),
+                      return prices;
+                    },
+                    {},
+                  ),
                 },
                 PriceType.BRUTTO,
               ),
@@ -185,11 +194,6 @@ export function useAddEditItem(token: string, sqlToken: string) {
   return useMutation({
     mutationKey: ['add-edit-item'],
     mutationFn: async (item: ItemWarehouses) => {
-      const productGroups = await getProductGroups(sqlToken);
-      if (!productGroups) {
-        throw new Error('Missing product groups');
-      }
-
       let response = await fetch(`${API_URL}/Items/${item.id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -199,7 +203,7 @@ export function useAddEditItem(token: string, sqlToken: string) {
         throw new Error(await response.text());
       }
 
-      baseItem.name = item.name;
+      baseItem.name = '(CUSTOM) ' + item.name;
       baseItem.unit = item.unit;
       baseItem.code = uuidv4().replace(/-/g, '').slice(0, 32);
 
@@ -218,6 +222,20 @@ export function useAddEditItem(token: string, sqlToken: string) {
         throw new Error(await response.text());
       }
 
+      const groupsSet = await setProductGroups(
+        sqlToken,
+        addedItem['code'],
+        item.groups,
+      );
+      if (!groupsSet) {
+        throw new Error();
+      }
+
+      const productGroups = await getProductGroups(sqlToken);
+      if (!productGroups) {
+        throw new Error('Missing product groups');
+      }
+
       return convertItemPrices(
         {
           id: addedItem['id'],
@@ -226,10 +244,11 @@ export function useAddEditItem(token: string, sqlToken: string) {
           unit: addedItem['unit'],
           groups: productGroups[addedItem['code']],
           vatRate: addedItem['vatRate'],
-          prices: addedItem['prices'].reduce((prices: any, price: any) => {
+          prices: addedItem['prices'].reduce((prices: Prices, price: any) => {
             prices[price['name']] = {
               value: price['value'],
               currency: price['currency'],
+              type: price['type'],
             };
 
             return prices;

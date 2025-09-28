@@ -129,12 +129,11 @@ export default function ItemsView() {
         }
 
         let finalItem = item;
-
         if (editItem) {
           const newItem = await addEditItemMutation.mutateAsync(editItem);
           finalItem = { ...finalItem, ...newItem };
 
-          void queryClient.invalidateQueries({ queryKey: ['items'] });
+          void queryClient.resetQueries({ queryKey: ['items'] });
         }
 
         const result = ctx.saveItem({
@@ -218,12 +217,23 @@ export default function ItemsView() {
                 selectedRow.quantity?.select();
               }
               break;
+
+            default:
+              if (isEditing) {
+                selectedRow.name?.focus();
+                selectedRow.name?.select();
+              } else {
+                selectedRow.quantity?.focus();
+                selectedRow.quantity?.select();
+              }
           }
         }
       }
     },
     [filteredList],
   );
+
+  const addRow = useCallback(() => {}, []);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -270,6 +280,11 @@ export default function ItemsView() {
             setEditingItem(selectedItem);
           }
           break;
+        case '2':
+          if (e.altKey) {
+            addRow();
+          }
+          break;
         case 'Escape':
           if (ctx) {
             ctx.setCurrentView(OrderView.Summary);
@@ -292,6 +307,7 @@ export default function ItemsView() {
       selectRow,
       editingItem,
       editedItem,
+      addRow,
     ],
   );
 
@@ -324,7 +340,10 @@ export default function ItemsView() {
     searchBarRef.current?.focus();
   }, [sortedItemsWarehouses]);
 
-  return ctx && warehouses && sortedItemsWarehouses ? (
+  return ctx &&
+    warehouses &&
+    sortedItemsWarehouses &&
+    !addEditItemMutation.isPending ? (
     <div>
       <h1 className='mb-5'>Wybór towaru</h1>
 
@@ -334,6 +353,10 @@ export default function ItemsView() {
           onClick={() => ctx.setCurrentView(OrderView.Summary)}
         >
           Powrót do oferty (ESC)
+        </button>
+
+        <button className='confirm' onClick={() => addRow()}>
+          Dodaj niestandardową pozycję (Alt+2)
         </button>
       </div>
 
@@ -474,7 +497,7 @@ export default function ItemsView() {
                         }
                       }}
                       type='text'
-                      className='w-full text-center'
+                      className='w-[100px] text-center'
                       value={editedItem?.unit}
                       onChange={(e) =>
                         setEditedItem((prev) =>
@@ -528,10 +551,16 @@ export default function ItemsView() {
     </div>
   ) : (
     <div>
-      {!warehouses ? (
-        <h1>Ładowanie magazynów...</h1>
+      {addEditItemMutation.isPending ? (
+        <h1>Zapisywanie przedmiotu...</h1>
       ) : (
-        <h1>Ładowanie przedmiotów...</h1>
+        <>
+          {!warehouses ? (
+            <h1>Ładowanie magazynów...</h1>
+          ) : (
+            <h1>Ładowanie przedmiotów...</h1>
+          )}
+        </>
       )}
     </div>
   );

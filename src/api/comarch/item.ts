@@ -3,21 +3,13 @@ import { getStocks, Stock } from './stock.ts';
 import { Warehouse } from './warehouse.ts';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { convertItemPrices } from '@/utils/item.ts';
-import { PriceType } from '@/data/comarch/prices.ts';
+import { Prices, PriceType } from '@/data/comarch/prices.ts';
 import {
   getProductGroups,
   GroupsCodes,
   setProductGroups,
 } from '@/api/comarch-sql/product.ts';
 import { v4 as uuidv4 } from 'uuid';
-
-export type Price = {
-  value: number;
-  currency: string;
-  type: number;
-};
-
-export type Prices = { [key: string]: Price };
 
 export type Item = {
   id: number;

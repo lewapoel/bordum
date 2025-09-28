@@ -1,26 +1,23 @@
 import { Item } from '@/api/comarch/item.ts';
-import { PRICES_TYPE_MAP, PriceType } from '@/data/comarch/prices.ts';
+import { Prices, PriceType } from '@/data/comarch/prices.ts';
 import { roundMoney } from '@/utils/money.ts';
 import { OrderItem } from '@/models/bitrix/order.ts';
+import { entries } from '@/lib/utils.ts';
 
 export function convertItemPrices(item: Item, convertTo: PriceType): Item {
-  Object.entries(item.prices).forEach(([priceKey, price]) => {
-    if (priceKey in PRICES_TYPE_MAP) {
-      const priceType = PRICES_TYPE_MAP[priceKey];
-
-      item.prices[priceKey].value = convertItemPrice(
-        price.value,
-        item.vatRate,
-        priceType,
-        convertTo,
-      );
-    }
+  entries<Prices>(item.prices).forEach(([priceKey, price]) => {
+    item.prices[priceKey].value = convertItemPrice(
+      price.value,
+      item.vatRate,
+      price.type,
+      convertTo,
+    );
   });
 
   return item;
 }
 
-export function convertItemPrice(
+function convertItemPrice(
   value: number,
   vatRate: number,
   convertFrom: PriceType,

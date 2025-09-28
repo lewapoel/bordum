@@ -182,6 +182,38 @@ export function useGetItemsWarehouses(
   });
 }
 
+async function fixAddedItem(
+  sqlToken: string,
+  item: Item,
+  addedItem: any,
+): Promise<Item> {
+  const groupsSet = await setProductGroups(
+    sqlToken,
+    addedItem['code'],
+    item.groups,
+  );
+  if (!groupsSet) {
+    throw new Error();
+  }
+
+  const priceSet = await setProductPrice(
+    sqlToken,
+    addedItem['code'],
+    DEFAULT_PRICE,
+    item.prices[DEFAULT_PRICE].value,
+  );
+  if (!priceSet) {
+    throw new Error();
+  }
+
+  const productGroups = await getProductGroups(sqlToken);
+  if (!productGroups) {
+    throw new Error('Missing product groups');
+  }
+
+  return parseItem(productGroups, addedItem);
+}
+
 export function useAddEditItem(token: string, sqlToken: string) {
   return useMutation({
     mutationKey: ['add-edit-item'],
@@ -213,22 +245,7 @@ export function useAddEditItem(token: string, sqlToken: string) {
       }
 
       const addedItem = await response.json();
-
-      const groupsSet = await setProductGroups(
-        sqlToken,
-        addedItem['code'],
-        item.groups,
-      );
-      if (!groupsSet) {
-        throw new Error();
-      }
-
-      const productGroups = await getProductGroups(sqlToken);
-      if (!productGroups) {
-        throw new Error('Missing product groups');
-      }
-
-      return parseItem(productGroups, addedItem);
+      return await fixAddedItem(sqlToken, item, addedItem);
     },
     onError: (error) => {
       console.error(error);
@@ -272,32 +289,7 @@ export function useAddItem(token: string, sqlToken: string) {
       }
 
       const addedItem = await response.json();
-
-      const groupsSet = await setProductGroups(
-        sqlToken,
-        addedItem['code'],
-        item.groups,
-      );
-      if (!groupsSet) {
-        throw new Error();
-      }
-
-      const priceSet = await setProductPrice(
-        sqlToken,
-        addedItem['code'],
-        DEFAULT_PRICE,
-        item.prices[DEFAULT_PRICE].value,
-      );
-      if (!priceSet) {
-        throw new Error();
-      }
-
-      const productGroups = await getProductGroups(sqlToken);
-      if (!productGroups) {
-        throw new Error('Missing product groups');
-      }
-
-      return parseItem(productGroups, addedItem);
+      return await fixAddedItem(sqlToken, item, addedItem);
     },
     onError: (error) => {
       console.error(error);

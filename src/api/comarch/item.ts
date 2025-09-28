@@ -258,7 +258,7 @@ export function useAddItem(token: string, sqlToken: string) {
         product: 0,
       };
 
-      let response = await fetch(`${API_URL}/Items`, {
+      const response = await fetch(`${API_URL}/Items`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,

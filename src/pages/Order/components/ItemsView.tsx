@@ -225,7 +225,7 @@ export default function ItemsView() {
         setAddingItemVisible(false);
       }
     },
-    [addItemMutation],
+    [addItemMutation, queryClient],
   );
 
   const [searchTerm, setSearchTerm] = useState('');

@@ -3,6 +3,7 @@ import { Prices, PriceType } from '@/data/comarch/prices.ts';
 import { roundMoney } from '@/utils/money.ts';
 import { OrderItem } from '@/models/bitrix/order.ts';
 import { entries } from '@/lib/utils.ts';
+import { v4 as uuidv4 } from 'uuid';
 
 export function convertItemPrices(item: Item, convertTo: PriceType): Item {
   entries<Prices>(item.prices).forEach(([priceKey, price]) => {
@@ -39,4 +40,8 @@ function convertItemPrice(
 
 export function calculateUnitPrice(item: OrderItem): number {
   return roundMoney(item.unitPrice * (1 - (item.discountRate ?? 0) / 100));
+}
+
+export function generateItemCode(): string {
+  return uuidv4().replace(/-/g, '').slice(0, 32);
 }

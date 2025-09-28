@@ -11,17 +11,51 @@ import { useGetWarehouses } from '@/api/comarch/warehouse.ts';
 import {
   ItemWarehouses,
   useAddEditItem,
+  useAddItem,
   useGetItems,
+  useGetItemsGroups,
   useGetItemsWarehouses,
 } from '@/api/comarch/item.ts';
 import { OrderContext, OrderView } from '@/models/order.ts';
-import { useFuzzySearchList, Highlight } from '@nozbe/microfuzz/react';
+import { Highlight, useFuzzySearchList } from '@nozbe/microfuzz/react';
 import clsx from 'clsx';
 import { HighlightRanges } from '@nozbe/microfuzz';
 import update from 'immutability-helper';
 import { toast } from 'react-toastify';
 import { AuthContext } from '@/components/AuthContext.tsx';
 import { useQueryClient } from '@tanstack/react-query';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog.tsx';
+import { Button } from '@/components/ui/button.tsx';
+import { Input } from '@/components/ui/input.tsx';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form.tsx';
+import { DEFAULT_GROUP } from '@/data/comarch/groups.ts';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select.tsx';
+import { generateItemCode } from '@/utils/item.ts';
+import { PriceType } from '@/data/comarch/prices.ts';
 
 type Match = {
   item: ItemWarehouses;
@@ -47,6 +81,33 @@ type Discounts = {
   [key: number]: string;
 };
 
+const priceSchema = z
+  .string()
+  .min(1, 'Cena jest wymagana')
+  .refine((val) => !isNaN(parseFloat(val)), { message: 'Cena musi być liczbą' })
+  .refine((val) => parseFloat(val) >= 0, {
+    message: 'Cena nie może być ujemna',
+  })
+  .refine((val) => Number.isInteger(parseFloat(val) * 100), {
+    message: 'Cena nie może mieć więcej niż 2 miejsca po przecinku',
+  });
+
+const addItemFormSchema = z.object({
+  name: z.string().min(1, 'Nazwa pozycji jest wymagana'),
+  unit: z.string().min(1, 'Jednostka pozycji jest wymagana'),
+  prices: z.object({
+    buy: priceSchema,
+    wholesale1: priceSchema,
+    wholesale2: priceSchema,
+    wholesale3: priceSchema,
+    retail: priceSchema,
+  }),
+  groups: z.object({
+    main: z.string().min(1, 'Grupa główna jest wymagana'),
+    additional: z.string(),
+  }),
+});
+
 export default function ItemsView() {
   const { token, sqlToken } = useContext(AuthContext);
   const ctx = useContext(OrderContext);
@@ -54,6 +115,7 @@ export default function ItemsView() {
   const queryClient = useQueryClient();
 
   const addEditItemMutation = useAddEditItem(token, sqlToken);
+  const addItemMutation = useAddItem(token, sqlToken);
   const warehousesQuery = useGetWarehouses(token);
   const itemsQuery = useGetItems(token, sqlToken);
   const itemsWarehousesQuery = useGetItemsWarehouses(
@@ -61,6 +123,7 @@ export default function ItemsView() {
     itemsQuery.data,
     warehousesQuery.data,
   );
+  const itemsGroupsQuery = useGetItemsGroups(token);
 
   const warehouses = warehousesQuery.data;
   const itemsWarehouses = useMemo(
@@ -70,6 +133,7 @@ export default function ItemsView() {
         : null,
     [itemsWarehousesQuery.data],
   );
+  const itemsGroups = itemsGroupsQuery.data;
 
   const sortedItemsWarehouses = useMemo(
     () =>
@@ -83,9 +147,91 @@ export default function ItemsView() {
     [itemsWarehouses],
   );
 
+  const addItemForm = useForm<z.infer<typeof addItemFormSchema>>({
+    resolver: zodResolver(addItemFormSchema),
+    defaultValues: {
+      name: '',
+      unit: 'szt.',
+      prices: {
+        buy: '0',
+        wholesale1: '0',
+        wholesale2: '0',
+        wholesale3: '0',
+        retail: '0',
+      },
+      groups: {
+        main: DEFAULT_GROUP,
+        additional: '',
+      },
+    },
+    mode: 'onChange',
+  });
+
+  const onAddItemSubmit = useCallback(
+    async (values: z.infer<typeof addItemFormSchema>) => {
+      const groups = [values.groups.main, values.groups.additional].filter(
+        (x) => x !== '',
+      );
+
+      const newItem = await addItemMutation.mutateAsync({
+        id: 0,
+        unit: values.unit,
+        name: values.name,
+        groups,
+        code: generateItemCode(),
+        vatRate: 23.0,
+        prices: {
+          zakupu: {
+            number: 1,
+            type: PriceType.NETTO,
+            value: +values.prices.buy,
+            currency: 'PLN',
+          },
+          'hurtowa 1': {
+            number: 2,
+            type: PriceType.NETTO,
+            value: +values.prices.wholesale1,
+            currency: 'PLN',
+          },
+          'hurtowa 2': {
+            number: 3,
+            type: PriceType.NETTO,
+            value: +values.prices.wholesale2,
+            currency: 'PLN',
+          },
+          'hurtowa 3': {
+            number: 4,
+            type: PriceType.NETTO,
+            value: +values.prices.wholesale3,
+            currency: 'PLN',
+          },
+          detaliczna: {
+            number: 5,
+            type: PriceType.BRUTTO,
+            value: +values.prices.retail,
+            currency: 'PLN',
+          },
+        },
+      });
+
+      if (newItem) {
+        toast.info(`Dodano nową pozycję: ${newItem.name}`, {
+          position: 'top-center',
+          theme: 'light',
+          autoClose: 2000,
+        });
+
+        void queryClient.resetQueries({ queryKey: ['items'] });
+        setAddingItemVisible(false);
+      }
+    },
+    [addItemMutation],
+  );
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItem, setSelectedItem] = useState(0);
   const [editingItem, setEditingItem] = useState(-1);
+  const [addingItemVisible, setAddingItemVisible] = useState(false);
 
   const [editedItem, setEditedItem] = useState<ItemWarehouses>();
   const [quantities, setQuantities] = useState<Quantities>({});
@@ -233,70 +379,74 @@ export default function ItemsView() {
     [filteredList],
   );
 
-  const addRow = useCallback(() => {}, []);
+  const addRow = useCallback(() => {
+    if (ctx?.allowAddingProduct) setAddingItemVisible(true);
+  }, [ctx]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      switch (e.key) {
-        case 'ArrowUp':
-          e.preventDefault();
-          setEditingItem(-1);
+      if (!addingItemVisible) {
+        switch (e.key) {
+          case 'ArrowUp':
+            e.preventDefault();
+            setEditingItem(-1);
 
-          {
-            const newSelectedItem = Math.max(0, selectedItem - 1);
-            selectRow(newSelectedItem, true);
-            setSelectedItem(newSelectedItem);
-          }
+            {
+              const newSelectedItem = Math.max(0, selectedItem - 1);
+              selectRow(newSelectedItem, true);
+              setSelectedItem(newSelectedItem);
+            }
 
-          break;
-        case 'ArrowDown':
-          e.preventDefault();
-          setEditingItem(-1);
+            break;
+          case 'ArrowDown':
+            e.preventDefault();
+            setEditingItem(-1);
 
-          {
-            const newSelectedItem = Math.min(
-              filteredList.length - 1,
-              selectedItem + 1,
-            );
-            selectRow(newSelectedItem, true);
-            setSelectedItem(newSelectedItem);
-          }
+            {
+              const newSelectedItem = Math.min(
+                filteredList.length - 1,
+                selectedItem + 1,
+              );
+              selectRow(newSelectedItem, true);
+              setSelectedItem(newSelectedItem);
+            }
 
-          break;
-        case 'Enter':
-          if (selectedItem >= 0 && selectedItem < filteredList.length) {
-            selectItem(
-              filteredList[selectedItem].item,
-              editingItem !== -1 ? editedItem : undefined,
-            ).then(() => {
-              setEditingItem(-1);
-              setEditedItem(undefined);
-            });
-          }
-          break;
-        case '1':
-          if (e.altKey) {
-            setEditedItem(filteredList[selectedItem].item);
-            setEditingItem(selectedItem);
-          }
-          break;
-        case '2':
-          if (e.altKey) {
-            addRow();
-          }
-          break;
-        case 'Escape':
-          if (ctx) {
-            ctx.setCurrentView(OrderView.Summary);
-          }
-          break;
-        case 'Tab':
-          e.preventDefault();
-          selectRow(selectedItem);
+            break;
+          case 'Enter':
+            if (selectedItem >= 0 && selectedItem < filteredList.length) {
+              selectItem(
+                filteredList[selectedItem].item,
+                editingItem !== -1 ? editedItem : undefined,
+              ).then(() => {
+                setEditingItem(-1);
+                setEditedItem(undefined);
+              });
+            }
+            break;
+          case '1':
+            if (e.altKey) {
+              setEditedItem(filteredList[selectedItem].item);
+              setEditingItem(selectedItem);
+            }
+            break;
+          case '2':
+            if (e.altKey) {
+              addRow();
+            }
+            break;
+          case 'Escape':
+            if (ctx) {
+              ctx.setCurrentView(OrderView.Summary);
+            }
+            break;
+          case 'Tab':
+            e.preventDefault();
+            selectRow(selectedItem);
 
-          break;
-        default:
-          break;
+            break;
+          default:
+            break;
+        }
       }
     },
     [
@@ -308,6 +458,7 @@ export default function ItemsView() {
       editingItem,
       editedItem,
       addRow,
+      addingItemVisible,
     ],
   );
 
@@ -343,8 +494,212 @@ export default function ItemsView() {
   return ctx &&
     warehouses &&
     sortedItemsWarehouses &&
+    itemsGroups &&
     !addEditItemMutation.isPending ? (
     <div>
+      <Dialog open={addingItemVisible} onOpenChange={setAddingItemVisible}>
+        <DialogContent
+          showCloseButton={false}
+          className='lg:max-w-screen-lg overflow-y-auto max-h-screen'
+        >
+          <Form {...addItemForm}>
+            <form
+              className='flex flex-col gap-4'
+              onSubmit={addItemForm.handleSubmit(onAddItemSubmit)}
+            >
+              <DialogHeader>
+                <DialogTitle>Dodaj niestandardową pozycję</DialogTitle>
+                <DialogDescription>Uzupełnij dane pozycji</DialogDescription>
+              </DialogHeader>
+
+              <div className='flex flex-col gap-4'>
+                <FormField
+                  control={addItemForm.control}
+                  name='name'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nazwa</FormLabel>
+                      <FormControl>
+                        <Input
+                          type='text'
+                          placeholder='Wprowadź nazwę pozycji...'
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={addItemForm.control}
+                  name='unit'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Jednostka</FormLabel>
+                      <FormControl>
+                        <Input
+                          type='text'
+                          placeholder='Wprowadź nazwę jednostki...'
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={addItemForm.control}
+                  name='prices.buy'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cena zakupu (netto)</FormLabel>
+                      <FormControl>
+                        <Input type='number' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={addItemForm.control}
+                  name='prices.wholesale1'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cena hurtowa 1 (netto)</FormLabel>
+                      <FormControl>
+                        <Input type='number' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={addItemForm.control}
+                  name='prices.wholesale2'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cena hurtowa 2 (netto)</FormLabel>
+                      <FormControl>
+                        <Input type='number' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={addItemForm.control}
+                  name='prices.wholesale3'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cena hurtowa 3 (netto)</FormLabel>
+                      <FormControl>
+                        <Input type='number' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={addItemForm.control}
+                  name='prices.retail'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cena detaliczna (brutto)</FormLabel>
+                      <FormControl>
+                        <Input type='number' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={addItemForm.control}
+                  name='groups.main'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Grupa główna</FormLabel>
+                      <FormControl>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.values(itemsGroups).map((group) => (
+                              <SelectItem key={group.id} value={group.code}>
+                                {group.code} - {group.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={addItemForm.control}
+                  name='groups.additional'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Grupa dodatkowa</FormLabel>
+                      <FormControl>
+                        <Select
+                          onValueChange={(value) =>
+                            field.onChange(value === null ? '' : value)
+                          }
+                          value={field.value}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder='Wybierz grupę...' />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={null!}>(brak)</SelectItem>
+                            {Object.values(itemsGroups).map((group) => (
+                              <SelectItem key={group.id} value={group.code}>
+                                {group.code} - {group.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <DialogFooter>
+                <Button
+                  disabled={
+                    !addItemForm.formState.isValid ||
+                    !addItemForm.formState.isDirty ||
+                    addItemForm.formState.isSubmitting
+                  }
+                  type='submit'
+                  className='confirm'
+                >
+                  Zapisz
+                </Button>
+                <DialogClose asChild>
+                  <Button className='delete'>Anuluj</Button>
+                </DialogClose>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
       <h1 className='mb-5'>Wybór towaru</h1>
 
       <div className='justify-center flex items-center gap-2 mb-10'>
@@ -355,7 +710,11 @@ export default function ItemsView() {
           Powrót do oferty (ESC)
         </button>
 
-        <button className='confirm' onClick={() => addRow()}>
+        <button
+          disabled={!ctx.allowAddingProduct}
+          className={clsx(ctx.allowAddingProduct ? '' : 'disabled', 'confirm')}
+          onClick={() => addRow()}
+        >
           Dodaj niestandardową pozycję (Alt+2)
         </button>
       </div>

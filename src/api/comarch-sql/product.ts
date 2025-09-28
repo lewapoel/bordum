@@ -52,3 +52,33 @@ export async function setProductGroups(
       return false;
     });
 }
+
+export async function setProductPrice(
+  token: string,
+  code: string,
+  priceName: string,
+  value: number,
+): Promise<boolean> {
+  return fetch(`${SQL_API_URL}/product-price`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      product_code: code,
+      price_name: priceName,
+      value,
+    }),
+  })
+    .then(async (response): Promise<boolean> => {
+      const data = await response.json();
+
+      return response.ok && data['success'];
+    })
+    .catch((error) => {
+      console.error(error);
+      alert('Nie udało się ustawić ceny produktu');
+      return false;
+    });
+}

@@ -1,9 +1,9 @@
 export const PRICES = [
-  'detaliczna',
+  'zakupu',
   'hurtowa 1',
   'hurtowa 2',
   'hurtowa 3',
-  'zakupu',
+  'detaliczna',
 ] as const;
 
 export const DEFAULT_PRICE = PRICES[0];
@@ -14,6 +14,7 @@ export enum PriceType {
 }
 
 export type Price = {
+  number: number;
   value: number;
   currency: string;
   type: PriceType;

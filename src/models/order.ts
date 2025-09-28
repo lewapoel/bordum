@@ -37,5 +37,6 @@ export type OrderStore = {
     limitLeft: number;
     allowWarning: boolean;
   };
+  allowAddingProduct: boolean;
 };
 export const OrderContext = createContext<OrderStore | null>(null);

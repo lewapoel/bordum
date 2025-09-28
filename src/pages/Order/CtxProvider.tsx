@@ -36,6 +36,7 @@ import {
   DEAL_PAYMENT_TYPES,
   QUOTE_PAYMENT_TYPES,
 } from '@/data/bitrix/const.ts';
+import { ALLOWED_USERS } from '@/data/bitrix/user.ts';
 
 interface CtxProviderProps {
   children: ReactNode;
@@ -62,6 +63,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
   const placementId = getCurrentPlacementId();
 
   const [pendingOrder, setPendingOrder] = useState<boolean>(false);
+  const [allowAddingProduct, setAllowAddingProduct] = useState<boolean>(false);
 
   // Current client invoices
   const [invoices, setInvoices] = useState<Array<InvoiceData>>();
@@ -140,6 +142,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
     getCurrentUser().then((res) => {
       if (res) {
         setMaxDiscount(res.discount);
+        setAllowAddingProduct(ALLOWED_USERS.ADDING_PRODUCTS.includes(res.id));
       }
     });
 
@@ -292,6 +295,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
             order?.paymentType === QUOTE_PAYMENT_TYPES.CREDIT_LIMIT ||
             deal?.paymentType === DEAL_PAYMENT_TYPES.CREDIT_LIMIT,
         },
+        allowAddingProduct,
       }}
     >
       {order && selectedPrice && !creditCustomer.isLoading && invoices ? (

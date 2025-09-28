@@ -2,14 +2,15 @@ import { API_URL } from './const.ts';
 import { getStocks, Stock } from './stock.ts';
 import { Warehouse } from './warehouse.ts';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { convertItemPrices } from '@/utils/item.ts';
-import { Prices, PriceType } from '@/data/comarch/prices.ts';
+import { convertItemPrices, generateItemCode } from '@/utils/item.ts';
+import { DEFAULT_PRICE, Prices, PriceType } from '@/data/comarch/prices.ts';
 import {
   getProductGroups,
   GroupsCodes,
+  ProductGroups,
   setProductGroups,
+  setProductPrice,
 } from '@/api/comarch-sql/product.ts';
-import { v4 as uuidv4 } from 'uuid';
 
 export type Item = {
   id: number;
@@ -35,6 +36,30 @@ export type ItemsGroups = { [key: string]: ItemsGroup };
 
 // Keyed by `gidNumber`
 type ItemsGroupsGid = { [key: string]: ItemsGroup };
+
+function parseItem(productGroups: ProductGroups, item: any): Item {
+  return convertItemPrices(
+    {
+      id: item['id'],
+      code: item['code'],
+      name: item['name'],
+      unit: item['unit'],
+      groups: productGroups[item['code']],
+      vatRate: item['vatRate'],
+      prices: item['prices'].reduce((prices: Prices, price: any) => {
+        prices[price['name']] = {
+          number: price['number'],
+          value: price['value'],
+          currency: price['currency'],
+          type: price['type'],
+        };
+
+        return prices;
+      }, {}),
+    },
+    PriceType.BRUTTO,
+  );
+}
 
 export function useGetItemsGroups(token: string) {
   return useQuery({
@@ -99,32 +124,7 @@ export function useGetItems(token: string, sqlToken: string) {
         .then(async (response): Promise<Array<Item>> => {
           const data = await response.json();
 
-          return data.map(
-            (item: any): Item =>
-              convertItemPrices(
-                {
-                  id: item['id'],
-                  code: item['code'],
-                  name: item['name'],
-                  unit: item['unit'],
-                  groups: productGroups[item['code']],
-                  vatRate: item['vatRate'],
-                  prices: item['prices'].reduce(
-                    (prices: Prices, price: any) => {
-                      prices[price['name']] = {
-                        value: price['value'],
-                        currency: price['currency'],
-                        type: price['type'],
-                      };
-
-                      return prices;
-                    },
-                    {},
-                  ),
-                },
-                PriceType.BRUTTO,
-              ),
-          );
+          return data.map((item: any): Item => parseItem(productGroups, item));
         })
         .catch((error) => {
           console.error(error);
@@ -185,7 +185,7 @@ export function useGetItemsWarehouses(
 export function useAddEditItem(token: string, sqlToken: string) {
   return useMutation({
     mutationKey: ['add-edit-item'],
-    mutationFn: async (item: ItemWarehouses) => {
+    mutationFn: async (item: Item) => {
       let response = await fetch(`${API_URL}/Items/${item.id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -197,7 +197,7 @@ export function useAddEditItem(token: string, sqlToken: string) {
 
       baseItem.name = '(CUSTOM) ' + item.name;
       baseItem.unit = item.unit;
-      baseItem.code = uuidv4().replace(/-/g, '').slice(0, 32);
+      baseItem.code = generateItemCode();
 
       response = await fetch(`${API_URL}/Items`, {
         method: 'POST',
@@ -208,11 +208,11 @@ export function useAddEditItem(token: string, sqlToken: string) {
         body: JSON.stringify(baseItem),
       });
 
-      const addedItem = await response.json();
-
       if (!response.ok) {
         throw new Error(await response.text());
       }
+
+      const addedItem = await response.json();
 
       const groupsSet = await setProductGroups(
         sqlToken,
@@ -228,30 +228,80 @@ export function useAddEditItem(token: string, sqlToken: string) {
         throw new Error('Missing product groups');
       }
 
-      return convertItemPrices(
-        {
-          id: addedItem['id'],
-          code: addedItem['code'],
-          name: addedItem['name'],
-          unit: addedItem['unit'],
-          groups: productGroups[addedItem['code']],
-          vatRate: addedItem['vatRate'],
-          prices: addedItem['prices'].reduce((prices: Prices, price: any) => {
-            prices[price['name']] = {
-              value: price['value'],
-              currency: price['currency'],
-              type: price['type'],
-            };
-
-            return prices;
-          }, {}),
-        },
-        PriceType.BRUTTO,
-      );
+      return parseItem(productGroups, addedItem);
     },
     onError: (error) => {
       console.error(error);
       alert('Wystąpił błąd przy dodawaniu edycji przedmiotu. Sprawdź konsolę');
+    },
+  });
+}
+
+export function useAddItem(token: string, sqlToken: string) {
+  return useMutation({
+    mutationKey: ['add-item'],
+    mutationFn: async (item: Item) => {
+      const itemBody = {
+        type: 1,
+        code: item.code,
+        name: item.name,
+        vatRate: item.vatRate,
+        vatRateFlag: 2,
+        unit: item.unit,
+        prices: Object.entries(item.prices).map(([priceName, price]) => ({
+          number: price.number,
+          type: price.type,
+          name: priceName,
+          value: price.value,
+          currency: price.currency,
+        })),
+        product: 0,
+      };
+
+      let response = await fetch(`${API_URL}/Items`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(itemBody),
+      });
+
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+
+      const addedItem = await response.json();
+
+      const groupsSet = await setProductGroups(
+        sqlToken,
+        addedItem['code'],
+        item.groups,
+      );
+      if (!groupsSet) {
+        throw new Error();
+      }
+
+      const priceSet = await setProductPrice(
+        sqlToken,
+        addedItem['code'],
+        DEFAULT_PRICE,
+        item.prices[DEFAULT_PRICE].value,
+      );
+      if (!priceSet) {
+        throw new Error();
+      }
+
+      const productGroups = await getProductGroups(sqlToken);
+      if (!productGroups) {
+        throw new Error('Missing product groups');
+      }
+
+      return parseItem(productGroups, addedItem);
+    },
+    onError: (error) => {
+      console.error(error);
+      alert('Wystąpił błąd przy dodawaniu przedmiotu. Sprawdź konsolę');
     },
   });
 }

@@ -125,6 +125,10 @@ export function useAddDocument(token: string) {
         sourceWarehouseId: 1,
       };
 
+      if (order.deliveryDate) {
+        body.documentReleaseDate = order.deliveryDate;
+      }
+
       if (documentType === DocumentType.RESERVATION_DOCUMENT) {
         body.foreignNumber = order.title;
         body.description = order.id;

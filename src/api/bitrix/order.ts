@@ -14,6 +14,7 @@ import { ensureMeasure, getMeasures } from './measure.ts';
 import {
   ORDER_ADDITIONAL_DATA_FIELD,
   ORDER_DELIVERY_CITY_FIELD,
+  ORDER_DELIVERY_DATE_FIELD,
   ORDER_DELIVERY_HOUSE_NUMBER_FIELD,
   ORDER_DELIVERY_POSTAL_CODE_FIELD,
   ORDER_DELIVERY_STREET_FIELD,
@@ -199,6 +200,7 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
           },
           items: [],
           paymentType: data[ORDER_PAYMENT_TYPE_FIELD] || undefined,
+          deliveryDate: data[ORDER_DELIVERY_DATE_FIELD] || undefined,
         };
 
         bx24.callMethod(

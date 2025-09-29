@@ -228,9 +228,11 @@ export function useAddEditItem(token: string, sqlToken: string) {
         throw new Error(await response.text());
       }
 
+      baseItem.type = 0;
       baseItem.name = '(CUSTOM) ' + item.name;
       baseItem.unit = item.unit;
       baseItem.code = generateItemCode();
+      baseItem.prices = Object.values(item.prices);
 
       response = await fetch(`${API_URL}/Items`, {
         method: 'POST',
@@ -265,7 +267,7 @@ export function useAddItem(token: string, sqlToken: string) {
     mutationKey: ['add-item'],
     mutationFn: async (item: Item) => {
       const itemBody = {
-        type: 1,
+        type: 0,
         code: item.code,
         name: item.name,
         vatRate: item.vatRate,

@@ -59,4 +59,5 @@ export type OrderData = CrmData & {
   deliveryAddress: OrderDeliveryAddress;
   items: Array<OrderItem>;
   paymentType?: string;
+  deliveryDate?: string;
 };

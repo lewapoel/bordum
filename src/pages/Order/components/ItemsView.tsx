@@ -23,7 +23,6 @@ import { HighlightRanges } from '@nozbe/microfuzz';
 import update from 'immutability-helper';
 import { toast } from 'react-toastify';
 import { AuthContext } from '@/components/AuthContext.tsx';
-import { useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
   DialogClose,
@@ -46,16 +45,9 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form.tsx';
-import { DEFAULT_GROUP } from '@/data/comarch/groups.ts';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select.tsx';
 import { generateItemCode } from '@/utils/item.ts';
 import { PriceType } from '@/data/comarch/prices.ts';
+import { TEMPORARY_ITEM_GROUP } from '@/data/comarch/groups.ts';
 
 type Match = {
   item: ItemWarehouses;
@@ -96,23 +88,22 @@ const addItemFormSchema = z.object({
   name: z.string().min(1, 'Nazwa pozycji jest wymagana'),
   unit: z.string().min(1, 'Jednostka pozycji jest wymagana'),
   prices: z.object({
-    buy: priceSchema,
-    wholesale1: priceSchema,
-    wholesale2: priceSchema,
-    wholesale3: priceSchema,
     retail: priceSchema,
   }),
-  groups: z.object({
-    main: z.string().min(1, 'Grupa główna jest wymagana'),
-    additional: z.string(),
-  }),
+  quantity: z
+    .string()
+    .min(1, 'Ilość jest wymagana')
+    .refine((val) => !isNaN(parseFloat(val)), {
+      message: 'Ilość musi być liczbą',
+    })
+    .refine((val) => parseFloat(val) > 0, {
+      message: 'Ilość musi być większa od zera',
+    }),
 });
 
 export default function ItemsView() {
   const { token, sqlToken } = useContext(AuthContext);
   const ctx = useContext(OrderContext);
-
-  const queryClient = useQueryClient();
 
   const addEditItemMutation = useAddEditItem(token, sqlToken);
   const addItemMutation = useAddItem(token, sqlToken);
@@ -135,14 +126,18 @@ export default function ItemsView() {
   );
   const itemsGroups = itemsGroupsQuery.data;
 
-  const sortedItemsWarehouses = useMemo(
+  const processedItemsWarehouses = useMemo(
     () =>
       itemsWarehouses
-        ? itemsWarehouses.toSorted(
-            (a, b) =>
-              Math.max(...Object.values(b.quantities).map((x) => x.quantity)) -
-              Math.max(...Object.values(a.quantities).map((x) => x.quantity)),
-          )
+        ? itemsWarehouses
+            .toSorted(
+              (a, b) =>
+                Math.max(
+                  ...Object.values(b.quantities).map((x) => x.quantity),
+                ) -
+                Math.max(...Object.values(a.quantities).map((x) => x.quantity)),
+            )
+            .filter((item) => !item.groups.includes(TEMPORARY_ITEM_GROUP))
         : null,
     [itemsWarehouses],
   );
@@ -153,79 +148,92 @@ export default function ItemsView() {
       name: '',
       unit: 'szt.',
       prices: {
-        buy: '0',
-        wholesale1: '0',
-        wholesale2: '0',
-        wholesale3: '0',
         retail: '0',
       },
-      groups: {
-        main: DEFAULT_GROUP,
-        additional: '',
-      },
+      quantity: '1',
     },
     mode: 'onChange',
   });
 
   const onAddItemSubmit = useCallback(
     async (values: z.infer<typeof addItemFormSchema>) => {
-      const groups = [values.groups.main, values.groups.additional].filter(
-        (x) => x !== '',
-      );
+      if (ctx) {
+        await toast.promise(
+          async () => {
+            const newItem = await addItemMutation.mutateAsync({
+              id: 0,
+              unit: values.unit,
+              name: values.name,
+              groups: [TEMPORARY_ITEM_GROUP],
+              code: generateItemCode(),
+              vatRate: 23.0,
+              prices: {
+                zakupu: {
+                  number: 1,
+                  type: PriceType.NETTO,
+                  value: 0,
+                  currency: 'PLN',
+                },
+                'hurtowa 1': {
+                  number: 2,
+                  type: PriceType.NETTO,
+                  value: 0,
+                  currency: 'PLN',
+                },
+                'hurtowa 2': {
+                  number: 3,
+                  type: PriceType.NETTO,
+                  value: 0,
+                  currency: 'PLN',
+                },
+                'hurtowa 3': {
+                  number: 4,
+                  type: PriceType.NETTO,
+                  value: 0,
+                  currency: 'PLN',
+                },
+                detaliczna: {
+                  number: 5,
+                  type: PriceType.BRUTTO,
+                  value: +values.prices.retail,
+                  currency: 'PLN',
+                },
+              },
+            });
 
-      const newItem = await addItemMutation.mutateAsync({
-        id: 0,
-        unit: values.unit,
-        name: values.name,
-        groups,
-        code: generateItemCode(),
-        vatRate: 23.0,
-        prices: {
-          zakupu: {
-            number: 1,
-            type: PriceType.NETTO,
-            value: +values.prices.buy,
-            currency: 'PLN',
-          },
-          'hurtowa 1': {
-            number: 2,
-            type: PriceType.NETTO,
-            value: +values.prices.wholesale1,
-            currency: 'PLN',
-          },
-          'hurtowa 2': {
-            number: 3,
-            type: PriceType.NETTO,
-            value: +values.prices.wholesale2,
-            currency: 'PLN',
-          },
-          'hurtowa 3': {
-            number: 4,
-            type: PriceType.NETTO,
-            value: +values.prices.wholesale3,
-            currency: 'PLN',
-          },
-          detaliczna: {
-            number: 5,
-            type: PriceType.BRUTTO,
-            value: +values.prices.retail,
-            currency: 'PLN',
-          },
-        },
-      });
+            if (newItem) {
+              ctx.saveItem({
+                code: newItem.code,
+                groups: newItem.groups,
+                itemId: newItem.id.toString(),
+                productName: newItem.name,
+                quantity: +values.quantity,
+                unit: newItem.unit,
+                unitPrice: newItem.prices['detaliczna'].value,
+                discountRate: 0,
+                taxRate: newItem.vatRate,
+              });
 
-      if (newItem) {
-        toast.info(`Dodano nową pozycję: ${newItem.name}`, {
-          position: 'top-center',
-          theme: 'light',
-          autoClose: 2000,
-        });
+              toast.info(`Dodano nową pozycję: ${newItem.name}`, {
+                position: 'top-center',
+                theme: 'light',
+                autoClose: 2000,
+              });
 
-        void queryClient.resetQueries({ queryKey: ['items'] });
-        setAddingItemVisible(false);
+              setAddingItemVisible(false);
+            }
+          },
+          {
+            pending: 'Dodawanie nowej pozycji...',
+          },
+          {
+            position: 'top-center',
+            theme: 'light',
+          },
+        );
       }
     },
-    [addItemMutation, queryClient],
+    [ctx, addItemMutation],
   );
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -241,7 +249,7 @@ export default function ItemsView() {
   const rowsRef = useRef<RowsElements>(null);
 
   const filteredList = useFuzzySearchList<ItemWarehouses, Match>({
-    list: sortedItemsWarehouses ?? [],
+    list: processedItemsWarehouses ?? [],
     queryText: searchTerm,
     key: 'name',
     mapResultItem: ({ item, matches: [highlightRanges] }) => ({
@@ -276,10 +284,23 @@ export default function ItemsView() {
 
         let finalItem = item;
         if (editItem) {
-          const newItem = await addEditItemMutation.mutateAsync(editItem);
-          finalItem = { ...finalItem, ...newItem };
+          await toast.promise(
+            async () => {
+              const newItem = await addEditItemMutation.mutateAsync({
+                ...editItem,
+                groups: [TEMPORARY_ITEM_GROUP],
+              });
 
-          void queryClient.resetQueries({ queryKey: ['items'] });
+              finalItem = { ...finalItem, ...newItem };
+            },
+            {
+              pending: 'Dodawanie edytowanej pozycji...',
+            },
+            {
+              position: 'top-center',
+              theme: 'light',
+            },
+          );
         }
 
         const result = ctx.saveItem({
@@ -315,7 +336,7 @@ export default function ItemsView() {
         searchBarRef.current?.focus();
       }
     },
-    [ctx, quantities, discounts, queryClient, addEditItemMutation],
+    [ctx, quantities, discounts, addEditItemMutation],
   );
 
   const selectRow = useCallback(
@@ -470,8 +491,8 @@ export default function ItemsView() {
   }, [handleKeyDown]);
 
   useEffect(() => {
-    if (sortedItemsWarehouses) {
-      rowsRef.current = sortedItemsWarehouses.reduce(
+    if (processedItemsWarehouses) {
+      rowsRef.current = processedItemsWarehouses.reduce(
         (acc: RowsElements, item) => {
           acc[item.id] = {
             name: null,
@@ -485,17 +506,13 @@ export default function ItemsView() {
         {},
       );
     }
-  }, [sortedItemsWarehouses]);
+  }, [processedItemsWarehouses]);
 
   useEffect(() => {
     searchBarRef.current?.focus();
-  }, [sortedItemsWarehouses]);
+  }, [processedItemsWarehouses]);
 
-  return ctx &&
-    warehouses &&
-    sortedItemsWarehouses &&
-    itemsGroups &&
-    !addEditItemMutation.isPending ? (
+  return ctx && warehouses && processedItemsWarehouses && itemsGroups ? (
     <div>
       <Dialog open={addingItemVisible} onOpenChange={setAddingItemVisible}>
         <DialogContent
@@ -551,62 +568,6 @@ export default function ItemsView() {
 
                 <FormField
                   control={addItemForm.control}
-                  name='prices.buy'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cena zakupu (netto)</FormLabel>
-                      <FormControl>
-                        <Input type='number' {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={addItemForm.control}
-                  name='prices.wholesale1'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cena hurtowa 1 (netto)</FormLabel>
-                      <FormControl>
-                        <Input type='number' {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={addItemForm.control}
-                  name='prices.wholesale2'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cena hurtowa 2 (netto)</FormLabel>
-                      <FormControl>
-                        <Input type='number' {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={addItemForm.control}
-                  name='prices.wholesale3'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cena hurtowa 3 (netto)</FormLabel>
-                      <FormControl>
-                        <Input type='number' {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={addItemForm.control}
                   name='prices.retail'
                   render={({ field }) => (
                     <FormItem>
@@ -621,57 +582,12 @@ export default function ItemsView() {
 
                 <FormField
                   control={addItemForm.control}
-                  name='groups.main'
+                  name='quantity'
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Grupa główna</FormLabel>
+                      <FormLabel>Ilość</FormLabel>
                       <FormControl>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Object.values(itemsGroups).map((group) => (
-                              <SelectItem key={group.id} value={group.code}>
-                                {group.code} - {group.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={addItemForm.control}
-                  name='groups.additional'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Grupa dodatkowa</FormLabel>
-                      <FormControl>
-                        <Select
-                          onValueChange={(value) =>
-                            field.onChange(value === null ? '' : value)
-                          }
-                          value={field.value}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder='Wybierz grupę...' />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value={null!}>(brak)</SelectItem>
-                            {Object.values(itemsGroups).map((group) => (
-                              <SelectItem key={group.id} value={group.code}>
-                                {group.code} - {group.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <Input type='number' {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -910,16 +826,10 @@ export default function ItemsView() {
     </div>
   ) : (
     <div>
-      {addEditItemMutation.isPending ? (
-        <h1>Zapisywanie przedmiotu...</h1>
+      {!warehouses ? (
+        <h1>Ładowanie magazynów...</h1>
       ) : (
-        <>
-          {!warehouses ? (
-            <h1>Ładowanie magazynów...</h1>
-          ) : (
-            <h1>Ładowanie przedmiotów...</h1>
-          )}
-        </>
+        <h1>Ładowanie przedmiotów...</h1>
       )}
     </div>
   );

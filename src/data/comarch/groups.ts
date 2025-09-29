@@ -11,3 +11,4 @@ export const PACKAGING_GROUPS = [
 ];
 
 export const DEFAULT_GROUP = 'Grupa Główna';
+export const TEMPORARY_ITEM_GROUP = 'TEMP';

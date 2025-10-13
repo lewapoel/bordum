@@ -45,7 +45,7 @@ function SummaryRow({
   const [tempQuantity, setTempQuantity] = useState(item?.quantity ?? '');
 
   useEffect(() => {
-    if (tempQuantity !== '') {
+    if (tempQuantity !== '' && +tempQuantity > 0) {
       setTempQuantity(editItemQuantity(index, +tempQuantity) ?? '');
     }
   }, [tempQuantity, editItemQuantity, index]);

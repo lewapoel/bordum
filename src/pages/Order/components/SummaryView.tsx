@@ -80,9 +80,9 @@ function SummaryRow({
         )}
       </td>
       <td>{item?.unit}</td>
-      <td>{item ? calculateUnitPrice(item).toFixed(2) : null}</td>
+      <td>{item ? formatMoney(calculateUnitPrice(item)) : null}</td>
       <td>
-        {item ? (calculateUnitPrice(item) * item.quantity).toFixed(2) : null}
+        {item ? formatMoney(calculateUnitPrice(item) * item.quantity) : null}
       </td>
     </tr>
   );
@@ -341,7 +341,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
         </div>
       )}
 
-      <h2 className='mb-5 font-bold'>Wartość całkowita: {sum.toFixed(2)} zł</h2>
+      <h2 className='mb-5 font-bold'>Wartość całkowita: {formatMoney(sum)}</h2>
       <table>
         <thead>
           <tr>

@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { useGetWarehouses } from '@/api/comarch/warehouse.ts';
 import {
+  Item,
   ItemWarehouses,
   useAddEditItem,
   useAddItem,
@@ -46,8 +47,12 @@ import {
   FormMessage,
 } from '@/components/ui/form.tsx';
 import { generateItemCode } from '@/utils/item.ts';
-import { PriceType } from '@/data/comarch/prices.ts';
 import { TEMPORARY_ITEM_GROUP } from '@/data/comarch/groups.ts';
+import { TEMPLATE_PRODUCT_CODES } from '@/data/comarch/products.ts';
+import Combobox, { ComboboxItem } from '@/components/ui/combobox.tsx';
+import { formatMoney } from '@/utils/money.ts';
+import { Prices, PriceType } from '@/models/comarch/prices.ts';
+import { DEFAULT_PRICE } from '@/data/comarch/prices.ts';
 
 type Match = {
   item: ItemWarehouses;
@@ -101,6 +106,43 @@ const addItemFormSchema = z.object({
     }),
 });
 
+const addTemplateItemFormSchema = z.object({
+  priceType: z
+    .string()
+    .min(1, 'Rodzaj ceny jest wymagany')
+    .refine((val) => val !== DEFAULT_PRICE, {
+      message: 'Niedozwolony rodzaj ceny kontrahenta',
+    }),
+  code: z.string().min(1, 'Wybierz produkt z listy'),
+  width: z
+    .string()
+    .min(1, 'Szerokość jest wymagana')
+    .refine((val) => !isNaN(parseFloat(val)), {
+      message: 'Szerokość musi być liczbą',
+    })
+    .refine((val) => parseFloat(val) >= 0, {
+      message: 'Szerokość nie może być ujemna',
+    }),
+  height: z
+    .string()
+    .min(1, 'Wysokość jest wymagana')
+    .refine((val) => !isNaN(parseFloat(val)), {
+      message: 'Wysokość musi być liczbą',
+    })
+    .refine((val) => parseFloat(val) >= 0, {
+      message: 'Wysokość nie może być ujemna',
+    }),
+  quantity: z
+    .string()
+    .min(1, 'Ilość jest wymagana')
+    .refine((val) => !isNaN(parseFloat(val)), {
+      message: 'Ilość musi być liczbą',
+    })
+    .refine((val) => parseFloat(val) > 0, {
+      message: 'Ilość musi być większa od zera',
+    }),
+});
+
 export default function ItemsView() {
   const { token, sqlToken } = useContext(AuthContext);
   const ctx = useContext(OrderContext);
@@ -117,6 +159,16 @@ export default function ItemsView() {
   const itemsGroupsQuery = useGetItemsGroups(token);
 
   const warehouses = warehousesQuery.data;
+  const itemsByCode = useMemo(
+    () =>
+      itemsQuery.data
+        ? itemsQuery.data.reduce((acc: { [key: string]: Item }, current) => {
+            acc[current.code] = current;
+            return acc;
+          }, {})
+        : {},
+    [itemsQuery.data],
+  );
   const itemsWarehouses = useMemo(
     () =>
       itemsWarehousesQuery.data
@@ -142,6 +194,18 @@ export default function ItemsView() {
     [itemsWarehouses],
   );
 
+  const templateItems = useMemo(
+    () => TEMPLATE_PRODUCT_CODES.map((code) => itemsByCode[code]),
+    [itemsByCode],
+  )
+    .filter(Boolean)
+    .map(
+      (item): ComboboxItem => ({
+        label: item.name,
+        value: item.code,
+      }),
+    );
+
   const addItemForm = useForm<z.infer<typeof addItemFormSchema>>({
     resolver: zodResolver(addItemFormSchema),
     defaultValues: {
@@ -154,6 +218,43 @@ export default function ItemsView() {
     },
     mode: 'onChange',
   });
+
+  const addTemplateItemForm = useForm<
+    z.infer<typeof addTemplateItemFormSchema>
+  >({
+    resolver: zodResolver(addTemplateItemFormSchema),
+    defaultValues: useMemo(
+      () => ({
+        priceType: ctx?.selectedPrice,
+        code: '',
+        width: '0',
+        height: '0',
+        quantity: '1',
+      }),
+      [ctx],
+    ),
+    mode: 'onChange',
+  });
+  const formTemplateItem = addTemplateItemForm.watch();
+  const formTemplateItemArea = useMemo(
+    () => +formTemplateItem.width * +formTemplateItem.height,
+    [formTemplateItem.width, formTemplateItem.height],
+  );
+  const currentTemplateItem = useMemo(
+    () => itemsByCode[formTemplateItem.code],
+    [itemsByCode, formTemplateItem.code],
+  );
+  const currentTemplateItemUnitPrice = useMemo(
+    () =>
+      ctx && currentTemplateItem
+        ? currentTemplateItem.prices[ctx.selectedPrice!].value
+        : 0,
+    [ctx, currentTemplateItem],
+  );
+  const currentTemplateItemAreaPrice = useMemo(
+    () => currentTemplateItemUnitPrice * formTemplateItemArea,
+    [currentTemplateItemUnitPrice, formTemplateItemArea],
+  );
 
   const onAddItemSubmit = useCallback(
     async (values: z.infer<typeof addItemFormSchema>) => {
@@ -240,6 +341,8 @@ export default function ItemsView() {
   const [selectedItem, setSelectedItem] = useState(0);
   const [editingItem, setEditingItem] = useState(-1);
   const [addingItemVisible, setAddingItemVisible] = useState(false);
+  const [addingTemplateItemVisible, setAddingTemplateItemVisible] =
+    useState(false);
 
   const [editedItem, setEditedItem] = useState<ItemWarehouses>();
   const [quantities, setQuantities] = useState<Quantities>({});
@@ -258,8 +361,68 @@ export default function ItemsView() {
     }),
   });
 
+  const addEditItem = useCallback(
+    async (editItem: Item) => {
+      return await toast.promise(
+        async () => {
+          return await addEditItemMutation.mutateAsync({
+            ...editItem,
+            groups: [TEMPORARY_ITEM_GROUP],
+          });
+        },
+        {
+          pending: 'Dodawanie edytowanej pozycji...',
+        },
+        {
+          position: 'top-center',
+          theme: 'light',
+        },
+      );
+    },
+    [addEditItemMutation],
+  );
+
+  const selectItemManual = useCallback(
+    async (item: Item, quantity: number, discount?: number) => {
+      if (ctx) {
+        const result = ctx.saveItem({
+          code: item.code,
+          groups: item.groups,
+          itemId: item.id.toString(),
+          productName: item.name,
+          quantity: +quantity,
+          unit: item.unit,
+          unitPrice: item.prices[ctx.selectedPrice!].value,
+          discountRate: discount ?? 0,
+          taxRate: item.vatRate,
+        });
+
+        let resultLocalized: string;
+
+        switch (result) {
+          case 'add':
+            resultLocalized = 'Dodano';
+            break;
+          case 'edit':
+            resultLocalized = 'Edytowano';
+            break;
+        }
+
+        toast.info(`${resultLocalized} produkt: ${item.name}`, {
+          position: 'top-center',
+          theme: 'light',
+          autoClose: 700,
+        });
+
+        setSearchTerm('');
+        searchBarRef.current?.focus();
+      }
+    },
+    [ctx],
+  );
+
   const selectItem = useCallback(
-    async (item: ItemWarehouses, editItem?: ItemWarehouses) => {
+    async (item: ItemWarehouses, editItem?: Item) => {
       if (ctx) {
         const quantity = quantities[item.id];
         const discount = discounts[item.id] ?? 0;
@@ -282,61 +445,15 @@ export default function ItemsView() {
           return;
         }
 
-        let finalItem = item;
+        let finalItem: Item = item;
         if (editItem) {
-          await toast.promise(
-            async () => {
-              const newItem = await addEditItemMutation.mutateAsync({
-                ...editItem,
-                groups: [TEMPORARY_ITEM_GROUP],
-              });
-
-              finalItem = { ...finalItem, ...newItem };
-            },
-            {
-              pending: 'Dodawanie edytowanej pozycji...',
-            },
-            {
-              position: 'top-center',
-              theme: 'light',
-            },
-          );
+          finalItem = await addEditItem(editItem);
         }
 
-        const result = ctx.saveItem({
-          code: finalItem.code,
-          groups: finalItem.groups,
-          itemId: finalItem.id.toString(),
-          productName: finalItem.name,
-          quantity: +quantity,
-          unit: finalItem.unit,
-          unitPrice: finalItem.prices[ctx.selectedPrice!].value,
-          discountRate: +discount,
-          taxRate: finalItem.vatRate,
-        });
-
-        let resultLocalized: string;
-
-        switch (result) {
-          case 'add':
-            resultLocalized = 'Dodano';
-            break;
-          case 'edit':
-            resultLocalized = 'Edytowano';
-            break;
-        }
-
-        toast.info(`${resultLocalized} produkt: ${finalItem.name}`, {
-          position: 'top-center',
-          theme: 'light',
-          autoClose: 700,
-        });
-
-        setSearchTerm('');
-        searchBarRef.current?.focus();
+        await selectItemManual(finalItem, +quantity, +discount);
       }
     },
-    [ctx, quantities, discounts, addEditItemMutation],
+    [ctx, quantities, discounts, selectItemManual, addEditItem],
   );
 
   const selectRow = useCallback(
@@ -400,8 +517,35 @@ export default function ItemsView() {
     [filteredList],
   );
 
+  const onAddTemplateItemSubmit = useCallback(
+    async (values: z.infer<typeof addTemplateItemFormSchema>) => {
+      const area = +values.width * +values.height;
+      const newPrices = Object.entries(currentTemplateItem.prices).reduce(
+        (acc: Prices, [priceKey, price]) => {
+          acc[priceKey] = { ...price, value: price.value * area };
+          return acc;
+        },
+        {},
+      );
+
+      const item = await addEditItem({
+        ...currentTemplateItem,
+        name:
+          currentTemplateItem.name + ` w=${values.width}m,h=${values.height}m`,
+        prices: newPrices,
+      });
+
+      await selectItemManual(item, +values.quantity);
+    },
+    [currentTemplateItem, addEditItem, selectItemManual],
+  );
+
   const addRow = useCallback(() => {
     if (ctx?.allowAddingProduct) setAddingItemVisible(true);
+  }, [ctx]);
+
+  const addTemplateRow = useCallback(() => {
+    if (ctx?.allowAddingProduct) setAddingTemplateItemVisible(true);
   }, [ctx]);
 
   const handleKeyDown = useCallback(
@@ -455,6 +599,11 @@ export default function ItemsView() {
               addRow();
             }
             break;
+          case '3':
+            if (e.altKey) {
+              addTemplateRow();
+            }
+            break;
           case 'Escape':
             if (ctx) {
               ctx.setCurrentView(OrderView.Summary);
@@ -479,9 +628,22 @@ export default function ItemsView() {
       editingItem,
       editedItem,
       addRow,
+      addTemplateRow,
       addingItemVisible,
     ],
   );
+
+  useEffect(() => {
+    addTemplateItemForm.reset({
+      priceType: ctx?.selectedPrice,
+      code: '',
+      width: '0',
+      height: '0',
+      quantity: '1',
+    });
+
+    void addTemplateItemForm.trigger('priceType');
+  }, [ctx, addTemplateItemForm]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
@@ -615,6 +777,160 @@ export default function ItemsView() {
           </Form>
         </DialogContent>
       </Dialog>
+      <Dialog
+        open={addingTemplateItemVisible}
+        onOpenChange={setAddingTemplateItemVisible}
+      >
+        <DialogContent
+          showCloseButton={false}
+          className='lg:max-w-screen-lg overflow-y-auto max-h-screen'
+        >
+          <Form {...addTemplateItemForm}>
+            <form
+              className='flex flex-col gap-4'
+              onSubmit={addTemplateItemForm.handleSubmit(
+                onAddTemplateItemSubmit,
+              )}
+            >
+              <DialogHeader>
+                <DialogTitle>
+                  Dodaj pozycję z niestandardowym wymiarem
+                </DialogTitle>
+                <DialogDescription>Uzupełnij dane pozycji</DialogDescription>
+              </DialogHeader>
+
+              <div className='flex flex-col gap-4'>
+                <FormField
+                  control={addTemplateItemForm.control}
+                  name='code'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Pozycja</FormLabel>
+                      <FormControl>
+                        <Combobox
+                          width={300}
+                          items={templateItems}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormItem>
+                  <FormLabel>Nazwa</FormLabel>
+                  <p>{currentTemplateItem?.name ?? 'brak'}</p>
+                </FormItem>
+
+                <FormItem>
+                  <FormLabel>Jednostka</FormLabel>
+                  <p>{currentTemplateItem?.unit ?? 'brak'}</p>
+                </FormItem>
+
+                <FormField
+                  control={addTemplateItemForm.control}
+                  name='width'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Szerokość (m)</FormLabel>
+                      <FormControl>
+                        <Input type='number' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={addTemplateItemForm.control}
+                  name='height'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Wysokość (m)</FormLabel>
+                      <FormControl>
+                        <Input type='number' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormItem>
+                  <FormLabel>Powierzchnia (m²)</FormLabel>
+                  <p>{formTemplateItemArea.toFixed(2)}</p>
+                </FormItem>
+
+                <FormField
+                  control={addTemplateItemForm.control}
+                  name='priceType'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Rodzaj ceny</FormLabel>
+                      <FormControl>
+                        <Input disabled type='text' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormItem>
+                  <FormLabel>
+                    Cena jednostkowa - {ctx.selectedPrice} (zł)
+                  </FormLabel>
+                  <p>{formatMoney(currentTemplateItemUnitPrice)}</p>
+                </FormItem>
+
+                <FormItem>
+                  <FormLabel>Cena za sztukę (zł)</FormLabel>
+                  <p>{formatMoney(currentTemplateItemAreaPrice)}</p>
+                </FormItem>
+
+                <FormField
+                  control={addTemplateItemForm.control}
+                  name='quantity'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ilość</FormLabel>
+                      <FormControl>
+                        <Input type='number' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormItem>
+                  <FormLabel>Wartość (zł)</FormLabel>
+                  <p>
+                    {formatMoney(
+                      currentTemplateItemAreaPrice * +formTemplateItem.quantity,
+                    )}
+                  </p>
+                </FormItem>
+              </div>
+
+              <DialogFooter>
+                <Button
+                  disabled={
+                    !addTemplateItemForm.formState.isValid ||
+                    !addTemplateItemForm.formState.isDirty ||
+                    addTemplateItemForm.formState.isSubmitting
+                  }
+                  type='submit'
+                  className='confirm'
+                >
+                  Dodaj
+                </Button>
+                <DialogClose asChild>
+                  <Button className='delete'>Anuluj</Button>
+                </DialogClose>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
 
       <h1 className='mb-5'>Wybór towaru</h1>
 
@@ -632,6 +948,14 @@ export default function ItemsView() {
           onClick={() => addRow()}
         >
           Dodaj niestandardową pozycję (Alt+2)
+        </button>
+
+        <button
+          disabled={!ctx.allowAddingProduct}
+          className={clsx(ctx.allowAddingProduct ? '' : 'disabled', 'confirm')}
+          onClick={() => addTemplateRow()}
+        >
+          Niestandardowy wymiar (Alt+3)
         </button>
       </div>
 
@@ -816,8 +1140,8 @@ export default function ItemsView() {
                     }
                   />
                 </td>
-                <td>{unitPrice.toFixed(2)}</td>
-                <td>{price.toFixed(2)}</td>
+                <td>{formatMoney(unitPrice)}</td>
+                <td>{formatMoney(price)}</td>
               </tr>
             );
           })}

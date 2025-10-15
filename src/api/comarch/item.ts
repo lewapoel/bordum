@@ -2,8 +2,12 @@ import { API_URL } from './const.ts';
 import { getStocks, Stock } from './stock.ts';
 import { Warehouse } from './warehouse.ts';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { convertItemPrices, generateItemCode } from '@/utils/item.ts';
-import { DEFAULT_PRICE, Prices, PriceType } from '@/data/comarch/prices.ts';
+import {
+  convertDefaultItemPrices,
+  convertItemPrices,
+  generateItemCode,
+} from '@/utils/item.ts';
+import { DEFAULT_PRICE } from '@/data/comarch/prices.ts';
 import {
   getProductGroups,
   GroupsCodes,
@@ -11,6 +15,7 @@ import {
   setProductGroups,
   setProductPrice,
 } from '@/api/comarch-sql/product.ts';
+import { Prices, PriceType } from '@/models/comarch/prices.ts';
 
 export type Item = {
   id: number;
@@ -219,7 +224,9 @@ export function useAddEditItem(token: string, sqlToken: string) {
   return useMutation({
     mutationKey: ['add-edit-item'],
     mutationFn: async (item: Item) => {
-      let response = await fetch(`${API_URL}/Items/${item.id}`, {
+      const convertedItem = convertDefaultItemPrices(item);
+
+      let response = await fetch(`${API_URL}/Items/${convertedItem.id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -229,10 +236,10 @@ export function useAddEditItem(token: string, sqlToken: string) {
       }
 
       baseItem.type = 0;
-      baseItem.name = '(CUSTOM) ' + item.name;
-      baseItem.unit = item.unit;
+      baseItem.name = convertedItem.name;
+      baseItem.unit = convertedItem.unit;
       baseItem.code = generateItemCode();
-      baseItem.prices = Object.values(item.prices);
+      baseItem.prices = Object.values(convertedItem.prices);
 
       response = await fetch(`${API_URL}/Items`, {
         method: 'POST',
@@ -250,9 +257,9 @@ export function useAddEditItem(token: string, sqlToken: string) {
       const addedItem = await response.json();
       return await fixAddedItem(
         sqlToken,
-        item,
+        convertedItem,
         addedItem,
-        baseItem['prices'][0]['value'],
+        convertedItem.prices[DEFAULT_PRICE].value,
       );
     },
     onError: (error) => {
@@ -266,20 +273,24 @@ export function useAddItem(token: string, sqlToken: string) {
   return useMutation({
     mutationKey: ['add-item'],
     mutationFn: async (item: Item) => {
+      const convertedItem = convertDefaultItemPrices(item);
+
       const itemBody = {
         type: 0,
-        code: item.code,
-        name: item.name,
-        vatRate: item.vatRate,
+        code: convertedItem.code,
+        name: convertedItem.name,
+        vatRate: convertedItem.vatRate,
         vatRateFlag: 2,
-        unit: item.unit,
-        prices: Object.entries(item.prices).map(([priceName, price]) => ({
-          number: price.number,
-          type: price.type,
-          name: priceName,
-          value: price.value,
-          currency: price.currency,
-        })),
+        unit: convertedItem.unit,
+        prices: Object.entries(convertedItem.prices).map(
+          ([priceName, price]) => ({
+            number: price.number,
+            type: price.type,
+            name: priceName,
+            value: price.value,
+            currency: price.currency,
+          }),
+        ),
         product: 0,
       };
 
@@ -299,9 +310,9 @@ export function useAddItem(token: string, sqlToken: string) {
       const addedItem = await response.json();
       return await fixAddedItem(
         sqlToken,
-        item,
+        convertedItem,
         addedItem,
-        item.prices[DEFAULT_PRICE].value,
+        convertedItem.prices[DEFAULT_PRICE].value,
       );
     },
     onError: (error) => {

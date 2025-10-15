@@ -1,3 +1,5 @@
+import { PriceType } from '@/models/comarch/prices.ts';
+
 export const PRICES = [
   'zakupu',
   'hurtowa 1',
@@ -8,16 +10,10 @@ export const PRICES = [
 
 export const DEFAULT_PRICE = PRICES[0];
 
-export enum PriceType {
-  NETTO = 1,
-  BRUTTO = 2,
-}
-
-export type Price = {
-  number: number;
-  value: number;
-  currency: string;
-  type: PriceType;
+export const DEFAULT_PRICE_TYPES: { [key: string]: PriceType } = {
+  zakupu: PriceType.NETTO,
+  'hurtowa 1': PriceType.NETTO,
+  'hurtowa 2': PriceType.NETTO,
+  'hurtowa 3': PriceType.NETTO,
+  detaliczna: PriceType.BRUTTO,
 };
-
-export type Prices = { [key: string]: Price };

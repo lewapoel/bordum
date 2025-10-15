@@ -3,6 +3,7 @@ import { getCurrentPlacementId } from '../utils/bitrix24';
 import { OrderItem } from '../models/bitrix/order.ts';
 import { getOrder, hasOrderDeals, splitOrder } from '../api/bitrix/order.ts';
 import { calculateUnitPrice } from '@/utils/item.ts';
+import { formatMoney } from '@/utils/money.ts';
 
 function SplitOrder() {
   const placementId = getCurrentPlacementId();
@@ -176,7 +177,7 @@ function SplitOrder() {
         <>
           <h1 className='mb-5'>Podoferta</h1>
           <p className='font-bold mb-2'>
-            Łączna kwota podoferty: {subOrderSum.toFixed(2)} zł
+            Łączna kwota podoferty: {formatMoney(subOrderSum)}
           </p>
 
           <div className='justify-center flex items-center gap-2 mb-10'>
@@ -230,9 +231,9 @@ function SplitOrder() {
                       />
                     </td>
                     <td>{item.unit}</td>
-                    <td>{calculateUnitPrice(item)}</td>
+                    <td>{formatMoney(calculateUnitPrice(item))}</td>
                     <td>
-                      {(calculateUnitPrice(item) * item.quantity).toFixed(2)}
+                      {formatMoney(calculateUnitPrice(item) * item.quantity)}
                     </td>
                   </tr>
                 ))

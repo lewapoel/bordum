@@ -145,8 +145,10 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
   useEffect(() => {
     getCurrentUser().then((res) => {
       if (res) {
+        const canAddProduct = ALLOWED_USERS.ADDING_PRODUCTS.includes(res.id);
+
         setMaxDiscount(res.discount);
-        setAllowAddingProduct(ALLOWED_USERS.ADDING_PRODUCTS.includes(res.id));
+        setAllowAddingProduct(canAddProduct);
       }
     });
 

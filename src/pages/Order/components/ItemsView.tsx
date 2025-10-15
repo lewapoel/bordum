@@ -537,6 +537,7 @@ export default function ItemsView() {
       });
 
       await selectItemManual(item, +values.quantity);
+      setAddingTemplateItemVisible(false);
     },
     [currentTemplateItem, addEditItem, selectItemManual],
   );

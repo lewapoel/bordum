@@ -530,6 +530,7 @@ export default function ItemsView() {
 
       const item = await addEditItem({
         ...currentTemplateItem,
+        unit: 'szt.',
         name:
           currentTemplateItem.name + ` w=${values.width}m,h=${values.height}m`,
         prices: newPrices,

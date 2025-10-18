@@ -7,7 +7,7 @@ import {
   convertItemPrices,
   generateItemCode,
 } from '@/utils/item.ts';
-import { DEFAULT_PRICE } from '@/data/comarch/prices.ts';
+import { BUY_PRICE } from '@/data/comarch/prices.ts';
 import {
   getProductGroups,
   GroupsCodes,
@@ -205,7 +205,7 @@ async function fixAddedItem(
   const priceSet = await setProductPrice(
     sqlToken,
     addedItem['code'],
-    DEFAULT_PRICE,
+    BUY_PRICE,
     defaultPriceValue,
   );
   if (!priceSet) {
@@ -259,7 +259,7 @@ export function useAddEditItem(token: string, sqlToken: string) {
         sqlToken,
         convertedItem,
         addedItem,
-        convertedItem.prices[DEFAULT_PRICE].value,
+        convertedItem.prices[BUY_PRICE].value,
       );
     },
     onError: (error) => {
@@ -312,7 +312,7 @@ export function useAddItem(token: string, sqlToken: string) {
         sqlToken,
         convertedItem,
         addedItem,
-        convertedItem.prices[DEFAULT_PRICE].value,
+        convertedItem.prices[BUY_PRICE].value,
       );
     },
     onError: (error) => {

@@ -8,7 +8,8 @@ export const PRICES = [
   'detaliczna',
 ] as const;
 
-export const DEFAULT_PRICE = PRICES[0];
+export const BUY_PRICE = PRICES[0];
+export const DEFAULT_PRICE = PRICES[4];
 
 export const DEFAULT_PRICE_TYPES: { [key: string]: PriceType } = {
   zakupu: PriceType.NETTO,

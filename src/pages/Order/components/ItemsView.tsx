@@ -52,7 +52,7 @@ import { TEMPLATE_PRODUCT_CODES } from '@/data/comarch/products.ts';
 import Combobox, { ComboboxItem } from '@/components/ui/combobox.tsx';
 import { formatMoney } from '@/utils/money.ts';
 import { Prices, PriceType } from '@/models/comarch/prices.ts';
-import { DEFAULT_PRICE } from '@/data/comarch/prices.ts';
+import { BUY_PRICE } from '@/data/comarch/prices.ts';
 
 type Match = {
   item: ItemWarehouses;
@@ -110,7 +110,7 @@ const addTemplateItemFormSchema = z.object({
   priceType: z
     .string()
     .min(1, 'Rodzaj ceny jest wymagany')
-    .refine((val) => val !== DEFAULT_PRICE, {
+    .refine((val) => val !== BUY_PRICE, {
       message: 'Niedozwolony rodzaj ceny kontrahenta',
     }),
   code: z.string().min(1, 'Wybierz produkt z listy'),

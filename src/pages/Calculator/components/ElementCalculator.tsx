@@ -62,7 +62,7 @@ export default function ElementCalculator({
           return (
             <tr key={key}>
               <td>{elementType.name}</td>
-              <td className='bg-red-200'>
+              <td className='bg-blue-200'>
                 <FormField
                   control={calculatorForm.control}
                   name={`elements.${key}.height`}
@@ -76,7 +76,7 @@ export default function ElementCalculator({
                   )}
                 />
               </td>
-              <td className='bg-red-200'>
+              <td className='bg-blue-200'>
                 <FormField
                   control={calculatorForm.control}
                   name={`elements.${key}.width`}

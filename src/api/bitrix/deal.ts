@@ -1,6 +1,7 @@
 import { getBitrix24 } from '@/utils/bitrix24.ts';
 import { DealData, ReturnData } from '@/models/bitrix/deal.ts';
 import {
+  DEAL_ESTIMATION_FIELD,
   DEAL_PAYMENT_TYPE_FIELD,
   DEAL_RETURN_DATA_FIELD,
 } from '@/data/bitrix/field.ts';
@@ -150,6 +151,35 @@ export async function updateDealReturnData(
       id: placementId,
       fields: {
         [DEAL_RETURN_DATA_FIELD]: JSON.stringify(returnData),
+      },
+    };
+
+    bx24.callMethod('crm.deal.update', updateBody, setDealCallback);
+  });
+}
+
+export async function updateDealEstimate(placementId: number, value: number) {
+  const bx24 = getBitrix24();
+  if (!bx24) {
+    return null;
+  }
+
+  return new Promise((resolve, reject) => {
+    const setDealCallback = (result: any) => {
+      if (result.error()) {
+        console.error(result.error());
+        alert('Nie udało się zapisać deala. Szczegóły w konsoli');
+        reject();
+      } else {
+        alert('Wycena zapisana pomyślnie');
+        resolve(true);
+      }
+    };
+
+    const updateBody = {
+      id: placementId,
+      fields: {
+        [DEAL_ESTIMATION_FIELD]: value,
       },
     };
 

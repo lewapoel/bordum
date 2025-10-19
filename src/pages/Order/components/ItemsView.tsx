@@ -53,6 +53,7 @@ import Combobox, { ComboboxItem } from '@/components/ui/combobox.tsx';
 import { formatMoney } from '@/utils/money.ts';
 import { Prices, PriceType } from '@/models/comarch/prices.ts';
 import { BUY_PRICE } from '@/data/comarch/prices.ts';
+import { validateNonNegativeString } from '@/utils/validation.ts';
 
 type Match = {
   item: ItemWarehouses;
@@ -114,24 +115,8 @@ const addTemplateItemFormSchema = z.object({
       message: 'Niedozwolony rodzaj ceny kontrahenta',
     }),
   code: z.string().min(1, 'Wybierz produkt z listy'),
-  width: z
-    .string()
-    .min(1, 'Szerokość jest wymagana')
-    .refine((val) => !isNaN(parseFloat(val)), {
-      message: 'Szerokość musi być liczbą',
-    })
-    .refine((val) => parseFloat(val) >= 0, {
-      message: 'Szerokość nie może być ujemna',
-    }),
-  height: z
-    .string()
-    .min(1, 'Wysokość jest wymagana')
-    .refine((val) => !isNaN(parseFloat(val)), {
-      message: 'Wysokość musi być liczbą',
-    })
-    .refine((val) => parseFloat(val) >= 0, {
-      message: 'Wysokość nie może być ujemna',
-    }),
+  width: validateNonNegativeString('Szerokość'),
+  height: validateNonNegativeString('Wysokość'),
   quantity: z
     .string()
     .min(1, 'Ilość jest wymagana')

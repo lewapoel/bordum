@@ -19,6 +19,7 @@ export const ORDER_DELIVERY_HOUSE_NUMBER_FIELD = 'UF_CRM_68235476917BA';
 // Deal additional fields
 export const DEAL_RETURN_DATA_FIELD = 'UF_CRM_1747067264';
 export const DEAL_PAYMENT_TYPE_FIELD = 'UF_CRM_67470BB522BA7';
+export const DEAL_ESTIMATION_FIELD = 'UF_CRM_1759689079364';
 
 // Company additional fields
 export const COMPANY_NIP_FIELD = 'UF_CRM_1731450652';

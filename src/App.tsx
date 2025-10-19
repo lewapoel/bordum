@@ -13,6 +13,7 @@ import Return from './pages/Return.tsx';
 import './App.css';
 import ClientBalance from './pages/ClientBalance/ClientBalance.tsx';
 import { useLayoutEffect, useRef, useState } from 'react';
+import Calculator from '@/pages/Calculator/Calculator.tsx';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -99,6 +100,7 @@ function App() {
                   element={<ClientBalance />}
                 />
                 <Route path='/return' element={<Return />} />
+                <Route path='/calculator' element={<Calculator />} />
               </Routes>
             </header>
           </div>

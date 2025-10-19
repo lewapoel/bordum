@@ -75,7 +75,9 @@ export default function Calculator() {
           className='flex flex-col gap-4 items-start'
           onSubmit={calculatorForm.handleSubmit(onCalculatorSubmit)}
         >
-          <Pattern calculatorForm={calculatorForm} />
+          <div className='bg-red-200 p-2'>
+            <Pattern calculatorForm={calculatorForm} />
+          </div>
           <GateMotorCalculator calculatorForm={calculatorForm} />
           <ElementCalculator calculatorForm={calculatorForm} />
           <Sum1

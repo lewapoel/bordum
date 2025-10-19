@@ -35,7 +35,7 @@ export default function GateMotorCalculator({
         {Object.entries(GATE_MOTORS).map(([id, gateMotor]) => (
           <tr key={id}>
             <td>{gateMotor.name}</td>
-            <td>
+            <td className='bg-red-200'>
               <FormField
                 control={calculatorForm.control}
                 name={`gateMotors.${id}`}
@@ -43,7 +43,7 @@ export default function GateMotorCalculator({
                   <FormItem>
                     <FormControl>
                       <Checkbox
-                        className='mx-auto'
+                        className='mx-auto bg-white'
                         checked={field.value}
                         onCheckedChange={field.onChange}
                       />

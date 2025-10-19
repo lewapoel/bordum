@@ -48,7 +48,7 @@ export default function MasonryCalculator({
       <tbody>
         <tr>
           <th>Długość przęseł (m)</th>
-          <td>
+          <td className='bg-red-200'>
             <FormField
               control={calculatorForm.control}
               name='fencePanelsLength'

@@ -30,7 +30,7 @@ export default function Pattern({ calculatorForm }: PatternProps) {
           <FormLabel>Wzór</FormLabel>
           <FormControl>
             <Select onValueChange={field.onChange} value={field.value}>
-              <SelectTrigger>
+              <SelectTrigger className='bg-white'>
                 <SelectValue placeholder='Wybierz wzór...' />
               </SelectTrigger>
               <SelectContent>

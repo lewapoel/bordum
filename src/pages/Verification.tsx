@@ -602,24 +602,43 @@ export default function Verification() {
                         </div>
                       </td>
                       <td>
-                        <input
-                          type='number'
-                          className='w-[100px]'
-                          min={0}
-                          ref={(el) => {
-                            if (rowsRef.current) {
-                              rowsRef.current[itemId].qualityGoods = el;
+                        <div className='flex gap-2 justify-between items-center'>
+                          <input
+                            type='number'
+                            className='w-[100px]'
+                            min={0}
+                            ref={(el) => {
+                              if (rowsRef.current) {
+                                rowsRef.current[itemId].qualityGoods = el;
+                              }
+                            }}
+                            value={verification.qualityGoods}
+                            onChange={(e) =>
+                              updateQualityGoods(
+                                item.id!,
+                                actualStock,
+                                e.target.value,
+                              )
                             }
-                          }}
-                          value={verification.qualityGoods}
-                          onChange={(e) =>
-                            updateQualityGoods(
-                              item.id!,
-                              actualStock,
-                              e.target.value,
-                            )
-                          }
-                        />
+                          />
+                          <button
+                            ref={(el) => {
+                              if (rowsRef.current) {
+                                rowsRef.current[itemId].copyStock = el;
+                              }
+                            }}
+                            className='small'
+                            onClick={() =>
+                              updateQualityGoods(
+                                item.id!,
+                                actualStock,
+                                actualStock,
+                              )
+                            }
+                          >
+                            OK
+                          </button>
+                        </div>
                       </td>
                       <td>{orderQuantity}</td>
                       <td>

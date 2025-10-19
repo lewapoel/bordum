@@ -341,7 +341,11 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
         </div>
       )}
 
-      <h2 className='mb-5 font-bold'>Wartość całkowita: {formatMoney(sum)}</h2>
+      <div className='flex flex-col gap-2 font-bold mb-5'>
+        <h2>Wartość całkowita: {formatMoney(sum)}</h2>
+        <h2>Rodzaj ceny: {ctx.selectedPrice}</h2>
+      </div>
+
       <table>
         <thead>
           <tr>

@@ -975,7 +975,6 @@ export default function ItemsView() {
             ))}
             <th>Ilość</th>
             <th>Jedn. miary</th>
-            <th>Rodzaj ceny</th>
             <th>Upust (%)</th>
             <th>Cena jedn.</th>
             <th>Wartość</th>
@@ -1094,9 +1093,6 @@ export default function ItemsView() {
                   ) : (
                     item.unit
                   )}
-                </td>
-                <td>
-                  <p>{ctx.selectedPrice}</p>
                 </td>
                 <td>
                   <input

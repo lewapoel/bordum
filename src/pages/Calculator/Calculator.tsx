@@ -99,7 +99,6 @@ export default function Calculator() {
           <Button
             disabled={
               !calculatorForm.formState.isValid ||
-              !calculatorForm.formState.isDirty ||
               calculatorForm.formState.isSubmitting
             }
             type='submit'

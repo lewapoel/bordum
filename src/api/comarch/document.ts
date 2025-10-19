@@ -8,6 +8,7 @@ import { getDeal, updateDealReturnData } from '../bitrix/deal.ts';
 import moment from 'moment/moment';
 import { getCompanyCode, getContactCode } from '@/utils/bitrix24.ts';
 import { calculateUnitPrice } from '@/utils/item.ts';
+import { QUOTE_PAYMENT_TYPES } from '@/data/bitrix/const.ts';
 
 export type AddDocument = {
   placementId: number;
@@ -125,8 +126,27 @@ export function useAddDocument(token: string) {
         sourceWarehouseId: 1,
       };
 
+      if (order.paymentType) {
+        switch (order.paymentType) {
+          case QUOTE_PAYMENT_TYPES.CASH:
+            body.paymentMethod = 'gotówka';
+            break;
+
+          case QUOTE_PAYMENT_TYPES.CREDIT_LIMIT:
+            body.paymentMethod = 'limit handlowy';
+            break;
+
+          default:
+            break;
+        }
+      }
+
       if (order.deliveryDate) {
         body.documentReleaseDate = order.deliveryDate;
+      }
+
+      if (order.paymentDue) {
+        body.documentPaymentDate = order.paymentDue;
       }
 
       if (documentType === DocumentType.RESERVATION_DOCUMENT) {

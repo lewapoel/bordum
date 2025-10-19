@@ -187,6 +187,10 @@ export function getCurrentPlacement() {
   return placement;
 }
 
+export function getEnumValue(field: EnumFieldMeta, id?: string) {
+  return field?.items?.find((item) => item.ID === id)?.VALUE;
+}
+
 export type MatchedCustomField = {
   source: FieldMeta;
   destination: FieldMeta;
@@ -253,7 +257,7 @@ export function translateEnumField(
     return field;
   }
 
-  const text = sourceField.items.find((item) => item.ID === field)?.VALUE;
+  const text = getEnumValue(sourceField, field);
   if (!text) {
     throw new Error(
       `Cannot translate, ${field} ID doesn't exist in the source field items`,

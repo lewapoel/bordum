@@ -21,6 +21,7 @@ import {
   ORDER_DOCUMENTS_ID_FIELD,
   ORDER_MAIN_LINK_FIELD,
   ORDER_PACKAGING_DATA_FIELD,
+  ORDER_PAYMENT_DUE_FIELD,
   ORDER_PAYMENT_TYPE_FIELD,
   ORDER_PROFORMA_DOCUMENT_FIELD,
   ORDER_RELEASE_DOCUMENT_FIELD,
@@ -201,6 +202,7 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
           items: [],
           paymentType: data[ORDER_PAYMENT_TYPE_FIELD] || undefined,
           deliveryDate: data[ORDER_DELIVERY_DATE_FIELD] || undefined,
+          paymentDue: data[ORDER_PAYMENT_DUE_FIELD] || undefined,
         };
 
         bx24.callMethod(

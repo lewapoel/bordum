@@ -322,6 +322,7 @@ export default function ItemsView() {
     [ctx, addItemMutation],
   );
 
+  const [temporarySearch, setTemporarySearch] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItem, setSelectedItem] = useState(0);
   const [editingItem, setEditingItem] = useState(-1);
@@ -399,7 +400,7 @@ export default function ItemsView() {
           autoClose: 700,
         });
 
-        setSearchTerm('');
+        setTemporarySearch('');
         searchBarRef.current?.focus();
       }
     },
@@ -601,6 +602,11 @@ export default function ItemsView() {
             selectRow(selectedItem);
 
             break;
+          case '=':
+            e.preventDefault();
+            setSearchTerm(temporarySearch);
+
+            break;
           default:
             break;
         }
@@ -617,6 +623,7 @@ export default function ItemsView() {
       addRow,
       addTemplateRow,
       addingItemVisible,
+      temporarySearch,
     ],
   );
 
@@ -948,18 +955,20 @@ export default function ItemsView() {
 
       <div className='text-[20px] justify-center flex items-center gap-4 mb-10'>
         <p>Zmień zaznaczoną pozycję (↑/↓)</p>
+        <p>Zmień pole (TAB)</p>
         <p>Potwierdź pozycję (ENTER)</p>
         <p>Edytuj pozycję (Alt+1)</p>
+        <p>Zatwierdź wyszukiwanie (=)</p>
       </div>
 
       <input
         ref={searchBarRef}
         type='text'
         placeholder='Wyszukaj towar...'
-        value={searchTerm}
+        value={temporarySearch}
         onChange={(e) => {
           setEditingItem(-1);
-          setSearchTerm(e.target.value);
+          setTemporarySearch(e.target.value);
         }}
         className='searchbar w-full'
       />

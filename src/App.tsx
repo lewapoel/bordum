@@ -64,7 +64,7 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ToastContainer />
+      <ToastContainer closeButton={false} />
       <ReactQueryDevtools initialIsOpen={false} />
       <AuthProvider>
         <Router>

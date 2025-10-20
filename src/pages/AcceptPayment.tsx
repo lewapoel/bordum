@@ -89,17 +89,20 @@ export default function AcceptPayment() {
     [invoice, watchedAmountPaid],
   );
 
-  const onSubmit = useCallback((values: z.infer<typeof formSchema>) => {
-    const amountPaid = +values.amountPaid;
-    const nextPaymentDue = format(values.nextPaymentDue, 'yyyy-MM-dd');
+  const onSubmit = useCallback(
+    (values: z.infer<typeof formSchema>) => {
+      const paymentLeft = invoice?.paymentLeft ?? 0 - +values.amountPaid;
+      const nextPaymentDue = format(values.nextPaymentDue, 'yyyy-MM-dd');
 
-    void updateInvoicePayment(
-      getCurrentPlacementId(),
-      amountPaid,
-      values.paymentStatus,
-      nextPaymentDue,
-    );
-  }, []);
+      void updateInvoicePayment(
+        getCurrentPlacementId(),
+        paymentLeft,
+        values.paymentStatus,
+        nextPaymentDue,
+      );
+    },
+    [invoice],
+  );
 
   useEffect(() => {
     const placementId = getCurrentPlacementId();

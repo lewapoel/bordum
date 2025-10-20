@@ -273,7 +273,7 @@ export async function getClientDueInvoices(filter: DueInvoicesFilter) {
 
 export async function updateInvoicePayment(
   placementId: number,
-  amountPaid: number,
+  paymentLeft: number,
   paymentStatus: string,
   nextPaymentDue: string,
 ) {
@@ -298,7 +298,7 @@ export async function updateInvoicePayment(
       entityTypeId: ENTITY_TYPES.INVOICE,
       id: placementId,
       fields: {
-        opportunity: amountPaid,
+        opportunity: paymentLeft,
         [INVOICE_PAYMENT_DUE_FIELD]: nextPaymentDue,
         [INVOICE_PAYMENT_STATUS_FIELD]: paymentStatus,
       },

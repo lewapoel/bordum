@@ -952,20 +952,28 @@ export default function ItemsView() {
         <p>Zmień pole (TAB)</p>
         <p>Potwierdź pozycję (ENTER)</p>
         <p>Edytuj pozycję (Alt+1)</p>
-        <p>Zatwierdź wyszukiwanie (=)</p>
       </div>
 
-      <input
-        ref={searchBarRef}
-        type='text'
-        placeholder='Wyszukaj towar...'
-        value={temporarySearch}
-        onChange={(e) => {
-          setEditingItem(-1);
-          setTemporarySearch(e.target.value);
-        }}
-        className='searchbar w-full'
-      />
+      <div className='flex items-center gap-4'>
+        <input
+          ref={searchBarRef}
+          type='text'
+          placeholder='Wyszukaj towar...'
+          value={temporarySearch}
+          onChange={(e) => {
+            setEditingItem(-1);
+            setTemporarySearch(e.target.value);
+          }}
+          className='searchbar w-full'
+        />
+
+        <button
+          className='confirm shrink-0'
+          onClick={() => setSearchTerm(temporarySearch)}
+        >
+          Szukaj (=)
+        </button>
+      </div>
       <table>
         <thead>
           <tr>

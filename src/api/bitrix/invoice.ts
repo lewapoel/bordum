@@ -137,6 +137,7 @@ export async function getInvoice(
 export type DueInvoicesFilter = {
   companyId?: number;
   contactId?: number;
+  paymentType?: string;
 };
 
 export async function getDueInvoices(
@@ -221,8 +222,11 @@ export async function getDueInvoices(
         INVOICE_STAGES.OVERDUE,
         INVOICE_STAGES.DEBT_COLLECTION,
       ],
-      [INVOICE_PAYMENT_TYPE_FIELD]: INVOICE_PAYMENT_TYPES.CREDIT_LIMIT,
     };
+
+    if (filter?.paymentType) {
+      bitrixFilter[INVOICE_PAYMENT_TYPE_FIELD] = filter.paymentType;
+    }
 
     if (filter?.companyId) {
       bitrixFilter['companyId'] = filter.companyId;
@@ -241,6 +245,13 @@ export async function getDueInvoices(
       },
       getInvoicesCallback,
     );
+  });
+}
+
+export async function getClientDueCreditInvoices(filter: DueInvoicesFilter) {
+  return getClientDueInvoices({
+    ...filter,
+    paymentType: INVOICE_PAYMENT_TYPES.CREDIT_LIMIT,
   });
 }
 

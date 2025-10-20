@@ -30,7 +30,7 @@ import { DealData } from '@/models/bitrix/deal.ts';
 import { AuthContext } from '../../components/AuthContext.tsx';
 import { InvoiceData } from '@/models/bitrix/invoice.ts';
 import { useGetCreditCustomer } from '@/api/comarch-sql/customer.ts';
-import { getClientDueInvoices } from '@/api/bitrix/invoice.ts';
+import { getClientDueCreditInvoices } from '@/api/bitrix/invoice.ts';
 import { useGetInvoicesSummary } from '@/utils/invoice.ts';
 import {
   DEAL_PAYMENT_TYPES,
@@ -84,7 +84,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
 
       if (res) {
         setCode(getCompanyCode(res));
-        getClientDueInvoices({
+        getClientDueCreditInvoices({
           companyId: res.id,
         }).then((res) => setInvoices(res));
 
@@ -103,7 +103,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
 
       if (res && !invoicesFetched) {
         setCode(getContactCode(res));
-        getClientDueInvoices({
+        getClientDueCreditInvoices({
           contactId: res.id,
         }).then((res) => setInvoices(res));
 

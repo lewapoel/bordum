@@ -11,7 +11,7 @@ import {
 import { getCompany } from '@/api/bitrix/company.ts';
 import { getContact } from '@/api/bitrix/contact.ts';
 import { formatMoney } from '@/utils/money.ts';
-import { getClientDueInvoices } from '@/api/bitrix/invoice.ts';
+import { getClientDueCreditInvoices } from '@/api/bitrix/invoice.ts';
 import { useGetInvoicesSummary } from '@/utils/invoice.ts';
 
 export default function ClientBalance() {
@@ -42,7 +42,7 @@ export default function ClientBalance() {
             if (company) {
               setCode(getCompanyCode(company));
 
-              getClientDueInvoices({
+              getClientDueCreditInvoices({
                 companyId: +placementId,
               }).then((res) => setInvoices(res));
             } else {
@@ -56,7 +56,7 @@ export default function ClientBalance() {
             if (contact) {
               setCode(getContactCode(contact));
 
-              getClientDueInvoices({
+              getClientDueCreditInvoices({
                 contactId: +placementId,
               }).then((res) => setInvoices(res));
             } else {

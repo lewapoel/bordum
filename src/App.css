@@ -30,7 +30,7 @@ h1 {
   font-weight: bold;
 }
 
-table:not(.hollow), th, td {
+table:not(.hollow, [aria-label], [role]), th:not([aria-label], [role]), td:not([aria-label], [role]) {
   border: 2px solid black;
   border-collapse: collapse;
   padding: 5px;
@@ -63,7 +63,7 @@ button {
   cursor: pointer;
 }
 
-button:not([data-slot]) {
+button:not([data-slot], [aria-label]) {
   cursor: pointer;
   font-size: 18px;
   font-weight: bold;

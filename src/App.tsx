@@ -14,6 +14,7 @@ import './App.css';
 import ClientBalance from './pages/ClientBalance/ClientBalance.tsx';
 import { useLayoutEffect, useRef, useState } from 'react';
 import Calculator from '@/pages/Calculator/Calculator.tsx';
+import AcceptPayment from '@/pages/AcceptPayment.tsx';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -101,6 +102,7 @@ function App() {
                 />
                 <Route path='/return' element={<Return />} />
                 <Route path='/calculator' element={<Calculator />} />
+                <Route path='/accept-payment' element={<AcceptPayment />} />
               </Routes>
             </header>
           </div>

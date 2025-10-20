@@ -5,6 +5,8 @@ import {
   CRM_CONTACT_GET,
   CRM_DEAL_FIELDS,
   CRM_DEAL_GET,
+  CRM_ITEM_FIELDS,
+  CRM_ITEM_GET,
   CRM_ITEM_LIST,
   CRM_MEASURE_LIST,
   CRM_QUOTE_FIELDS,
@@ -119,6 +121,14 @@ const mockBX24 = {
         data = CRM_ITEM_LIST;
         break;
 
+      case 'crm.item.get':
+        data = CRM_ITEM_GET;
+        break;
+
+      case 'crm.item.fields':
+        data = CRM_ITEM_FIELDS;
+        break;
+
       default:
         isError = true;
         data = null;
@@ -188,7 +198,7 @@ export function getCurrentPlacement() {
 }
 
 export function getEnumValue(field: EnumFieldMeta, id?: string) {
-  return field?.items?.find((item) => item.ID === id)?.VALUE;
+  return field?.items?.find?.((item) => item.ID === id?.toString?.())?.VALUE;
 }
 
 export type MatchedCustomField = {

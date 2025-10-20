@@ -1,6 +1,6 @@
 import { ElementPricing, GateMotorPricing } from '@/models/calculator.ts';
 import { z } from 'zod';
-import { validateNonNegativeString } from '@/utils/validation.ts';
+import { validateNonNegativeInput } from '@/utils/validation.ts';
 
 export const PATTERNS = {
   pattern_4: {
@@ -89,13 +89,13 @@ export const MASONRY_PARAMS = {
 };
 
 export const elementSchema = z.object({
-  height: validateNonNegativeString('Wysokość'),
-  width: validateNonNegativeString('Szerokość'),
+  height: validateNonNegativeInput('Wysokość'),
+  width: validateNonNegativeInput('Szerokość'),
 });
 
 export const calculatorFormSchema = z.object({
   pattern: z.string().min(1, 'Wybierz wzór z listy'),
   elements: z.record(z.string(), elementSchema),
   gateMotors: z.record(z.string(), z.boolean()),
-  fencePanelsLength: validateNonNegativeString('Długość przęseł'),
+  fencePanelsLength: validateNonNegativeInput('Długość przęseł'),
 });

@@ -59,6 +59,7 @@ export async function getDeal(placementId: number): Promise<DealData | null> {
 
         resolve({
           id: data['ID'] || undefined,
+          title: data['TITLE'] || undefined,
           returnData: returnData,
           companyId: companyId && companyId !== '0' ? companyId : undefined,
           contactId: contactId && contactId !== '0' ? contactId : undefined,

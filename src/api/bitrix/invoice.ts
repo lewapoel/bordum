@@ -2,6 +2,7 @@ import {
   getBitrix24,
   getCompanyCode,
   getContactCode,
+  getEnumValue,
 } from '@/utils/bitrix24.ts';
 import { InvoiceData, Invoices } from '@/models/bitrix/invoice.ts';
 import {
@@ -11,8 +12,125 @@ import {
 } from '@/data/bitrix/const.ts';
 import { getCompany } from './company.ts';
 import { getContact } from './contact.ts';
-import { INVOICE_PAYMENT_TYPE_FIELD } from '@/data/bitrix/field.ts';
-import { getDealOrders } from '@/api/bitrix/deal.ts';
+import {
+  INVOICE_PAYMENT_DUE_FIELD,
+  INVOICE_PAYMENT_STAGE_FIELD,
+  INVOICE_PAYMENT_STATUS_FIELD,
+  INVOICE_PAYMENT_TYPE_FIELD,
+  INVOICE_PAYMENT_VARIANT_FIELD,
+  INVOICE_PROFORM_AMOUNT_FIELD,
+} from '@/data/bitrix/field.ts';
+import { getDeal, getDealOrders } from '@/api/bitrix/deal.ts';
+import { EnumFieldMeta, FieldsMeta } from '@/models/bitrix/field.ts';
+
+export async function getInvoiceFields(): Promise<FieldsMeta | null> {
+  const bx24 = getBitrix24();
+
+  if (!bx24) {
+    return null;
+  }
+
+  return new Promise((resolve, reject) => {
+    const getFieldsCallback = (result: any) => {
+      if (result.error()) {
+        console.error(result.error());
+        alert('Nie udało się pobrać pól faktury. Szczegóły w konsoli');
+        reject();
+      } else {
+        const data = result.data()['fields'];
+        resolve(data as FieldsMeta);
+      }
+    };
+
+    bx24.callMethod(
+      'crm.item.fields',
+      { entityTypeId: ENTITY_TYPES.INVOICE },
+      getFieldsCallback,
+    );
+  });
+}
+
+export async function getInvoice(
+  placementId: number,
+): Promise<InvoiceData | null> {
+  const bx24 = getBitrix24();
+
+  if (!bx24) {
+    return null;
+  }
+
+  const fields = await getInvoiceFields();
+
+  return new Promise((resolve, reject) => {
+    const getInvoiceCallback = async (result: any) => {
+      if (result.error()) {
+        console.error(result.error());
+        alert('Nie udało się pobrać faktury. Szczegóły w konsoli');
+        reject();
+      } else {
+        const data = result.data()['item'];
+
+        const companyId = data['companyId'];
+        const contactId = data['contactId'];
+        const dealId = data['parentId2'];
+        const categoryId = +data['categoryId'];
+
+        let company;
+        let contact;
+        let clientName;
+
+        if (companyId) {
+          company = await getCompany(companyId);
+        } else if (contactId) {
+          contact = await getContact(contactId);
+        }
+
+        if (company) {
+          clientName = company.title;
+        } else if (contact) {
+          clientName = `${contact.name} ${contact.lastName}`;
+        }
+
+        let dealOrders, deal;
+        if (dealId) {
+          dealOrders = await getDealOrders(dealId);
+          deal = await getDeal(dealId);
+        }
+
+        const invoice: InvoiceData = {
+          id: data['id'],
+          categoryId: categoryId,
+          dealOrders: dealOrders ? dealOrders : undefined,
+          clientName: clientName,
+          companyId: companyId && companyId !== 0 ? companyId : undefined,
+          contactId: contactId && contactId !== 0 ? contactId : undefined,
+          paymentLeft: data['opportunity'] ?? undefined,
+          deal: deal ?? undefined,
+          orderAmount: data[INVOICE_PROFORM_AMOUNT_FIELD]
+            ? +data[INVOICE_PROFORM_AMOUNT_FIELD]
+            : undefined,
+          paymentVariant: getEnumValue(
+            fields?.[INVOICE_PAYMENT_VARIANT_FIELD] as EnumFieldMeta,
+            data[INVOICE_PAYMENT_VARIANT_FIELD] ?? undefined,
+          ),
+          paymentStage: getEnumValue(
+            fields?.[INVOICE_PAYMENT_STAGE_FIELD] as EnumFieldMeta,
+            data[INVOICE_PAYMENT_STAGE_FIELD] ?? undefined,
+          ),
+          paymentDue: data[INVOICE_PAYMENT_DUE_FIELD] ?? undefined,
+        };
+
+        resolve(invoice);
+      }
+    };
+
+    bx24.callMethod(
+      'crm.item.get',
+      { entityTypeId: ENTITY_TYPES.INVOICE, id: placementId },
+      getInvoiceCallback,
+    );
+  });
+}
 
 export type DueInvoicesFilter = {
   companyId?: number;
@@ -138,4 +256,41 @@ export async function getClientDueInvoices(filter: DueInvoicesFilter) {
   }
 
   return undefined;
+}
+
+export async function updateInvoicePayment(
+  placementId: number,
+  amountPaid: number,
+  paymentStatus: string,
+  nextPaymentDue: string,
+) {
+  const bx24 = getBitrix24();
+  if (!bx24) {
+    return null;
+  }
+
+  return new Promise((resolve, reject) => {
+    const setInvoiceCallback = (result: any) => {
+      if (result.error()) {
+        console.error(result.error());
+        alert('Nie udało się zapisać faktury. Szczegóły w konsoli');
+        reject();
+      } else {
+        alert('Faktura zapisana pomyślnie');
+        resolve(true);
+      }
+    };
+
+    const updateBody = {
+      entityTypeId: ENTITY_TYPES.INVOICE,
+      id: placementId,
+      fields: {
+        opportunity: amountPaid,
+        [INVOICE_PAYMENT_DUE_FIELD]: nextPaymentDue,
+        [INVOICE_PAYMENT_STATUS_FIELD]: paymentStatus,
+      },
+    };
+
+    bx24.callMethod('crm.item.update', updateBody, setInvoiceCallback);
+  });
 }

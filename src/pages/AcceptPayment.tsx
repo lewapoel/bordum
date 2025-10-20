@@ -8,8 +8,6 @@ import {
   updateInvoicePayment,
 } from '@/api/bitrix/invoice.ts';
 import { formatMoney } from '@/utils/money.ts';
-import { getCompany } from '@/api/bitrix/company.ts';
-import { getContact } from '@/api/bitrix/contact.ts';
 import { useGetUnpaidInvoices } from '@/utils/invoice.ts';
 import { z } from 'zod';
 import { validatePrice } from '@/utils/validation.ts';
@@ -124,26 +122,14 @@ export default function AcceptPayment() {
       if (res) {
         setInvoice(res);
 
-        if (res.companyId) {
-          getCompany(res.companyId).then((company) => {
-            if (company) {
-              getClientDueInvoices({
-                companyId: res.companyId,
-              }).then((res) => setInvoices(res));
-            } else {
-              setError(true);
-            }
-          });
-        } else if (res.contactId) {
-          getContact(res.contactId).then((contact) => {
-            if (contact) {
-              getClientDueInvoices({
-                contactId: res.contactId,
-              }).then((res) => setInvoices(res));
-            } else {
-              setError(true);
-            }
-          });
+        if (res.company) {
+          getClientDueInvoices({
+            companyId: res.company.id,
+          }).then((res) => setInvoices(res));
+        } else if (res.contact) {
+          getClientDueInvoices({
+            contactId: res.contact.id,
+          }).then((res) => setInvoices(res));
         } else {
           setError(true);
         }

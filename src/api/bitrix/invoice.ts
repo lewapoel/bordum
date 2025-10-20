@@ -103,7 +103,9 @@ export async function getInvoice(
           dealOrders: dealOrders ? dealOrders : undefined,
           clientName: clientName,
           companyId: companyId && companyId !== 0 ? companyId : undefined,
+          company: company ?? undefined,
           contactId: contactId && contactId !== 0 ? contactId : undefined,
+          contact: contact ?? undefined,
           paymentLeft: data['opportunity'] ?? undefined,
           deal: deal ?? undefined,
           orderAmount: data[INVOICE_PROFORM_AMOUNT_FIELD]

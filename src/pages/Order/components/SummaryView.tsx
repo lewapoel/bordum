@@ -170,7 +170,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
   );
 
   const addDocument = useCallback(
-    (documentType: DocumentType) => {
+    (documentType: DocumentType, exportDocument: boolean = true) => {
       if (orderType === OrderType.Edit && ctx) {
         if (
           documentType === DocumentType.RELEASE_DOCUMENT &&
@@ -184,7 +184,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
           return;
         }
 
-        void ctx.addDocument.mutation(documentType);
+        void ctx.addDocument.mutation(documentType, exportDocument);
       }
     },
     [ctx, orderType, sum],
@@ -240,6 +240,11 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
             addDocument(DocumentType.PROFORMA_DOCUMENT);
           }
           break;
+        case '4':
+          if (e.altKey) {
+            addDocument(DocumentType.RESERVATION_DOCUMENT, false);
+          }
+          break;
         case 'Tab':
           e.preventDefault();
 
@@ -285,6 +290,14 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
 
           <button onClick={() => addDocument(DocumentType.PROFORMA_DOCUMENT)}>
             Utwórz fakturę proforma (Alt+3)
+          </button>
+
+          <button
+            onClick={() =>
+              addDocument(DocumentType.RESERVATION_DOCUMENT, false)
+            }
+          >
+            Utwórz dokument rezerwacji (Alt+4)
           </button>
         </div>
       )}

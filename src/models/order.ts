@@ -29,7 +29,10 @@ export type OrderStore = {
   pendingOrder: boolean;
   createOrder: () => Promise<void>;
   addDocument: {
-    mutation: (documentType: DocumentType) => Promise<void>;
+    mutation: (
+      documentType: DocumentType,
+      exportDocument?: boolean,
+    ) => Promise<void>;
     pending: boolean;
   };
   invoices: {

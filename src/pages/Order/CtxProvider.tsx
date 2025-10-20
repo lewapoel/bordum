@@ -264,12 +264,13 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
   }, [placementId, order, deal]);
 
   const addDocument = useCallback(
-    async (documentType: DocumentType) => {
+    async (documentType: DocumentType, exportDocument: boolean = true) => {
       if (order) {
         void addDocumentMutation.mutate({
           order: order,
           placementId,
           documentType,
+          exportDocument,
         });
       }
     },

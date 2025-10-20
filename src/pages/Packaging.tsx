@@ -1,12 +1,10 @@
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { getCurrentPlacementId } from '../utils/bitrix24.ts';
 import { getOrder, updateOrderPackagingData } from '../api/bitrix/order.ts';
 import update from 'immutability-helper';
 import { getCurrentUser } from '../api/bitrix/user.ts';
 import { OrderData, PackagingData } from '../models/bitrix/order.ts';
-import { DocumentType, useAddDocument } from '../api/comarch/document.ts';
 import { User } from '../models/bitrix/user.ts';
-import { AuthContext } from '../components/AuthContext.tsx';
 import clsx from 'clsx';
 
 type RowElements = {
@@ -25,7 +23,6 @@ enum Status {
 }
 
 export default function Packaging() {
-  const { token, sqlToken } = useContext(AuthContext);
   const placementId = getCurrentPlacementId();
   const [currentUserId, setCurrentUserId] = useState<number>();
   const [order, setOrder] = useState<OrderData>();
@@ -48,8 +45,6 @@ export default function Packaging() {
   const users = useState<Array<User>>(
     JSON.parse(import.meta.env.VITE_PACKAGING_USERS),
   )[0];
-
-  const addDocumentMutation = useAddDocument(token, sqlToken);
 
   const saveData = useCallback(
     async (itemId: string) => {
@@ -76,21 +71,6 @@ export default function Packaging() {
       setLastSaved(itemId);
       setSaving(true);
 
-      let documentCreated = false;
-
-      // If none of the items were saved, it means the reservation document hasn't been generated yet
-      if (Object.values(packagingData).every((x) => !x.saved)) {
-        await addDocumentMutation.mutateAsync({
-          order,
-          placementId,
-          documentType: DocumentType.RESERVATION_DOCUMENT,
-          exportDocument: false,
-          silentSuccess: true,
-        });
-
-        documentCreated = true;
-      }
-
       const updatedFields = {
         saved: true,
         comment: data.quality < 8 ? data.comment : '',
@@ -113,21 +93,10 @@ export default function Packaging() {
       setPackagingData(newPackagingData);
       setOriginalPackagingData(newOriginalPackagingData);
 
-      if (documentCreated) {
-        alert('Dane pakowania oraz dokument rezerwacji zostały utworzone');
-      } else {
-        alert('Dane pakowania zapisane pomyślnie');
-      }
-
+      alert('Dane pakowania zapisane pomyślnie');
       setSaving(false);
     },
-    [
-      packagingData,
-      placementId,
-      originalPackagingData,
-      addDocumentMutation,
-      order,
-    ],
+    [packagingData, placementId, originalPackagingData],
   );
 
   const handleKeyDown = useCallback(

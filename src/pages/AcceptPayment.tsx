@@ -125,20 +125,20 @@ export default function AcceptPayment() {
         setInvoice(res);
 
         if (res.companyId) {
-          getCompany(+placementId).then((company) => {
+          getCompany(res.companyId).then((company) => {
             if (company) {
               getClientDueInvoices({
-                companyId: +placementId,
+                companyId: res.companyId,
               }).then((res) => setInvoices(res));
             } else {
               setError(true);
             }
           });
         } else if (res.contactId) {
-          getContact(+placementId).then((contact) => {
+          getContact(res.contactId).then((contact) => {
             if (contact) {
               getClientDueInvoices({
-                contactId: +placementId,
+                contactId: res.contactId,
               }).then((res) => setInvoices(res));
             } else {
               setError(true);

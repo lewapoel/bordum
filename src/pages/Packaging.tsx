@@ -96,7 +96,7 @@ export default function Packaging() {
       alert('Dane pakowania zapisane pomyślnie');
       setSaving(false);
     },
-    [packagingData, placementId, originalPackagingData],
+    [packagingData, placementId, originalPackagingData, order],
   );
 
   const handleKeyDown = useCallback(

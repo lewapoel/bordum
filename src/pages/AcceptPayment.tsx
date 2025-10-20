@@ -97,7 +97,7 @@ export default function AcceptPayment() {
         nextPaymentDue,
       );
     },
-    [invoice],
+    [paymentLeft],
   );
 
   useEffect(() => {

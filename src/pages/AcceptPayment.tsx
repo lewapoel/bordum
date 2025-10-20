@@ -84,19 +84,15 @@ export default function AcceptPayment() {
   const watchedForm = useWatch({ control: form.control });
   const watchedAmountPaid = +(watchedForm.amountPaid ?? 0);
 
-  const leftToPay = useMemo(
-    () => (invoice?.paymentLeft ?? 0) - watchedAmountPaid,
-    [invoice, watchedAmountPaid],
-  );
+  const leftToPay = paymentLeft - watchedAmountPaid;
 
   const onSubmit = useCallback(
     (values: z.infer<typeof formSchema>) => {
-      const paymentLeft = invoice?.paymentLeft ?? 0 - +values.amountPaid;
       const nextPaymentDue = format(values.nextPaymentDue, 'yyyy-MM-dd');
 
       void updateInvoicePayment(
         getCurrentPlacementId(),
-        paymentLeft,
+        paymentLeft - +values.amountPaid,
         values.paymentStatus,
         nextPaymentDue,
       );
@@ -173,7 +169,7 @@ export default function AcceptPayment() {
             </tr>
             <tr>
               <th>Kwota do zapłaty</th>
-              <td>{formatMoney(invoice.paymentLeft ?? 0)}</td>
+              <td>{formatMoney(paymentLeft)}</td>
             </tr>
             <tr>
               <th>Kwota zamówienia</th>

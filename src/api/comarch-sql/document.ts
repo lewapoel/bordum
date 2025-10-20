@@ -13,7 +13,7 @@ export async function setDocumentDueDate(
     },
     body: JSON.stringify({
       document_id: documentId,
-      payment_due: date,
+      payment_due: date.split('T')[0],
     }),
   })
     .then(async (response): Promise<boolean> => {

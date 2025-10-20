@@ -25,7 +25,7 @@ enum Status {
 }
 
 export default function Packaging() {
-  const { token } = useContext(AuthContext);
+  const { token, sqlToken } = useContext(AuthContext);
   const placementId = getCurrentPlacementId();
   const [currentUserId, setCurrentUserId] = useState<number>();
   const [order, setOrder] = useState<OrderData>();
@@ -49,7 +49,7 @@ export default function Packaging() {
     JSON.parse(import.meta.env.VITE_PACKAGING_USERS),
   )[0];
 
-  const addDocumentMutation = useAddDocument(token);
+  const addDocumentMutation = useAddDocument(token, sqlToken);
 
   const saveData = useCallback(
     async (itemId: string) => {

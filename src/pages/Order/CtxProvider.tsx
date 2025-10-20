@@ -187,7 +187,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
     }
   }, [placementId, orderType, setClientData]);
 
-  const addDocumentMutation = useAddDocument(token);
+  const addDocumentMutation = useAddDocument(token, sqlToken);
 
   const saveItem = useCallback(
     (item: OrderItem) => {

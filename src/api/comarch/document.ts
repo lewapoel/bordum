@@ -9,6 +9,7 @@ import moment from 'moment/moment';
 import { getCompanyCode, getContactCode } from '@/utils/bitrix24.ts';
 import { calculateUnitPrice } from '@/utils/item.ts';
 import { QUOTE_PAYMENT_TYPES } from '@/data/bitrix/const.ts';
+import { setDocumentDueDate } from '@/api/comarch-sql/document.ts';
 
 export type AddDocument = {
   placementId: number;
@@ -24,7 +25,7 @@ export enum DocumentType {
   PROFORMA_DOCUMENT = 320,
 }
 
-export function useAddDocument(token: string) {
+export function useAddDocument(token: string, sqlToken: string) {
   return useMutation({
     mutationKey: ['add-document'],
     mutationFn: async ({
@@ -173,6 +174,10 @@ export function useAddDocument(token: string) {
       const data = await response.json();
       const documentId = data['id'];
       const documentFullNumber = data['fullNumber'];
+
+      if (order.paymentDue) {
+        await setDocumentDueDate(sqlToken, documentId, order.paymentDue);
+      }
 
       if (exportDocument) {
         response = await fetch(`${API_URL}/DocumentsExport?id=${documentId}`, {

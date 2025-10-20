@@ -503,11 +503,16 @@ export default function ItemsView() {
         {},
       );
 
+      const sanitizedName = currentTemplateItem.name
+        .replace('H=', '')
+        .replace('L=', '')
+        .replace(/\(\s*\)/g, '')
+        .trim();
+
       const item = await addEditItem({
         ...currentTemplateItem,
         unit: 'szt.',
-        name:
-          currentTemplateItem.name + ` w=${values.width}m,h=${values.height}m`,
+        name: sanitizedName + ` (H=${values.height}m L=${values.width}m)`,
         prices: newPrices,
       });
 

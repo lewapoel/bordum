@@ -2,6 +2,7 @@ import { CrmData } from './crm.ts';
 import { DealData } from '@/models/bitrix/deal.ts';
 
 export type InvoiceData = CrmData & {
+  dealId?: number;
   deal?: DealData;
   clientName?: string;
   clientType?: string;

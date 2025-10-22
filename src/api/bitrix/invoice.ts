@@ -7,6 +7,7 @@ import {
 import { InvoiceData, Invoices } from '@/models/bitrix/invoice.ts';
 import {
   ENTITY_TYPES,
+  INVOICE_CLIENT_TYPES,
   INVOICE_PAYMENT_TYPES,
   INVOICE_STAGES,
 } from '@/data/bitrix/const.ts';
@@ -51,6 +52,74 @@ export async function getInvoiceFields(): Promise<FieldsMeta | null> {
   });
 }
 
+async function parseInvoice(
+  data: any,
+  fields?: FieldsMeta | null,
+): Promise<InvoiceData> {
+  const companyId = data['companyId'];
+  const contactId = data['contactId'];
+
+  let invoice: InvoiceData = {
+    id: +data['id'],
+    dealId: +data['parentId2'],
+    categoryId: +data['categoryId'],
+    clientType: data[INVOICE_CLIENT_TYPE_FIELD]
+      ? String(data[INVOICE_CLIENT_TYPE_FIELD])
+      : undefined,
+    companyId: companyId ? +companyId : undefined,
+    contactId: contactId ? +contactId : undefined,
+    paymentLeft: data['opportunity'] ?? undefined,
+    orderAmount: data[INVOICE_PROFORM_AMOUNT_FIELD]
+      ? +data[INVOICE_PROFORM_AMOUNT_FIELD]
+      : undefined,
+    paymentDue: data[INVOICE_PAYMENT_DUE_FIELD] ?? undefined,
+  };
+
+  if (
+    invoice.clientType === INVOICE_CLIENT_TYPES.COMPANY &&
+    invoice.companyId
+  ) {
+    const company = await getCompany(invoice.companyId);
+    invoice.company = company ?? undefined;
+  } else if (
+    invoice.clientType === INVOICE_CLIENT_TYPES.INDIVIDUAL &&
+    invoice.contactId
+  ) {
+    const contact = await getContact(invoice.contactId);
+    invoice.contact = contact ?? undefined;
+  }
+
+  if (invoice.company) {
+    invoice.clientName = invoice.company.title;
+  } else if (invoice.contact) {
+    invoice.clientName = `${invoice.contact.name} ${invoice.contact.lastName}`;
+  }
+
+  if (invoice.dealId) {
+    const dealOrders = await getDealOrders(invoice.dealId);
+    const deal = await getDeal(invoice.dealId);
+
+    invoice.dealOrders = dealOrders ?? undefined;
+    invoice.deal = deal ?? undefined;
+  }
+
+  if (fields) {
+    invoice = {
+      ...invoice,
+      paymentVariant: getEnumValue(
+        fields[INVOICE_PAYMENT_VARIANT_FIELD] as EnumFieldMeta,
+        data[INVOICE_PAYMENT_VARIANT_FIELD] ?? undefined,
+      ),
+      paymentStage: getEnumValue(
+        fields[INVOICE_PAYMENT_STAGE_FIELD] as EnumFieldMeta,
+        data[INVOICE_PAYMENT_STAGE_FIELD] ?? undefined,
+      ),
+    };
+  }
+
+  return invoice;
+}
+
 export async function getInvoice(
   placementId: number,
 ): Promise<InvoiceData | null> {
@@ -71,60 +140,11 @@ export async function getInvoice(
       } else {
         const data = result.data()['item'];
 
-        const companyId = data['companyId'];
-        const contactId = data['contactId'];
-        const dealId = data['parentId2'];
-        const categoryId = +data['categoryId'];
-
-        let company;
-        let contact;
-        let clientName;
-
-        if (companyId) {
-          company = await getCompany(companyId);
-        } else if (contactId) {
-          contact = await getContact(contactId);
+        if (!fields) {
+          resolve(null);
+        } else {
+          resolve(await parseInvoice(data, fields));
         }
-
-        if (company) {
-          clientName = company.title;
-        } else if (contact) {
-          clientName = `${contact.name} ${contact.lastName}`;
-        }
-
-        let dealOrders, deal;
-        if (dealId) {
-          dealOrders = await getDealOrders(dealId);
-          deal = await getDeal(dealId);
-        }
-
-        const invoice: InvoiceData = {
-          id: data['id'],
-          categoryId: categoryId,
-          dealOrders: dealOrders ? dealOrders : undefined,
-          clientName: clientName,
-          clientType: String(data[INVOICE_CLIENT_TYPE_FIELD]) ?? undefined,
-          companyId: companyId && companyId !== 0 ? companyId : undefined,
-          company: company ?? undefined,
-          contactId: contactId && contactId !== 0 ? contactId : undefined,
-          contact: contact ?? undefined,
-          paymentLeft: data['opportunity'] ?? undefined,
-          deal: deal ?? undefined,
-          orderAmount: data[INVOICE_PROFORM_AMOUNT_FIELD]
-            ? +data[INVOICE_PROFORM_AMOUNT_FIELD]
-            : undefined,
-          paymentVariant: getEnumValue(
-            fields?.[INVOICE_PAYMENT_VARIANT_FIELD] as EnumFieldMeta,
-            data[INVOICE_PAYMENT_VARIANT_FIELD] ?? undefined,
-          ),
-          paymentStage: getEnumValue(
-            fields?.[INVOICE_PAYMENT_STAGE_FIELD] as EnumFieldMeta,
-            data[INVOICE_PAYMENT_STAGE_FIELD] ?? undefined,
-          ),
-          paymentDue: data[INVOICE_PAYMENT_DUE_FIELD] ?? undefined,
-        };
-
-        resolve(invoice);
       }
     };
 
@@ -162,54 +182,20 @@ export async function getDueInvoices(
         const invoices: Invoices = {};
 
         for (const item of data['items']) {
-          const companyId = item['companyId'];
-          const contactId = item['contactId'];
-          const dealId = item['parentId2'];
-          const categoryId = +item['categoryId'];
+          const invoice = await parseInvoice(item);
 
-          let company;
-          let contact;
-          let clientName;
-
-          if (companyId) {
-            company = await getCompany(companyId);
-          } else if (contactId) {
-            contact = await getContact(contactId);
-          }
-
-          if (!company && !contact) {
+          if (!invoice.company && !invoice.contact) {
             continue;
           }
 
           let code;
-          if (company) {
-            code = getCompanyCode(company);
-            clientName = company.title;
-          } else if (contact) {
-            code = getContactCode(contact);
-            clientName = `${contact.name} ${contact.lastName}`;
+          if (invoice.company) {
+            code = getCompanyCode(invoice.company);
+          } else if (invoice.contact) {
+            code = getContactCode(invoice.contact);
           } else {
             continue;
           }
-
-          let dealOrders;
-          if (dealId) {
-            dealOrders = await getDealOrders(dealId);
-          }
-
-          const invoice: InvoiceData = {
-            id: item['id'],
-            categoryId: categoryId,
-            dealOrders: dealOrders ? dealOrders : undefined,
-            clientName: clientName,
-            clientType: String(data[INVOICE_CLIENT_TYPE_FIELD]) ?? undefined,
-            companyId: companyId && companyId !== 0 ? companyId : undefined,
-            company: company ?? undefined,
-            contactId: contactId && contactId !== 0 ? contactId : undefined,
-            contact: contact ?? undefined,
-            paymentLeft: item['opportunity'] ?? undefined,
-            paymentDue: data[INVOICE_PAYMENT_DUE_FIELD] ?? undefined,
-          };
 
           if (!invoices[code]) {
             invoices[code] = [invoice];

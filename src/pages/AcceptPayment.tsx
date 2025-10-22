@@ -40,9 +40,10 @@ import { cn } from '@/lib/utils.ts';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar.tsx';
+import { INVOICE_CLIENT_TYPES } from '@/data/bitrix/const.ts';
 
 export default function AcceptPayment() {
-  const [error, setError] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
 
   const [invoice, setInvoice] = useState<InvoiceData>();
   const [paymentStatuses, setPaymentStatuses] =
@@ -104,7 +105,7 @@ export default function AcceptPayment() {
     const placementId = getCurrentPlacementId();
 
     if (!placementId) {
-      setError(true);
+      setError('Nie udało się pobrać ID faktury.');
       return;
     }
 
@@ -113,7 +114,7 @@ export default function AcceptPayment() {
         const statusField = res[INVOICE_PAYMENT_STATUS_FIELD] as EnumFieldMeta;
         setPaymentStatuses(statusField.items);
       } else {
-        setError(true);
+        setError('Nie udało się pobrać pól faktury.');
       }
     });
 
@@ -121,19 +122,24 @@ export default function AcceptPayment() {
       if (res) {
         setInvoice(res);
 
-        if (res.company) {
+        if (res.clientType === INVOICE_CLIENT_TYPES.COMPANY && res.company) {
           getClientDueInvoices({
             companyId: res.company.id,
           }).then((res) => setInvoices(res));
-        } else if (res.contact) {
+        } else if (
+          res.clientType === INVOICE_CLIENT_TYPES.INDIVIDUAL &&
+          res.contact
+        ) {
           getClientDueInvoices({
             contactId: res.contact.id,
           }).then((res) => setInvoices(res));
         } else {
-          setError(true);
+          setError(
+            'Faktura nie ma uzupełnionego typu klienta/pole klienta puste.',
+          );
         }
       } else {
-        setError(true);
+        setError('Nie udało się pobrać faktury.');
       }
     });
   }, []);
@@ -322,7 +328,7 @@ export default function AcceptPayment() {
     </div>
   ) : (
     <>
-      {error && <h1>Wystąpił błąd</h1>}
+      {error && <h1>Wystąpił błąd: {error}</h1>}
       {!error && <h1>Ładowanie danych faktury...</h1>}
     </>
   );

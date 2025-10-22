@@ -13,6 +13,7 @@ import {
 import { getCompany } from './company.ts';
 import { getContact } from './contact.ts';
 import {
+  INVOICE_CLIENT_TYPE_FIELD,
   INVOICE_PAYMENT_DUE_FIELD,
   INVOICE_PAYMENT_STAGE_FIELD,
   INVOICE_PAYMENT_STATUS_FIELD,
@@ -102,6 +103,7 @@ export async function getInvoice(
           categoryId: categoryId,
           dealOrders: dealOrders ? dealOrders : undefined,
           clientName: clientName,
+          clientType: data[INVOICE_CLIENT_TYPE_FIELD] ?? undefined,
           companyId: companyId && companyId !== 0 ? companyId : undefined,
           company: company ?? undefined,
           contactId: contactId && contactId !== 0 ? contactId : undefined,
@@ -200,9 +202,13 @@ export async function getDueInvoices(
             categoryId: categoryId,
             dealOrders: dealOrders ? dealOrders : undefined,
             clientName: clientName,
+            clientType: data[INVOICE_CLIENT_TYPE_FIELD] ?? undefined,
             companyId: companyId && companyId !== 0 ? companyId : undefined,
+            company: company ?? undefined,
             contactId: contactId && contactId !== 0 ? contactId : undefined,
+            contact: contact ?? undefined,
             paymentLeft: item['opportunity'] ?? undefined,
+            paymentDue: data[INVOICE_PAYMENT_DUE_FIELD] ?? undefined,
           };
 
           if (!invoices[code]) {

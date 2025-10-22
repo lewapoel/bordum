@@ -4,6 +4,7 @@ import { DealData } from '@/models/bitrix/deal.ts';
 export type InvoiceData = CrmData & {
   deal?: DealData;
   clientName?: string;
+  clientType?: string;
   paymentLeft?: number;
   dealOrders?: number;
   orderAmount?: number;

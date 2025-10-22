@@ -27,6 +27,11 @@ export const INVOICE_PAYMENT_TYPES = {
   CREDIT_LIMIT: '3408',
 };
 
+export const INVOICE_CLIENT_TYPES = {
+  INDIVIDUAL: '2504',
+  COMPANY: '2506',
+};
+
 // Stage field values for invoices
 export const INVOICE_STAGES = {
   AWAITING_PAYMENT: 'DT31_2:N',

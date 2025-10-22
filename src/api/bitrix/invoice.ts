@@ -304,6 +304,7 @@ export async function updateInvoicePayment(
       entityTypeId: ENTITY_TYPES.INVOICE,
       id: placementId,
       fields: {
+        stageId: INVOICE_STAGES.PROCESSING,
         opportunity: paymentLeft,
         [INVOICE_PAYMENT_DUE_FIELD]: nextPaymentDue,
         [INVOICE_PAYMENT_STATUS_FIELD]: paymentStatus,

@@ -28,8 +28,8 @@ export const INVOICE_PAYMENT_TYPES = {
 };
 
 export const INVOICE_CLIENT_TYPES = {
-  INDIVIDUAL: '2504',
-  COMPANY: '2506',
+  INDIVIDUAL: '4580',
+  COMPANY: '4582',
 };
 
 // Stage field values for invoices

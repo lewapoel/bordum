@@ -105,7 +105,7 @@ export default function AcceptPayment() {
     const placementId = getCurrentPlacementId();
 
     if (!placementId) {
-      setError('Nie udało się pobrać ID faktury.');
+      setError('Nie udało się pobrać ID faktury');
       return;
     }
 
@@ -114,7 +114,7 @@ export default function AcceptPayment() {
         const statusField = res[INVOICE_PAYMENT_STATUS_FIELD] as EnumFieldMeta;
         setPaymentStatuses(statusField.items);
       } else {
-        setError('Nie udało się pobrać pól faktury.');
+        setError('Nie udało się pobrać pól faktury');
       }
     });
 
@@ -135,11 +135,11 @@ export default function AcceptPayment() {
           }).then((res) => setInvoices(res));
         } else {
           setError(
-            'Faktura nie ma uzupełnionego typu klienta/pole klienta puste.',
+            'Faktura nie ma uzupełnionego typu klienta/pole klienta puste',
           );
         }
       } else {
-        setError('Nie udało się pobrać faktury.');
+        setError('Nie udało się pobrać faktury');
       }
     });
   }, []);

@@ -328,7 +328,7 @@ export default function AcceptPayment() {
     </div>
   ) : (
     <>
-      {error && <h1>Wystąpił błąd: {error}</h1>}
+      {error && <h1>{error}</h1>}
       {!error && <h1>Ładowanie danych faktury...</h1>}
     </>
   );

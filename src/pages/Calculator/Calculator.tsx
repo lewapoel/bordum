@@ -12,12 +12,13 @@ import {
 import ElementCalculator from '@/pages/Calculator/components/ElementCalculator.tsx';
 import GateMotorCalculator from '@/pages/Calculator/components/GateMotorCalculator.tsx';
 import Sum1 from '@/pages/Calculator/components/Sum1.tsx';
-import Pattern from '@/pages/Calculator/components/Pattern.tsx';
+import Header from '@/pages/Calculator/components/Header.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import MasonryCalculator from '@/pages/Calculator/components/MasonryCalculator.tsx';
 import { formatMoney } from '@/utils/money.ts';
 import { getCurrentPlacementId } from '@/utils/bitrix24.ts';
 import { updateDealEstimate } from '@/api/bitrix/deal.ts';
+import EditPrices from '@/pages/Calculator/components/EditPrices.tsx';
 
 export default function Calculator() {
   const placementId = getCurrentPlacementId();
@@ -25,11 +26,12 @@ export default function Calculator() {
   const calculatorForm = useForm({
     resolver: zodResolver(calculatorFormSchema),
     defaultValues: {
+      type: 'regular',
       pattern: '',
+      targetHeight: '0',
       elements: Object.keys(ELEMENT_TYPES).reduce(
         (acc: Record<string, z.input<typeof elementSchema>>, key) => {
           acc[key] = {
-            height: '0',
             width: '0',
           };
 
@@ -49,6 +51,7 @@ export default function Calculator() {
     mode: 'onChange',
   });
 
+  const [editingPrices, setEditingPrices] = useState(false);
   const [metalworkSum, setMetalworkSum] = useState(0);
   const [masonrySum, setMasonrySum] = useState(0);
 
@@ -70,46 +73,57 @@ export default function Calculator() {
 
   return (
     <div className='mt-10'>
-      <Form {...calculatorForm}>
-        <form
-          className='flex flex-col gap-4 items-start'
-          onSubmit={calculatorForm.handleSubmit(onCalculatorSubmit)}
+      <div className='w-full flex mb-4 justify-center'>
+        {/*<Button
+          type='button'
+          onClick={() => setEditingPrices(!editingPrices)}
+          className='h-full'
         >
-          <div className='bg-blue-200 p-2'>
-            <Pattern calculatorForm={calculatorForm} />
-          </div>
-          <GateMotorCalculator calculatorForm={calculatorForm} />
-          <ElementCalculator calculatorForm={calculatorForm} />
-          <Sum1
-            calculatorForm={calculatorForm}
-            setMetalworkSum={setMetalworkSum}
-          />
-          <MasonryCalculator
-            calculatorForm={calculatorForm}
-            setMasonrySum={setMasonrySum}
-          />
-
-          <table>
-            <tbody>
-              <tr>
-                <th>Suma całkowita</th>
-                <td>{formatMoney(totalSum)}</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <Button
-            disabled={
-              !calculatorForm.formState.isValid ||
-              calculatorForm.formState.isSubmitting
-            }
-            type='submit'
-            className='confirm'
+          {editingPrices ? 'Wróć do kalkulatora' : 'Edytuj cennik'}
+        </Button>*/}
+      </div>
+      {editingPrices ? (
+        <EditPrices />
+      ) : (
+        <Form {...calculatorForm}>
+          <form
+            className='flex flex-col gap-4 items-start'
+            onSubmit={calculatorForm.handleSubmit(onCalculatorSubmit)}
           >
-            Zapisz
-          </Button>
-        </form>
-      </Form>
+            <Header calculatorForm={calculatorForm} />
+            <GateMotorCalculator calculatorForm={calculatorForm} />
+            <ElementCalculator calculatorForm={calculatorForm} />
+            <Sum1
+              calculatorForm={calculatorForm}
+              setMetalworkSum={setMetalworkSum}
+            />
+            <MasonryCalculator
+              calculatorForm={calculatorForm}
+              setMasonrySum={setMasonrySum}
+            />
+
+            <table>
+              <tbody>
+                <tr>
+                  <th>Suma całkowita</th>
+                  <td>{formatMoney(totalSum)}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <Button
+              disabled={
+                !calculatorForm.formState.isValid ||
+                calculatorForm.formState.isSubmitting
+              }
+              type='submit'
+              className='confirm'
+            >
+              Zapisz
+            </Button>
+          </form>
+        </Form>
+      )}
     </div>
   );
 }

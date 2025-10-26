@@ -42,6 +42,10 @@ export async function fetchDiskApi(method: string, data: any) {
 }
 
 const mockBX24 = {
+  appOption: {
+    get: () => {},
+    set: () => {},
+  },
   callMethod: (
     method: string,
     _args: any,

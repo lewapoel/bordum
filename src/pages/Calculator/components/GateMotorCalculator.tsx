@@ -5,15 +5,12 @@ import {
   FormMessage,
 } from '@/components/ui/form.tsx';
 import { formatMoney } from '@/utils/money.ts';
-import {
-  calculatorFormSchema,
-  GATE_MOTOR_PRICING,
-  GATE_MOTORS,
-} from '@/data/calculator.ts';
+import { calculatorFormSchema, GATE_MOTORS } from '@/data/calculator.ts';
 import { GateMotorKey } from '@/models/calculator.ts';
 import { z } from 'zod';
 import { UseFormReturn } from 'react-hook-form';
 import { Checkbox } from '@/components/ui/checkbox.tsx';
+import { getOptions } from '@/utils/calculator.ts';
 
 interface GateMotorCalculatorProps {
   calculatorForm: UseFormReturn<z.input<typeof calculatorFormSchema>>;
@@ -22,6 +19,8 @@ interface GateMotorCalculatorProps {
 export default function GateMotorCalculator({
   calculatorForm,
 }: GateMotorCalculatorProps) {
+  const options = getOptions();
+
   return (
     <table>
       <thead>
@@ -53,7 +52,7 @@ export default function GateMotorCalculator({
                 )}
               />
             </td>
-            <td>{formatMoney(GATE_MOTOR_PRICING[id as GateMotorKey])}</td>
+            <td>{formatMoney(options.gateMotorPricing[id as GateMotorKey])}</td>
           </tr>
         ))}
       </tbody>

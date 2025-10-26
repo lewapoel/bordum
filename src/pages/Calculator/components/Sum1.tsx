@@ -1,18 +1,20 @@
 import { formatMoney } from '@/utils/money.ts';
-import {
-  calculatorFormSchema,
-  ELEMENT_PRICING,
-  GATE_MOTOR_PRICING,
-} from '@/data/calculator.ts';
+import { calculatorFormSchema } from '@/data/calculator.ts';
 import {
   ElementTypeKey,
   GateMotorKey,
   PatternKey,
+  TypeKey,
 } from '@/models/calculator.ts';
 import { z } from 'zod';
 import { UseFormReturn, useWatch } from 'react-hook-form';
 import { Dispatch, SetStateAction, useEffect, useMemo } from 'react';
-import { getElementCost, getFencePanelFixedCost } from '@/utils/calculator.ts';
+import {
+  getElementCost,
+  getElementHeight,
+  getFencePanelFixedCost,
+  getOptions,
+} from '@/utils/calculator.ts';
 
 interface Sum1Props {
   calculatorForm: UseFormReturn<z.input<typeof calculatorFormSchema>>;
@@ -20,8 +22,19 @@ interface Sum1Props {
 }
 
 export default function Sum1({ calculatorForm, setMetalworkSum }: Sum1Props) {
+  const options = getOptions();
   const watchedCalculator = useWatch({ control: calculatorForm.control });
+
+  const watchedType = watchedCalculator.type as TypeKey;
   const watchedPattern = watchedCalculator.pattern as PatternKey;
+  const watchedFencePanelsLength = +(
+    watchedCalculator.fencePanelsLength ?? '0'
+  );
+  const watchedFencePanelWidth = +(
+    watchedCalculator.elements?.fencePanel?.width ?? '0'
+  );
+
+  const fencePanelFixedCostEntry = options.fencePanelFixedCost[watchedType];
 
   const elementsCost = useMemo(
     () =>
@@ -30,12 +43,17 @@ export default function Sum1({ calculatorForm, setMetalworkSum }: Sum1Props) {
             (acc: number, [key, element]) => {
               const elementKey = key as ElementTypeKey;
 
-              const height = +(element?.height || 0);
+              const targetHeight = +(watchedCalculator.targetHeight || 0);
+              const height = getElementHeight(
+                elementKey,
+                watchedType,
+                targetHeight,
+              );
               const width = +(element?.width || 0);
               const area = width * height;
 
               const elementPricing =
-                ELEMENT_PRICING[watchedPattern]?.[elementKey];
+                options.elementPricing[watchedPattern]?.[elementKey];
               acc += getElementCost(area, elementPricing);
 
               return acc;
@@ -43,7 +61,13 @@ export default function Sum1({ calculatorForm, setMetalworkSum }: Sum1Props) {
             0,
           )
         : 0,
-    [watchedCalculator.elements, watchedPattern],
+    [
+      watchedCalculator.elements,
+      watchedPattern,
+      watchedCalculator.targetHeight,
+      watchedType,
+      options.elementPricing,
+    ],
   );
 
   const gateMotorsCost = useMemo(
@@ -53,32 +77,37 @@ export default function Sum1({ calculatorForm, setMetalworkSum }: Sum1Props) {
             (acc: number, [key, checked]) => {
               const gateMotorKey = key as GateMotorKey;
 
-              acc += checked ? GATE_MOTOR_PRICING[gateMotorKey] : 0;
+              acc += checked ? options.gateMotorPricing[gateMotorKey] : 0;
               return acc;
             },
             0,
           )
         : 0,
-    [watchedCalculator.gateMotors],
+    [watchedCalculator.gateMotors, options.gateMotorPricing],
   );
 
   const fencePanelFixedCost = useMemo(
     () =>
       getFencePanelFixedCost(
-        +(watchedCalculator.elements?.fence_panel?.width || 0),
+        fencePanelFixedCostEntry,
+        watchedType === 'regular'
+          ? watchedFencePanelWidth
+          : watchedFencePanelsLength,
       ),
-    [watchedCalculator.elements],
+    [
+      watchedFencePanelWidth,
+      fencePanelFixedCostEntry,
+      watchedFencePanelsLength,
+      watchedType,
+    ],
   );
 
   const metalworkSum = useMemo(
-    () => elementsCost + fencePanelFixedCost,
-    [elementsCost, fencePanelFixedCost],
+    () => elementsCost + fencePanelFixedCost + gateMotorsCost,
+    [elementsCost, fencePanelFixedCost, gateMotorsCost],
   );
 
-  const equipmentSum = useMemo(
-    () => metalworkSum + gateMotorsCost,
-    [metalworkSum, gateMotorsCost],
-  );
+  const equipmentSum = useMemo(() => metalworkSum, [metalworkSum]);
 
   useEffect(() => {
     setMetalworkSum(metalworkSum);

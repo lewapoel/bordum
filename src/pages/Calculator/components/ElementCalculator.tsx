@@ -5,16 +5,17 @@ import {
   FormMessage,
 } from '@/components/ui/form.tsx';
 import { formatMoney } from '@/utils/money.ts';
-import {
-  calculatorFormSchema,
-  ELEMENT_PRICING,
-  ELEMENT_TYPES,
-  FENCE_PANEL_FIXED_COST,
-} from '@/data/calculator.ts';
-import { ElementTypeKey, PatternKey } from '@/models/calculator.ts';
+import { calculatorFormSchema, ELEMENT_TYPES } from '@/data/calculator.ts';
+import { ElementTypeKey, PatternKey, TypeKey } from '@/models/calculator.ts';
 import { z } from 'zod';
 import { UseFormReturn, useWatch } from 'react-hook-form';
-import { getElementCost, getFencePanelFixedCost } from '@/utils/calculator.ts';
+import {
+  getElementCost,
+  getElementHeight,
+  getFencePanelFixedCost,
+  getOptions,
+} from '@/utils/calculator.ts';
+import { useEffect } from 'react';
 
 interface ElementCalculatorProps {
   calculatorForm: UseFormReturn<z.input<typeof calculatorFormSchema>>;
@@ -23,12 +24,29 @@ interface ElementCalculatorProps {
 export default function ElementCalculator({
   calculatorForm,
 }: ElementCalculatorProps) {
+  const options = getOptions();
   const watchedCalculator = useWatch({ control: calculatorForm.control });
 
+  const watchedType = watchedCalculator?.type as TypeKey;
   const watchedFencePanelWidth = +(
-    watchedCalculator.elements?.fence_panel?.width || 0
+    watchedCalculator.elements?.fencePanel?.width || 0
   );
-  const fencePanelFixedCost = getFencePanelFixedCost(watchedFencePanelWidth);
+  const watchedFencePanelLength = +(watchedCalculator.fencePanelsLength ?? '0');
+  const fencePanelFixedCostEntry = options.fencePanelFixedCost[watchedType];
+  const fencePanelFixedCost = getFencePanelFixedCost(
+    fencePanelFixedCostEntry,
+    watchedFencePanelWidth,
+  );
+
+  useEffect(() => {
+    if (watchedType !== 'regular') {
+      const sectionCount = Math.round(watchedFencePanelLength / 2.5);
+      calculatorForm.setValue(
+        'elements.fencePanel.width',
+        (watchedFencePanelLength - sectionCount * 0.5).toString(),
+      );
+    }
+  }, [watchedType, calculatorForm, watchedFencePanelLength]);
 
   return (
     <table className='hollow'>
@@ -46,38 +64,37 @@ export default function ElementCalculator({
       <tbody>
         {Object.entries(ELEMENT_TYPES).map(([key, elementType]) => {
           const elementKey = key as ElementTypeKey;
+
           const watchedPattern = watchedCalculator.pattern as PatternKey;
           const watchedElement = watchedCalculator?.elements?.[key];
 
-          const height = +(watchedElement?.height || 0);
+          const targetHeight = +(watchedCalculator.targetHeight || 0);
+          const height = getElementHeight(
+            elementKey,
+            watchedType,
+            targetHeight,
+          );
           const width = +(watchedElement?.width || 0);
           const area = width * height;
 
-          const elementPricing = ELEMENT_PRICING[watchedPattern]?.[elementKey];
+          const elementPricing =
+            options.elementPricing[watchedPattern]?.[elementKey];
           const pricePerM2 = elementPricing?.pricePerM2 ?? 0;
           const fixedCost = elementPricing?.fixedCost ?? 0;
 
           const elementCost = getElementCost(area, elementPricing);
 
+          const canEdit =
+            watchedCalculator?.type === 'regular' ||
+            elementKey !== 'fencePanel';
+
           return (
             <tr key={key}>
               <td>{elementType.name}</td>
-              <td className='bg-blue-200'>
+              <td>{height.toFixed(2)}</td>
+              <td className={canEdit ? 'bg-blue-200' : ''}>
                 <FormField
-                  control={calculatorForm.control}
-                  name={`elements.${key}.height`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <input type='number' className='w-[150px]' {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </td>
-              <td className='bg-blue-200'>
-                <FormField
+                  disabled={!canEdit}
                   control={calculatorForm.control}
                   name={`elements.${key}.width`}
                   render={({ field }) => (
@@ -90,7 +107,7 @@ export default function ElementCalculator({
                   )}
                 />
               </td>
-              <td>{area.toFixed(2)}</td>
+              <td>{area.toFixed(3)}</td>
               <td>{formatMoney(pricePerM2)}</td>
               <td>{formatMoney(fixedCost)}</td>
               <td>{formatMoney(elementCost)}</td>
@@ -103,7 +120,7 @@ export default function ElementCalculator({
           <td className='empty'></td>
           <td className='empty'></td>
           <td className='empty'></td>
-          <td>{`${formatMoney(FENCE_PANEL_FIXED_COST.pricePerPanel)}/szt. co ${FENCE_PANEL_FIXED_COST.panelWidth} m`}</td>
+          <td>{`${formatMoney(fencePanelFixedCostEntry.pricePerPanel)}/szt. co ${fencePanelFixedCostEntry.panelWidth} m`}</td>
           <td>{formatMoney(fencePanelFixedCost)}</td>
         </tr>
       </tbody>

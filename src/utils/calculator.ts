@@ -69,5 +69,16 @@ export function getOptions(): CalculatorOptions {
 }
 
 export async function setOptions(options: any) {
-  return setAppOption('CALCULATOR_OPTIONS', JSON.stringify(options));
+  const toNumbers = (obj: any): any =>
+    Array.isArray(obj)
+      ? obj.map(toNumbers)
+      : obj && typeof obj === 'object'
+        ? Object.fromEntries(
+            Object.entries(obj).map(([k, v]) => [k, toNumbers(v)]),
+          )
+        : isNaN(obj)
+          ? obj
+          : +obj;
+
+  return setAppOption('CALCULATOR_OPTIONS', JSON.stringify(toNumbers(options)));
 }

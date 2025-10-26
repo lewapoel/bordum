@@ -111,7 +111,11 @@ export default function EditPrices() {
 
   const onEditPricesSubmit = useCallback(
     async (values: z.infer<typeof editPricesFormSchema>) => {
-      await setOptions(values);
+      const result = await setOptions(values);
+
+      if (result) {
+        alert('Zapisano cennik pomyślnie');
+      }
     },
     [],
   );

@@ -74,13 +74,13 @@ export default function Calculator() {
   return (
     <div className='mt-10'>
       <div className='w-full flex mb-4 justify-center'>
-        {/*<Button
+        <Button
           type='button'
           onClick={() => setEditingPrices(!editingPrices)}
           className='h-full'
         >
           {editingPrices ? 'Wróć do kalkulatora' : 'Edytuj cennik'}
-        </Button>*/}
+        </Button>
       </div>
       {editingPrices ? (
         <EditPrices />

@@ -169,7 +169,7 @@ export const editPricesFormSchema = z.object({
     ),
   ),
   gateMotorPricing: gateMotorPricingSchema,
-  fencePanelFixedCostPricing: z.record(
+  fencePanelFixedCost: z.record(
     z.string(), // Calculator type
     fencePanelFixedCostPricingEntrySchema,
   ),

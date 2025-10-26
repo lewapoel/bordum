@@ -5,7 +5,7 @@ import {
   FencePanelFixedCostEntry,
   TypeKey,
 } from '@/models/calculator.ts';
-import { getAppOption } from '@/api/bitrix/appOption.ts';
+import { getAppOption, setAppOption } from '@/api/bitrix/appOption.ts';
 import {
   ELEMENT_PRICING,
   FENCE_PANEL_FIXED_COST,
@@ -66,4 +66,8 @@ export function getOptions(): CalculatorOptions {
     fencePanelFixedCost: options.fencePanelFixedCost ?? FENCE_PANEL_FIXED_COST,
     masonryPricing: options.masonryPricing ?? MASONRY_PRICING,
   };
+}
+
+export async function setOptions(options: any) {
+  return setAppOption('CALCULATOR_OPTIONS', JSON.stringify(options));
 }

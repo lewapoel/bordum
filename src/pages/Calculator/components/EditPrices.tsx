@@ -1,4 +1,4 @@
-import { getOptions } from '@/utils/calculator.ts';
+import { getOptions, setOptions } from '@/utils/calculator.ts';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -12,7 +12,13 @@ import {
 } from '@/data/calculator.ts';
 import { ElementTypeKey, PatternKey, TypeKey } from '@/models/calculator.ts';
 import { z } from 'zod';
-import { Form } from '@/components/ui/form.tsx';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from '@/components/ui/form.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { useCallback, useMemo } from 'react';
 
@@ -58,7 +64,7 @@ export default function EditPrices() {
           slidingGate: options.gateMotorPricing.slidingGate.toString(),
           swingGate: options.gateMotorPricing.swingGate.toString(),
         },
-        fencePanelFixedCostPricing: Object.keys(TYPES).reduce(
+        fencePanelFixedCost: Object.keys(TYPES).reduce(
           (
             acc: Record<
               string,
@@ -105,7 +111,7 @@ export default function EditPrices() {
 
   const onEditPricesSubmit = useCallback(
     async (values: z.infer<typeof editPricesFormSchema>) => {
-      console.log(values);
+      await setOptions(values);
     },
     [],
   );
@@ -116,13 +122,73 @@ export default function EditPrices() {
         className='flex flex-col gap-4 items-start'
         onSubmit={editPricesForm.handleSubmit(onEditPricesSubmit)}
       >
+        <h2 className='font-bold'>Cennik elementów</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Wzór</th>
+              <th>Typ elementu</th>
+              <th>Cena za m²</th>
+              <th>Koszt stały</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Object.entries(PATTERNS).map(([patternKey, pattern]) =>
+              Object.entries(ELEMENT_TYPES).map(
+                ([elementTypeKey, elementType]) => (
+                  <tr key={`${patternKey}-${elementTypeKey}`}>
+                    <td>{pattern.name}</td>
+                    <td>{elementType.name}</td>
+                    <td className='bg-blue-200'>
+                      <FormField
+                        control={editPricesForm.control}
+                        name={`elementPricing.${patternKey}.${elementTypeKey}.pricePerM2`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <input
+                                type='number'
+                                className='w-[150px]'
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </td>
+                    <td className='bg-blue-200'>
+                      <FormField
+                        control={editPricesForm.control}
+                        name={`elementPricing.${patternKey}.${elementTypeKey}.fixedCost`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <input
+                                type='number'
+                                className='w-[150px]'
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </td>
+                  </tr>
+                ),
+              ),
+            )}
+          </tbody>
+        </table>
+
         <Button
           disabled={
             !editPricesForm.formState.isValid ||
             editPricesForm.formState.isSubmitting
           }
           type='submit'
-          className='confirm'
+          className='confirm mx-auto'
         >
           Zapisz
         </Button>

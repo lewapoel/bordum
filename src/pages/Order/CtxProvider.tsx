@@ -25,7 +25,7 @@ import {
   useGetCustomerByNip,
 } from '@/api/comarch/customer.ts';
 import { CrmData } from '@/models/bitrix/crm.ts';
-import { getCurrentUser } from '@/api/bitrix/user.ts';
+import { getCurrentUser, isCurrentUserAdmin } from '@/api/bitrix/user.ts';
 import { DealData } from '@/models/bitrix/deal.ts';
 import { AuthContext } from '../../components/AuthContext.tsx';
 import { InvoiceData } from '@/models/bitrix/invoice.ts';
@@ -143,11 +143,18 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
   }, [company.isPending, customer.data, company.data, customer.isPending]);
 
   useEffect(() => {
-    getCurrentUser().then((res) => {
-      if (res) {
-        const canAddProduct = ALLOWED_USERS.ADDING_PRODUCTS.includes(res.id);
+    getCurrentUser().then((currentUser) => {
+      if (currentUser) {
+        let isAdmin = false;
 
-        setMaxDiscount(res.discount);
+        isCurrentUserAdmin().then((res) => {
+          isAdmin = res;
+        });
+
+        const canAddProduct =
+          ALLOWED_USERS.ADDING_PRODUCTS.includes(currentUser.id) || isAdmin;
+
+        setMaxDiscount(currentUser.discount);
         setAllowAddingProduct(canAddProduct);
       }
     });

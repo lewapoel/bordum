@@ -46,3 +46,28 @@ export async function getCurrentUser(): Promise<User | null> {
     bx24.callMethod('user.current', {}, getUserCallback);
   });
 }
+
+export async function isCurrentUserAdmin(): Promise<boolean> {
+  const bx24 = getBitrix24();
+
+  if (!bx24) {
+    return false;
+  }
+
+  return new Promise((resolve, reject) => {
+    const getUserAdminCallback = (result: any) => {
+      if (result.error()) {
+        console.error(result.error());
+        alert(
+          'Nie udało się pobrać aktualnego użytkownika. Szczegóły w konsoli',
+        );
+        reject();
+      } else {
+        const data = result.data();
+        resolve(data);
+      }
+    };
+
+    bx24.callMethod('user.admin', {}, getUserAdminCallback);
+  });
+}

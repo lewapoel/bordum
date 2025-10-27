@@ -19,6 +19,8 @@ import { formatMoney } from '@/utils/money.ts';
 import { getCurrentPlacementId } from '@/utils/bitrix24.ts';
 import { updateDealEstimate } from '@/api/bitrix/deal.ts';
 import EditPrices from '@/pages/Calculator/components/EditPrices.tsx';
+import { getCurrentUser, isCurrentUserAdmin } from '@/api/bitrix/user.ts';
+import { ALLOWED_USERS } from '@/data/bitrix/user.ts';
 
 export default function Calculator() {
   const placementId = getCurrentPlacementId();
@@ -51,6 +53,7 @@ export default function Calculator() {
     mode: 'onChange',
   });
 
+  const [editingAllowed, setEditingAllowed] = useState(false);
   const [editingPrices, setEditingPrices] = useState(false);
   const [metalworkSum, setMetalworkSum] = useState(0);
   const [masonrySum, setMasonrySum] = useState(0);
@@ -69,14 +72,34 @@ export default function Calculator() {
       alert('Nie można pobrać ID aktualnego deala');
       return;
     }
+
+    getCurrentUser().then((currentUser) => {
+      if (currentUser) {
+        let isAdmin = false;
+        isCurrentUserAdmin().then((res) => {
+          isAdmin = res;
+        });
+
+        const canUse =
+          ALLOWED_USERS.EDIT_CALCULATOR_PRICES.includes(currentUser.id) ||
+          isAdmin;
+
+        setEditingAllowed(canUse);
+      }
+    });
   }, [placementId]);
 
   return (
     <div className='mt-10'>
       <div className='w-full flex mb-4 justify-center'>
         <Button
+          disabled={!editingAllowed}
           type='button'
-          onClick={() => setEditingPrices(!editingPrices)}
+          onClick={() => {
+            if (editingAllowed) {
+              setEditingPrices(!editingPrices);
+            }
+          }}
           className='h-full'
         >
           {editingPrices ? 'Wróć do kalkulatora' : 'Edytuj cennik'}

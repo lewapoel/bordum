@@ -12,6 +12,7 @@ import {
   CRM_QUOTE_FIELDS,
   CRM_QUOTE_GET,
   CRM_QUOTE_PRODUCTROWS_GET,
+  USER_ADMIN,
   USER_CURRENT,
   USER_GET,
 } from '../data/bitrix/mockBitrix.ts';
@@ -91,6 +92,10 @@ const mockBX24 = {
 
       case 'user.current':
         data = USER_CURRENT;
+        break;
+
+      case 'user.admin':
+        data = USER_ADMIN;
         break;
 
       case 'crm.deal.get':

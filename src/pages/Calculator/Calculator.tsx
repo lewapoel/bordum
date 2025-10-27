@@ -75,16 +75,13 @@ export default function Calculator() {
 
     getCurrentUser().then((currentUser) => {
       if (currentUser) {
-        let isAdmin = false;
-        isCurrentUserAdmin().then((res) => {
-          isAdmin = res;
+        isCurrentUserAdmin().then((isAdmin) => {
+          const canUse =
+            ALLOWED_USERS.EDIT_CALCULATOR_PRICES.includes(currentUser.id) ||
+            isAdmin;
+
+          setEditingAllowed(canUse);
         });
-
-        const canUse =
-          ALLOWED_USERS.EDIT_CALCULATOR_PRICES.includes(currentUser.id) ||
-          isAdmin;
-
-        setEditingAllowed(canUse);
       }
     });
   }, [placementId]);

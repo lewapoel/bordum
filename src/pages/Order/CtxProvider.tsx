@@ -145,17 +145,13 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
   useEffect(() => {
     getCurrentUser().then((currentUser) => {
       if (currentUser) {
-        let isAdmin = false;
-
-        isCurrentUserAdmin().then((res) => {
-          isAdmin = res;
-        });
-
-        const canAddProduct =
-          ALLOWED_USERS.ADDING_PRODUCTS.includes(currentUser.id) || isAdmin;
-
         setMaxDiscount(currentUser.discount);
-        setAllowAddingProduct(canAddProduct);
+
+        isCurrentUserAdmin().then((isAdmin) => {
+          const canAddProduct =
+            ALLOWED_USERS.ADDING_PRODUCTS.includes(currentUser.id) || isAdmin;
+          setAllowAddingProduct(canAddProduct);
+        });
       }
     });
 

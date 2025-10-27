@@ -1079,6 +1079,8 @@ export const CRM_ADDRESS_LIST = [
   },
 ];
 
+export const USER_ADMIN = true;
+
 export const USER_CURRENT = {
   ID: '1',
   XML_ID: '58172719',

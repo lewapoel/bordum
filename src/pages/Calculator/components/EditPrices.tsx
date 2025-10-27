@@ -337,7 +337,7 @@ export default function EditPrices() {
           </thead>
           <tbody>
             {Object.entries(TYPES)
-              .filter(([typeKey, _]) =>
+              .filter(([typeKey]) =>
                 Object.keys(MASONRY_PARAMS).includes(typeKey),
               )
               .map(([typeKey, calculatorType]) => (

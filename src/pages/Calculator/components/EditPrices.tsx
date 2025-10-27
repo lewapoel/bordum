@@ -6,6 +6,8 @@ import {
   ELEMENT_TYPES,
   elementPricingEntrySchema,
   fencePanelFixedCostPricingEntrySchema,
+  GATE_MOTORS,
+  MASONRY_PARAMS,
   masonryParamsEntrySchema,
   PATTERNS,
   TYPES,
@@ -183,6 +185,202 @@ export default function EditPrices() {
                 ),
               ),
             )}
+          </tbody>
+        </table>
+
+        <h2 className='font-bold'>Cennik napędów do bramy</h2>
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th>Cena</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Object.entries(GATE_MOTORS).map(([gateMotorKey, gateMotor]) => (
+              <tr key={gateMotorKey}>
+                <td>{gateMotor.name}</td>
+                <td className='bg-blue-200'>
+                  <FormField
+                    control={editPricesForm.control}
+                    // @ts-ignore
+                    name={`gateMotorPricing.${gateMotorKey}`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          {/*
+                          // @ts-ignore */}
+                          <input
+                            type='number'
+                            className='w-[150px]'
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <h2 className='font-bold'>Dodatkowy koszt stały przęsła</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Typ kalkulatora</th>
+              <th>Dzielnik długości (m)</th>
+              <th>Cena za sztukę</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Object.entries(TYPES).map(([typeKey, calculatorType]) => (
+              <tr key={typeKey}>
+                <td>{calculatorType.name}</td>
+                <td className='bg-blue-200'>
+                  <FormField
+                    control={editPricesForm.control}
+                    name={`fencePanelFixedCost.${typeKey}.panelWidth`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <input
+                            type='number'
+                            className='w-[150px]'
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </td>
+                <td className='bg-blue-200'>
+                  <FormField
+                    control={editPricesForm.control}
+                    name={`fencePanelFixedCost.${typeKey}.pricePerPanel`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <input
+                            type='number'
+                            className='w-[150px]'
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <h2 className='font-bold'>Cennik murowania</h2>
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th>Cena</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Cena bloczka</td>
+              <td className='bg-blue-200'>
+                <FormField
+                  control={editPricesForm.control}
+                  name='masonryPricing.blockPrice'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <input type='number' className='w-[150px]' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </td>
+            </tr>
+            <tr>
+              <td>Cena fundamentu</td>
+              <td className='bg-blue-200'>
+                <FormField
+                  control={editPricesForm.control}
+                  name='masonryPricing.foundationPrice'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <input type='number' className='w-[150px]' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 className='font-bold'>Parametry murowania</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Typ kalkulatora</th>
+              <th>Bloczki w słupkach</th>
+              <th>Bloczki pod przęsłami</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Object.entries(TYPES)
+              .filter(([typeKey, _]) =>
+                Object.keys(MASONRY_PARAMS).includes(typeKey),
+              )
+              .map(([typeKey, calculatorType]) => (
+                <tr key={typeKey}>
+                  <td>{calculatorType.name}</td>
+                  <td className='bg-blue-200'>
+                    <FormField
+                      control={editPricesForm.control}
+                      name={`masonryParams.${typeKey}.blocksPerPost`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <input
+                              type='number'
+                              className='w-[150px]'
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </td>
+                  <td className='bg-blue-200'>
+                    <FormField
+                      control={editPricesForm.control}
+                      name={`masonryParams.${typeKey}.blocksPerSection`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <input
+                              type='number'
+                              className='w-[150px]'
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </table>
 

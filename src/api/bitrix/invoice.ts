@@ -274,7 +274,7 @@ export type UpdateInvoicePayment = {
   paymentLeft: number;
   paymentStatus: string;
   paymentType: string;
-  nextPaymentDue: string;
+  nextPaymentDue?: string;
 };
 
 export async function updateInvoicePayment(
@@ -301,24 +301,26 @@ export async function updateInvoicePayment(
         alert('Nie udało się zapisać faktury. Szczegóły w konsoli');
         reject();
       } else {
-        alert('Faktura zapisana pomyślnie');
         resolve(true);
       }
     };
 
-    const updateBody = {
+    const updateBody: any = {
       entityTypeId: ENTITY_TYPES.INVOICE,
       id: placementId,
       fields: {
         stageId: INVOICE_STAGES.PROCESSING,
         opportunity: paymentLeft,
-        [INVOICE_PAYMENT_DUE_FIELD]: nextPaymentDue,
         [INVOICE_PAYMENT_STATUS_FIELD]: paymentStatus,
         [INVOICE_AMOUNT_PAID_FIELD]: amountPaid,
         [INVOICE_PAYMENT_LEFT_FIELD]: paymentLeft,
         [INVOICE_PAYMENT_TYPE_FIELD]: paymentType,
       },
     };
+
+    if (nextPaymentDue) {
+      updateBody.fields[INVOICE_PAYMENT_DUE_FIELD] = nextPaymentDue;
+    }
 
     bx24.callMethod('crm.item.update', updateBody, setInvoiceCallback);
   });

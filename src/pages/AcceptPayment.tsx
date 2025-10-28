@@ -70,9 +70,10 @@ export default function AcceptPayment() {
         paymentType: z.string().min(1, 'Wybierz rodzaj płatności z listy'),
         nextPaymentDue: z
           .date({
-            error: 'Data nie może być pusta',
+            error: 'Nieprawidłowa data',
           })
-          .min(new Date(), { message: 'Data nie może być z przeszłości' }),
+          .min(new Date(), { message: 'Data nie może być z przeszłości' })
+          .optional(),
       }),
     [paymentLeft],
   );
@@ -94,16 +95,22 @@ export default function AcceptPayment() {
   const leftToPay = paymentLeft - watchedAmountPaid;
 
   const onSubmit = useCallback(
-    (values: z.infer<typeof formSchema>) => {
-      const nextPaymentDue = format(values.nextPaymentDue, 'yyyy-MM-dd');
+    async (values: z.infer<typeof formSchema>) => {
+      const nextPaymentDue = values.nextPaymentDue
+        ? format(values.nextPaymentDue, 'yyyy-MM-dd')
+        : values.nextPaymentDue;
 
-      void updateInvoicePayment(getCurrentPlacementId(), {
+      const result = await updateInvoicePayment(getCurrentPlacementId(), {
         paymentLeft: paymentLeft - +values.amountPaid,
         amountPaid: +values.amountPaid,
         paymentStatus: values.paymentStatus,
         nextPaymentDue: nextPaymentDue,
         paymentType: values.paymentType,
       });
+
+      if (result) {
+        alert('Informacje o przyjętej płatności zostały pomyślnie zapisane');
+      }
     },
     [paymentLeft],
   );

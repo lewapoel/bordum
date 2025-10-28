@@ -64,7 +64,9 @@ function SummaryRow({
     >
       <td>{index + 1}</td>
       <td>{item?.productName}</td>
-      <td>{item ? (item.type ? PRODUCT_TYPES[item.type] : '-') : ''}</td>
+      <td>
+        {item ? (item.type !== undefined ? PRODUCT_TYPES[item.type] : '-') : ''}
+      </td>
       <td>
         {item ? (
           <input

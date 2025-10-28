@@ -23,7 +23,10 @@ import {
   FormMessage,
 } from '@/components/ui/form.tsx';
 import { EnumFieldItem, EnumFieldMeta } from '@/models/bitrix/field.ts';
-import { INVOICE_PAYMENT_STATUS_FIELD } from '@/data/bitrix/field.ts';
+import {
+  INVOICE_PAYMENT_STATUS_FIELD,
+  INVOICE_PAYMENT_TYPE_FIELD,
+} from '@/data/bitrix/field.ts';
 import {
   Select,
   SelectContent,
@@ -48,6 +51,7 @@ export default function AcceptPayment() {
   const [invoice, setInvoice] = useState<InvoiceData>();
   const [paymentStatuses, setPaymentStatuses] =
     useState<Array<EnumFieldItem>>();
+  const [paymentTypes, setPaymentTypes] = useState<Array<EnumFieldItem>>();
   const [invoices, setInvoices] = useState<Array<InvoiceData>>();
 
   const unpaidInvoices = useGetUnpaidInvoices(invoices);
@@ -63,6 +67,7 @@ export default function AcceptPayment() {
           },
         ),
         paymentStatus: z.string().min(1, 'Wybierz status płatności z listy'),
+        paymentType: z.string().min(1, 'Wybierz rodzaj płatności z listy'),
         nextPaymentDue: z
           .date({
             error: 'Data nie może być pusta',
@@ -77,6 +82,7 @@ export default function AcceptPayment() {
     defaultValues: {
       amountPaid: '0',
       paymentStatus: '',
+      paymentType: '',
       nextPaymentDue: undefined,
     },
     mode: 'onChange',
@@ -91,12 +97,13 @@ export default function AcceptPayment() {
     (values: z.infer<typeof formSchema>) => {
       const nextPaymentDue = format(values.nextPaymentDue, 'yyyy-MM-dd');
 
-      void updateInvoicePayment(
-        getCurrentPlacementId(),
-        paymentLeft - +values.amountPaid,
-        values.paymentStatus,
-        nextPaymentDue,
-      );
+      void updateInvoicePayment(getCurrentPlacementId(), {
+        paymentLeft: paymentLeft - +values.amountPaid,
+        amountPaid: +values.amountPaid,
+        paymentStatus: values.paymentStatus,
+        nextPaymentDue: nextPaymentDue,
+        paymentType: values.paymentType,
+      });
     },
     [paymentLeft],
   );
@@ -112,7 +119,12 @@ export default function AcceptPayment() {
     getInvoiceFields().then((res) => {
       if (res) {
         const statusField = res[INVOICE_PAYMENT_STATUS_FIELD] as EnumFieldMeta;
+        const paymentTypeField = res[
+          INVOICE_PAYMENT_TYPE_FIELD
+        ] as EnumFieldMeta;
+
         setPaymentStatuses(statusField.items);
+        setPaymentTypes(paymentTypeField.items);
       } else {
         setError('Nie udało się pobrać pól faktury');
       }
@@ -144,7 +156,7 @@ export default function AcceptPayment() {
     });
   }, []);
 
-  return paymentStatuses && invoice && invoices && !error ? (
+  return paymentStatuses && paymentTypes && invoice && invoices && !error ? (
     <div>
       <div className='grid grid-cols-2 gap-x-2 gap-y-5'>
         <div>
@@ -184,6 +196,10 @@ export default function AcceptPayment() {
             <tr>
               <th>Wariant płatności</th>
               <td>{invoice.paymentVariant}</td>
+            </tr>
+            <tr>
+              <th>Sposób płatności</th>
+              <td>{invoice.paymentType}</td>
             </tr>
             <tr>
               <th>Etap płatności</th>
@@ -253,6 +269,40 @@ export default function AcceptPayment() {
                                     value={paymentStatus.ID}
                                   >
                                     {paymentStatus.VALUE}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </td>
+                </tr>
+                <tr>
+                  <th>Sposób płatności</th>
+                  <td>
+                    <FormField
+                      control={form.control}
+                      name='paymentType'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                            >
+                              <SelectTrigger className='w-[200px]'>
+                                <SelectValue placeholder='Wybierz...' />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {paymentTypes.map((paymentType) => (
+                                  <SelectItem
+                                    key={paymentType.ID}
+                                    value={paymentType.ID}
+                                  >
+                                    {paymentType.VALUE}
                                   </SelectItem>
                                 ))}
                               </SelectContent>

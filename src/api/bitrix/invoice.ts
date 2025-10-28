@@ -14,8 +14,10 @@ import {
 import { getCompany } from './company.ts';
 import { getContact } from './contact.ts';
 import {
+  INVOICE_AMOUNT_PAID_FIELD,
   INVOICE_CLIENT_TYPE_FIELD,
   INVOICE_PAYMENT_DUE_FIELD,
+  INVOICE_PAYMENT_LEFT_FIELD,
   INVOICE_PAYMENT_STAGE_FIELD,
   INVOICE_PAYMENT_STATUS_FIELD,
   INVOICE_PAYMENT_TYPE_FIELD,
@@ -113,6 +115,10 @@ async function parseInvoice(
       paymentStage: getEnumValue(
         fields[INVOICE_PAYMENT_STAGE_FIELD] as EnumFieldMeta,
         data[INVOICE_PAYMENT_STAGE_FIELD] ?? undefined,
+      ),
+      paymentType: getEnumValue(
+        fields[INVOICE_PAYMENT_TYPE_FIELD] as EnumFieldMeta,
+        data[INVOICE_PAYMENT_TYPE_FIELD] ?? undefined,
       ),
     };
   }
@@ -263,16 +269,30 @@ export async function getClientDueInvoices(filter: DueInvoicesFilter) {
   return undefined;
 }
 
+export type UpdateInvoicePayment = {
+  amountPaid: number;
+  paymentLeft: number;
+  paymentStatus: string;
+  paymentType: string;
+  nextPaymentDue: string;
+};
+
 export async function updateInvoicePayment(
   placementId: number,
-  paymentLeft: number,
-  paymentStatus: string,
-  nextPaymentDue: string,
+  updateInvoicePayment: UpdateInvoicePayment,
 ) {
   const bx24 = getBitrix24();
   if (!bx24) {
     return null;
   }
+
+  const {
+    amountPaid,
+    paymentLeft,
+    paymentStatus,
+    nextPaymentDue,
+    paymentType,
+  } = updateInvoicePayment;
 
   return new Promise((resolve, reject) => {
     const setInvoiceCallback = (result: any) => {
@@ -294,6 +314,9 @@ export async function updateInvoicePayment(
         opportunity: paymentLeft,
         [INVOICE_PAYMENT_DUE_FIELD]: nextPaymentDue,
         [INVOICE_PAYMENT_STATUS_FIELD]: paymentStatus,
+        [INVOICE_AMOUNT_PAID_FIELD]: amountPaid,
+        [INVOICE_PAYMENT_LEFT_FIELD]: paymentLeft,
+        [INVOICE_PAYMENT_TYPE_FIELD]: paymentType,
       },
     };
 

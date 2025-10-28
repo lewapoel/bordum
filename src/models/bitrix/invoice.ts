@@ -6,6 +6,7 @@ export type InvoiceData = CrmData & {
   deal?: DealData;
   clientName?: string;
   clientType?: string;
+  paymentType?: string;
   paymentLeft?: number;
   dealOrders?: number;
   orderAmount?: number;

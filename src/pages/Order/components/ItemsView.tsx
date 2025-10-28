@@ -340,10 +340,7 @@ export default function ItemsView() {
     async (editItem: Item) => {
       return await toast.promise(
         async () => {
-          return await addEditItemMutation.mutateAsync({
-            ...editItem,
-            groups: [TEMPORARY_ITEM_GROUP],
-          });
+          return await addEditItemMutation.mutateAsync(editItem);
         },
         {
           pending: 'Dodawanie edytowanej pozycji...',
@@ -422,7 +419,10 @@ export default function ItemsView() {
 
         let finalItem: Item = item;
         if (editItem) {
-          finalItem = await addEditItem(editItem);
+          finalItem = await addEditItem({
+            ...editItem,
+            groups: [TEMPORARY_ITEM_GROUP],
+          });
         }
 
         await selectItemManual(finalItem, +quantity, +discount);
@@ -514,6 +514,7 @@ export default function ItemsView() {
         unit: 'szt.',
         name: sanitizedName + ` (H=${values.height}m L=${values.width}m)`,
         prices: newPrices,
+        groups: ['ZAM1', 'MAG2'],
       });
 
       await selectItemManual(item, +values.quantity);

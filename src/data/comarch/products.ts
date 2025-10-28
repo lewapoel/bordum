@@ -68,4 +68,5 @@ export const TEMPLATE_PRODUCT_CODES = [
   '000292',
   '001327',
   '001328',
+  '000271',
 ];

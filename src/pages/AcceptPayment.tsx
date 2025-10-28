@@ -110,6 +110,7 @@ export default function AcceptPayment() {
 
       if (result) {
         alert('Informacje o przyjętej płatności zostały pomyślnie zapisane');
+        window.location.reload();
       }
     },
     [paymentLeft],

@@ -90,6 +90,7 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
             code: orderData.additionalData?.itemCodes?.[idx] ?? '',
             groups: orderData.additionalData?.itemGroups?.[idx] ?? [],
             itemId: orderData.additionalData?.itemIds?.[idx] ?? '',
+            type: orderData.additionalData?.itemTypes?.[idx] ?? undefined,
             productName: item['PRODUCT_NAME'],
             quantity: item['QUANTITY'],
             unit: item['MEASURE_NAME'],
@@ -473,6 +474,7 @@ export async function updateOrder(
       itemCodes: order.map((item) => item.code),
       itemIds: order.map((item) => item.itemId),
       itemGroups: order.map((item) => item.groups),
+      itemTypes: order.map((item) => item.type),
     };
 
     const updateBody: any = {

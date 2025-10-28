@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/dialog.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { calculateUnitPrice } from '@/utils/item.ts';
+import { PRODUCT_TYPES } from '@/data/comarch/product.ts';
 
 interface SummaryRowProps {
   index: number;
@@ -63,6 +64,7 @@ function SummaryRow({
     >
       <td>{index + 1}</td>
       <td>{item?.productName}</td>
+      <td>{item?.type ? PRODUCT_TYPES[item.type] : '-'}</td>
       <td>
         {item ? (
           <input
@@ -364,6 +366,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
           <tr>
             <th>Lp.</th>
             <th>Nazwa towaru</th>
+            <th>Rodzaj</th>
             <th>Ilość</th>
             <th>Jedn. miary</th>
             <th>Cena jedn.</th>

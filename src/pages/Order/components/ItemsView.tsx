@@ -48,12 +48,13 @@ import {
 } from '@/components/ui/form.tsx';
 import { generateItemCode } from '@/utils/item.ts';
 import { TEMPORARY_ITEM_GROUP } from '@/data/comarch/groups.ts';
-import { TEMPLATE_PRODUCT_CODES } from '@/data/comarch/products.ts';
+import { TEMPLATE_PRODUCT_CODES } from '@/data/comarch/product.ts';
 import Combobox, { ComboboxItem } from '@/components/ui/combobox.tsx';
 import { formatMoney } from '@/utils/money.ts';
 import { Prices, PriceType } from '@/models/comarch/prices.ts';
 import { BUY_PRICE } from '@/data/comarch/prices.ts';
 import { validateNonNegativeInput, validatePrice } from '@/utils/validation.ts';
+import { ItemType } from '@/models/bitrix/order.ts';
 
 type Match = {
   item: ItemWarehouses;
@@ -282,6 +283,7 @@ export default function ItemsView() {
                 groups: newItem.groups,
                 itemId: newItem.id.toString(),
                 productName: newItem.name,
+                type: ItemType.CUSTOM_ITEM,
                 quantity: +values.quantity,
                 unit: newItem.unit,
                 unitPrice: newItem.prices['detaliczna'].value,
@@ -355,13 +357,14 @@ export default function ItemsView() {
   );
 
   const selectItemManual = useCallback(
-    async (item: Item, quantity: number, discount?: number) => {
+    async (item: Item, type: ItemType, quantity: number, discount?: number) => {
       if (ctx) {
         const result = ctx.saveItem({
           code: item.code,
           groups: item.groups,
           itemId: item.id.toString(),
           productName: item.name,
+          type: type,
           quantity: +quantity,
           unit: item.unit,
           unitPrice: item.prices[ctx.selectedPrice!].value,
@@ -425,7 +428,12 @@ export default function ItemsView() {
           });
         }
 
-        await selectItemManual(finalItem, +quantity, +discount);
+        await selectItemManual(
+          finalItem,
+          editItem ? ItemType.CUSTOM_ITEM : ItemType.STANDARD,
+          +quantity,
+          +discount,
+        );
       }
     },
     [ctx, quantities, discounts, selectItemManual, addEditItem],
@@ -517,7 +525,11 @@ export default function ItemsView() {
         groups: ['ZAM1', 'MAG2'],
       });
 
-      await selectItemManual(item, +values.quantity);
+      await selectItemManual(
+        item,
+        ItemType.CUSTOM_TEMPLATE_ITEM,
+        +values.quantity,
+      );
       setAddingTemplateItemVisible(false);
     },
     [currentTemplateItem, addEditItem, selectItemManual],

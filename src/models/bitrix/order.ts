@@ -1,6 +1,12 @@
 import { CrmData } from './crm.ts';
 import { GroupsCodes } from '@/api/comarch-sql/product.ts';
 
+export enum ItemType {
+  STANDARD,
+  CUSTOM_ITEM,
+  CUSTOM_TEMPLATE_ITEM,
+}
+
 export type OrderItem = {
   id?: number;
   code: string;
@@ -13,6 +19,7 @@ export type OrderItem = {
   unitPrice: number;
   taxRate?: number;
   discountRate?: number;
+  type?: ItemType;
 };
 
 export type PackagingDataItem = {
@@ -40,6 +47,7 @@ export type OrderAdditionalData = {
   itemCodes?: Array<string>;
   itemGroups?: Array<GroupsCodes>;
   itemIds?: Array<string>;
+  itemTypes?: Array<ItemType | undefined>;
 };
 
 export type OrderDeliveryAddress = {

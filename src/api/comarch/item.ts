@@ -235,11 +235,16 @@ export function useAddEditItem(token: string, sqlToken: string) {
         throw new Error(await response.text());
       }
 
-      baseItem.type = 0;
-      baseItem.name = convertedItem.name;
-      baseItem.unit = convertedItem.unit;
-      baseItem.code = generateItemCode();
-      baseItem.prices = Object.values(convertedItem.prices);
+      const itemBody = {
+        type: 0,
+        code: generateItemCode(),
+        name: convertedItem.name,
+        vatRate: baseItem.vatRate,
+        vatRateFlag: baseItem.vatRateFlag,
+        unit: convertedItem.unit,
+        prices: Object.values(convertedItem.prices),
+        product: 0,
+      };
 
       response = await fetch(`${API_URL}/Items`, {
         method: 'POST',
@@ -247,7 +252,7 @@ export function useAddEditItem(token: string, sqlToken: string) {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(baseItem),
+        body: JSON.stringify(itemBody),
       });
 
       if (!response.ok) {

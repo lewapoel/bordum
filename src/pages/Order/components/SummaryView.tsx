@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { OrderData, OrderItem } from '@/models/bitrix/order.ts';
+import { OrderData, OrderItem, PackagingData } from '@/models/bitrix/order.ts';
 import {
   RefObject,
   useCallback,
@@ -32,6 +32,7 @@ interface SummaryRowProps {
   className?: string;
   selectItem: (index: number) => void;
   quantitiesRef: RefObject<Array<HTMLInputElement | null>>;
+  packagingData?: PackagingData;
 }
 
 function SummaryRow({
@@ -42,8 +43,10 @@ function SummaryRow({
   editItemQuantity,
   className,
   quantitiesRef,
+  packagingData,
 }: SummaryRowProps) {
   const [tempQuantity, setTempQuantity] = useState(item?.quantity ?? '');
+  const packagingItem = item?.id ? packagingData?.[item.id] : undefined;
 
   useEffect(() => {
     if (tempQuantity !== '' && +tempQuantity > 0) {
@@ -70,6 +73,7 @@ function SummaryRow({
       <td>
         {item ? (
           <input
+            disabled={packagingItem?.saved}
             ref={(el) => {
               quantitiesRef.current[index] = el;
             }}
@@ -158,11 +162,11 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
 
   const selectRowQuantity = useCallback(
     (index: number) => {
-      if (index < 0 || index >= order.items.length) {
-        if (document.activeElement instanceof HTMLInputElement) {
-          document.activeElement.blur();
-        }
+      if (document.activeElement instanceof HTMLInputElement) {
+        document.activeElement.blur();
+      }
 
+      if (index < 0 || index >= order.items.length) {
         return;
       }
 
@@ -230,6 +234,8 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
           }
           break;
         case 'Delete':
+          e.preventDefault();
+
           if (ctx) {
             ctx.removeItem();
           }
@@ -269,6 +275,16 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
       addDocument,
     ],
   );
+
+  const selectedItemId =
+    ctx?.selectedItem !== undefined && order?.items
+      ? order.items[ctx.selectedItem]?.id
+      : undefined;
+  const canDeleteSelectedItem = selectedItemId
+    ? order?.packagingData?.[selectedItemId]?.saved !== true
+    : true;
+
+  console.log(canDeleteSelectedItem);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
@@ -310,7 +326,11 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
         <button className='confirm' onClick={() => saveOrder()}>
           Zapisz (Alt+1)
         </button>
-        <button className='delete' onClick={ctx.removeItem}>
+        <button
+          disabled={!canDeleteSelectedItem}
+          className={clsx('delete', canDeleteSelectedItem ? '' : 'disabled')}
+          onClick={ctx.removeItem}
+        >
           Usuń zaznaczoną pozycję (DELETE)
         </button>
       </div>
@@ -385,6 +405,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
               selectedItem={ctx.selectedItem}
               index={idx}
               item={item}
+              packagingData={order.packagingData}
             />
           ))}
           <SummaryRow
@@ -393,6 +414,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
             editItemQuantity={ctx.editItemQuantity}
             selectedItem={ctx.selectedItem}
             index={order.items.length}
+            packagingData={order.packagingData}
           />
         </tbody>
       </table>

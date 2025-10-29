@@ -231,7 +231,14 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
   );
 
   const removeItem = useCallback(() => {
-    if (order && selectedItem < order.items.length) {
+    const id = order?.items?.[selectedItem]?.id;
+
+    if (
+      order &&
+      selectedItem < order.items.length &&
+      id !== undefined &&
+      !order.packagingData?.[id]?.saved
+    ) {
       setOrder((prev) =>
         update(prev, { items: { $splice: [[selectedItem, 1]] } }),
       );

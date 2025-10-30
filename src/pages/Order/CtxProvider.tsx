@@ -328,7 +328,6 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
       }}
     >
       {order &&
-      (orderType === OrderType.CreateDeal || company.data || customer.data) &&
       (orderType === OrderType.CreateDeal || invoices) &&
       !creditCustomer.isLoading ? (
         <>{children}</>

@@ -142,7 +142,10 @@ export function useAddDocument(token: string, sqlToken: string) {
         }
       }
 
-      if (order.deliveryDate) {
+      if (
+        order.deliveryDate &&
+        documentType !== DocumentType.RELEASE_DOCUMENT
+      ) {
         body.documentReleaseDate = order.deliveryDate;
       }
 

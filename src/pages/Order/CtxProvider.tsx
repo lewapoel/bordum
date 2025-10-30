@@ -104,17 +104,11 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
         getClientDueCreditInvoices({
           contactId: res.id,
         }).then((res) => setInvoices(res));
-
-        invoicesFetched = true;
       }
 
       if (res) {
         setCustomerName(`${res.name} ${res.lastName}`);
       }
-    }
-
-    if (!invoicesFetched) {
-      alert('Brakujące dane firmy/kontaktu');
     }
   }, []);
 

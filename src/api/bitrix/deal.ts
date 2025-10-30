@@ -208,7 +208,7 @@ export async function createDeal(): Promise<number | null> {
 
     bx24.callMethod(
       'crm.deal.add',
-      { CATEGORY_ID: DEAL_CATEGORIES.PRODUCT_SALES },
+      { fields: { CATEGORY_ID: DEAL_CATEGORIES.PRODUCT_SALES } },
       addDealCallback,
     );
   });

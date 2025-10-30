@@ -233,13 +233,12 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
   );
 
   const removeItem = useCallback(() => {
-    const id = order?.items?.[selectedItem]?.id;
+    const bitrixId = order?.items?.[selectedItem]?.id;
 
     if (
       order &&
       selectedItem < order.items.length &&
-      id !== undefined &&
-      !order.packagingData?.[id]?.saved
+      (bitrixId === undefined || !order.packagingData?.[bitrixId]?.saved)
     ) {
       setOrder((prev) =>
         update(prev, { items: { $splice: [[selectedItem, 1]] } }),

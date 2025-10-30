@@ -189,7 +189,7 @@ export async function updateDealEstimate(placementId: number, value: number) {
   });
 }
 
-export async function createDeal(): Promise<any | null> {
+export async function createDeal(): Promise<number | null> {
   const bx24 = getBitrix24();
   if (!bx24) {
     return null;

@@ -258,28 +258,31 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
   }, [placementId, order]);
 
   const newOrder = useCallback(async () => {
+    setPendingOrder(true);
+
     let dealId = placementId;
     if (orderType === OrderType.CreateDeal) {
-      const dealData = await createDeal();
-      dealId = dealData['ID'];
+      const result = await createDeal();
+
+      if (result) {
+        dealId = result;
+      } else {
+        alert('Utworzona oferta nie ma identyfikatora');
+      }
     }
 
     if (order && dealId) {
-      setPendingOrder(true);
-      createOrderFromDeal(dealId).then((orderId) => {
-        if (orderId) {
-          updateOrder(orderId, order.items, { ensureMeasures: true }).then(
-            () => {
-              window.location.reload();
-            },
-          );
-        } else {
-          alert('Utworzona oferta nie ma identyfikatora');
-        }
+      const orderId = await createOrderFromDeal(dealId);
 
-        setPendingOrder(false);
-      });
+      if (orderId) {
+        await updateOrder(orderId, order.items, { ensureMeasures: true });
+        window.location.reload();
+      } else {
+        alert('Utworzona oferta nie ma identyfikatora');
+      }
     }
+
+    setPendingOrder(false);
   }, [placementId, order, orderType]);
 
   const addDocument = useCallback(

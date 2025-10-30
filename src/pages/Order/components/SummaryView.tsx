@@ -285,8 +285,6 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
     ? order?.packagingData?.[selectedItemId]?.saved !== true
     : true;
 
-  console.log(canDeleteSelectedItem);
-
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
     return () => {

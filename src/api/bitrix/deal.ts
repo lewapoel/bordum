@@ -207,7 +207,7 @@ export async function createDeal(): Promise<any | null> {
     };
 
     bx24.callMethod(
-      'crm.quote.add',
+      'crm.deal.add',
       { CATEGORY_ID: DEAL_CATEGORIES.PRODUCT_SALES },
       addDealCallback,
     );

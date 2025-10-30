@@ -346,28 +346,46 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
           <DialogHeader>
             <DialogTitle>UWAGA!</DialogTitle>
             <DialogDescription>
-              Przekroczono dostępny limit handlowy!
+              {ctx.invoices.client
+                ? 'Przekroczono dostępny limit handlowy!'
+                : 'Brak przypisanego limitu handlowego!'}
             </DialogDescription>
           </DialogHeader>
 
-          <div>Czy na pewno chcesz kontynuować?</div>
+          {ctx.invoices.client ? (
+            <div>Czy na pewno chcesz kontynuować?</div>
+          ) : (
+            <div>
+              Sprzedaż z formą płatności "Limit Handlowy" nie jest dostępna dla
+              tego klienta. Zmień formę płatności, lub przypisz klientowi limit
+              handlowy.
+            </div>
+          )}
 
           <DialogFooter>
-            <Button
-              onClick={() => {
-                setExceededCreditVisible(false);
-                saveOrder(true);
-              }}
-              className='confirm'
-            >
-              TAK
-            </Button>
-            <Button
-              onClick={() => setExceededCreditVisible(false)}
-              className='delete'
-            >
-              NIE
-            </Button>
+            {ctx.invoices.client ? (
+              <>
+                <Button
+                  onClick={() => {
+                    setExceededCreditVisible(false);
+                    saveOrder(true);
+                  }}
+                  className='confirm'
+                >
+                  TAK
+                </Button>
+                <Button
+                  onClick={() => setExceededCreditVisible(false)}
+                  className='delete'
+                >
+                  NIE
+                </Button>
+              </>
+            ) : (
+              <Button onClick={() => setExceededCreditVisible(false)}>
+                OK
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

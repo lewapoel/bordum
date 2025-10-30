@@ -110,6 +110,10 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
         setCustomerName(`${res.name} ${res.lastName}`);
       }
     }
+
+    if (!invoicesFetched) {
+      setInvoices([]);
+    }
   }, []);
 
   useEffect(() => {

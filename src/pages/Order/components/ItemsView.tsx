@@ -1075,7 +1075,7 @@ export default function ItemsView() {
                 </td>
                 {Object.values(item.quantities).map((quantity) => (
                   <Fragment key={quantity.warehouseId}>
-                    <td>{quantity.quantity}</td>
+                    <td>{quantity.quantity - quantity.reservation}</td>
                     <td>{quantity.reservation}</td>
                   </Fragment>
                 ))}

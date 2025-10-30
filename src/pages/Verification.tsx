@@ -556,6 +556,9 @@ export default function Verification() {
                 const orderQuantity = Math.max(0, item.quantity - qualityGoods);
                 const comarchStock = stocks[+item.itemId];
 
+                const comarchRealQuantity =
+                  comarchStock.quantity - comarchStock.reservation;
+
                 return (
                   isVerifiable &&
                   itemGroup && (
@@ -568,9 +571,7 @@ export default function Verification() {
                       <td>{getFullCategoryName(itemGroup)}</td>
                       <td>{item.quantity}</td>
                       <td>{item.unit}</td>
-                      <td>
-                        {comarchStock.quantity - comarchStock.reservation}
-                      </td>
+                      <td>{comarchRealQuantity}</td>
                       <td>{comarchStock.reservation}</td>
                       <td>
                         <div className='flex gap-2 justify-between items-center'>
@@ -596,10 +597,7 @@ export default function Verification() {
                             }}
                             className='small'
                             onClick={() =>
-                              updateActualStock(
-                                item.id!,
-                                stocks[+item.itemId].quantity,
-                              )
+                              updateActualStock(item.id!, comarchRealQuantity)
                             }
                           >
                             OK

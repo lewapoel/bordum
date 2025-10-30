@@ -9,6 +9,7 @@ import {
 import { DocumentType, useAddDocument } from '@/api/comarch/document.ts';
 import { OrderContext, OrderType, OrderView } from '@/models/order.ts';
 import {
+  getBitrix24,
   getCompanyCode,
   getContactCode,
   getCurrentPlacementId,
@@ -256,6 +257,11 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
   }, [placementId, order]);
 
   const newOrder = useCallback(async () => {
+    const bx24 = getBitrix24();
+    if (!bx24) {
+      return;
+    }
+
     setPendingOrder(true);
 
     let dealId = placementId;
@@ -274,6 +280,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
 
       if (orderId) {
         await updateOrder(orderId, order.items, { ensureMeasures: true });
+        bx24.openPath(`/crm/type/7/details/${orderId}/`);
         window.location.reload();
       } else {
         alert('Utworzona oferta nie ma identyfikatora');

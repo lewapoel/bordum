@@ -532,6 +532,7 @@ export default function Verification() {
                 <th>Zamówiona ilość</th>
                 <th>Jedn. miary</th>
                 <th>Stan Comarch</th>
+                <th>Rezerwacja</th>
                 <th>Stan rzeczywisty</th>
                 <th>Ilość towaru jakościowego</th>
                 <th>Ilość do zamówienia</th>
@@ -553,6 +554,7 @@ export default function Verification() {
                 const actualStock = +verification?.actualStock || 0;
 
                 const orderQuantity = Math.max(0, item.quantity - qualityGoods);
+                const comarchStock = stocks[+item.itemId];
 
                 return (
                   isVerifiable &&
@@ -566,7 +568,10 @@ export default function Verification() {
                       <td>{getFullCategoryName(itemGroup)}</td>
                       <td>{item.quantity}</td>
                       <td>{item.unit}</td>
-                      <td>{stocks[+item.itemId].quantity}</td>
+                      <td>
+                        {comarchStock.quantity - comarchStock.reservation}
+                      </td>
+                      <td>{comarchStock.reservation}</td>
                       <td>
                         <div className='flex gap-2 justify-between items-center'>
                           <input

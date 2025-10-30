@@ -574,10 +574,10 @@ export default function Verification() {
                       <td>{comarchRealQuantity}</td>
                       <td>{comarchStock.reservation}</td>
                       <td>
-                        <div className='flex gap-2 justify-between items-center'>
+                        <div className='flex gap-4 justify-center items-center'>
                           <input
                             type='number'
-                            className='w-[100px]'
+                            className='w-[100px] text-center'
                             min={0}
                             ref={(el) => {
                               if (rowsRef.current) {
@@ -605,10 +605,10 @@ export default function Verification() {
                         </div>
                       </td>
                       <td>
-                        <div className='flex gap-2 justify-between items-center'>
+                        <div className='flex gap-4 items-center justify-center'>
                           <input
                             type='number'
-                            className='w-[100px]'
+                            className='w-[100px] text-center'
                             min={0}
                             ref={(el) => {
                               if (rowsRef.current) {

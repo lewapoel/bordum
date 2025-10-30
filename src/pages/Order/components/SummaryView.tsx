@@ -390,12 +390,15 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
         </DialogContent>
       </Dialog>
 
-      {ctx.invoices.client && (
-        <div className='text-[20px] flex items-center gap-4 mb-10 justify-center text-red-500'>
-          <p>{ctx.invoices.client?.name}</p>
-          <p>Dostępny limit handlowy: {formatMoney(ctx.invoices.limitLeft)}</p>
-        </div>
-      )}
+      <div className='text-[20px] flex items-center gap-4 mb-5 justify-center text-red-500'>
+        {ctx.invoices.client && <p>{ctx.invoices.client?.name}</p>}
+        <p>
+          Dostępny limit handlowy:{' '}
+          {ctx.invoices.limitLeft !== 0
+            ? formatMoney(ctx.invoices.limitLeft)
+            : 'BRAK'}
+        </p>
+      </div>
 
       <div className='flex flex-col gap-2 font-bold mb-5'>
         <h2>Wartość całkowita: {formatMoney(sum)}</h2>

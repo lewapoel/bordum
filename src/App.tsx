@@ -15,6 +15,7 @@ import ClientBalance from './pages/ClientBalance/ClientBalance.tsx';
 import { useLayoutEffect, useRef, useState } from 'react';
 import Calculator from '@/pages/Calculator/Calculator.tsx';
 import AcceptPayment from '@/pages/AcceptPayment.tsx';
+import CreateDealOrder from '@/pages/Order/CreateDealOrder.tsx';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -93,6 +94,10 @@ function App() {
                 <Route path='/split-order' element={<SplitOrder />} />
                 <Route path='/order' element={<Order />} />
                 <Route path='/create-order' element={<CreateOrder />} />
+                <Route
+                  path='/create-deal-order'
+                  element={<CreateDealOrder />}
+                />
                 <Route path='/packaging' element={<Packaging />} />
                 <Route path='/verification' element={<Verification />} />
                 <Route path='/client-balance' element={<ClientBalances />} />

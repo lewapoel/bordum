@@ -13,7 +13,7 @@ import {
   getContactCode,
   getCurrentPlacementId,
 } from '@/utils/bitrix24.ts';
-import { getDeal } from '@/api/bitrix/deal.ts';
+import { createDeal, getDeal } from '@/api/bitrix/deal.ts';
 import {
   CustomerDefaultPrice,
   getCustomerDefaultPriceName,
@@ -45,6 +45,7 @@ interface CtxProviderProps {
 
 export default function CtxProvider({ children, orderType }: CtxProviderProps) {
   const { token, sqlToken } = useContext(AuthContext);
+
   const [selectedItem, setSelectedItem] = useState(0);
   const [currentView, setCurrentView] = useState<OrderView>(OrderView.Summary);
 
@@ -57,7 +58,10 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
   const company = useGetCustomerByNip(token, companyNip);
 
   const [maxDiscount, setMaxDiscount] = useState<number>();
-  const [selectedPrice, setSelectedPrice] = useState<string>();
+  const [selectedPrice, setSelectedPrice] = useState<string>(
+    getCustomerDefaultPriceName(CustomerDefaultPrice.Default),
+  );
+
   const [order, setOrder] = useState<OrderData>();
   const [deal, setDeal] = useState<DealData>();
   const placementId = getCurrentPlacementId();
@@ -73,10 +77,6 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
   const limitLeft = useGetInvoicesSummary(client, invoices)[2];
 
   const setClientData = useCallback(async (crm: CrmData) => {
-    const defaultPriceName = getCustomerDefaultPriceName(
-      CustomerDefaultPrice.Default,
-    );
-
     let invoicesFetched = false;
 
     if (crm.companyId && +crm.companyId !== 0) {
@@ -93,8 +93,6 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
 
       if (res && res.nip) {
         setCompanyNip(res.nip);
-      } else {
-        setSelectedPrice(defaultPriceName);
       }
     }
 
@@ -112,8 +110,6 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
 
       if (res) {
         setCustomerName(`${res.name} ${res.lastName}`);
-      } else {
-        setSelectedPrice(defaultPriceName);
       }
     }
 
@@ -171,6 +167,13 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
             });
             void setClientData(res);
           }
+        });
+        break;
+
+      case OrderType.CreateDeal:
+        setOrder({
+          items: [],
+          deliveryAddress: {},
         });
         break;
 
@@ -255,9 +258,15 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
   }, [placementId, order]);
 
   const newOrder = useCallback(async () => {
-    if (order && deal) {
+    let dealId = placementId;
+    if (orderType === OrderType.CreateDeal) {
+      const dealData = await createDeal();
+      dealId = dealData['ID'];
+    }
+
+    if (order && dealId) {
       setPendingOrder(true);
-      createOrderFromDeal(placementId).then((orderId) => {
+      createOrderFromDeal(dealId).then((orderId) => {
         if (orderId) {
           updateOrder(orderId, order.items, { ensureMeasures: true }).then(
             () => {
@@ -271,7 +280,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
         setPendingOrder(false);
       });
     }
-  }, [placementId, order, deal]);
+  }, [placementId, order, orderType]);
 
   const addDocument = useCallback(
     async (documentType: DocumentType, exportDocument: boolean = true) => {
@@ -317,7 +326,10 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
         allowAddingProduct,
       }}
     >
-      {order && selectedPrice && !creditCustomer.isLoading && invoices ? (
+      {order &&
+      (orderType === OrderType.CreateDeal || company.data || customer.data) &&
+      (orderType === OrderType.CreateDeal || invoices) &&
+      !creditCustomer.isLoading ? (
         <>{children}</>
       ) : (
         <h1>Ładowanie danych oferty...</h1>

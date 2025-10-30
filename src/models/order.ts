@@ -11,6 +11,7 @@ export enum OrderView {
 // Used for showing different UI variations depending on the action that is taken
 export enum OrderType {
   Create,
+  CreateDeal,
   Edit,
 }
 

@@ -6,6 +6,7 @@ import {
   DEAL_RETURN_DATA_FIELD,
 } from '@/data/bitrix/field.ts';
 import { FieldsMeta } from '@/models/bitrix/field.ts';
+import { DEAL_CATEGORIES } from '@/data/bitrix/const.ts';
 
 export async function getDealFields(): Promise<FieldsMeta | null> {
   const bx24 = getBitrix24();
@@ -185,5 +186,30 @@ export async function updateDealEstimate(placementId: number, value: number) {
     };
 
     bx24.callMethod('crm.deal.update', updateBody, setDealCallback);
+  });
+}
+
+export async function createDeal(): Promise<any | null> {
+  const bx24 = getBitrix24();
+  if (!bx24) {
+    return null;
+  }
+
+  return new Promise((resolve, reject) => {
+    const addDealCallback = (result: any) => {
+      if (result.error()) {
+        console.error(result.error());
+        alert('Nie udało się utworzyć deala. Szczegóły w konsoli');
+        reject();
+      } else {
+        resolve(result.data());
+      }
+    };
+
+    bx24.callMethod(
+      'crm.quote.add',
+      { CATEGORY_ID: DEAL_CATEGORIES.PRODUCT_SALES },
+      addDealCallback,
+    );
   });
 }

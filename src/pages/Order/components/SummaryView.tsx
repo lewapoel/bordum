@@ -122,8 +122,8 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
         if (
           ctx.invoices.allowWarning &&
           !ignoreLimit &&
-          ctx.invoices.client &&
-          ctx.invoices.limitLeft - sum < 0
+          ((ctx.invoices.client && ctx.invoices.limitLeft - sum < 0) ||
+            !ctx.invoices.client)
         ) {
           setExceededCreditVisible(true);
           return;

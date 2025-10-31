@@ -14,7 +14,7 @@ import {
   getContactCode,
   getCurrentPlacementId,
 } from '@/utils/bitrix24.ts';
-import { createDeal, getDeal } from '@/api/bitrix/deal.ts';
+import { createDeal, getDeal, openDeal } from '@/api/bitrix/deal.ts';
 import {
   CustomerDefaultPrice,
   getCustomerDefaultPriceName,
@@ -272,6 +272,18 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
       } else {
         alert('Utworzona oferta nie ma identyfikatora');
       }
+
+      let clientDataFilled = false;
+      do {
+        alert('Uzupełnij dane klienta w dealu, zapisz je i zamknij okno deala');
+
+        await openDeal(dealId);
+        const updatedDeal = await getDeal(dealId);
+
+        if (updatedDeal?.contactId || updatedDeal?.companyId) {
+          clientDataFilled = true;
+        }
+      } while (!clientDataFilled);
     }
 
     if (order && dealId) {

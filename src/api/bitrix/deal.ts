@@ -213,3 +213,14 @@ export async function createDeal(): Promise<number | null> {
     );
   });
 }
+
+export async function openDeal(dealId: number) {
+  const bx24 = getBitrix24();
+  if (!bx24) {
+    return;
+  }
+
+  return await new Promise<void>((resolve) => {
+    bx24.openPath(`/crm/deal/details/${dealId}/`, () => resolve());
+  });
+}

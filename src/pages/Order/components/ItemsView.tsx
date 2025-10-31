@@ -1042,17 +1042,19 @@ export default function ItemsView() {
             const isEditing = idx === editingItem;
 
             const bgClassName = clsx({
-              'bg-red-300': isEditing,
-              'bg-gray-300': isSelected && !isEditing,
+              'bg-gray-300': isSelected,
             });
 
             return (
               <tr
                 key={item.id}
                 className={bgClassName}
-                onClick={() => setSelectedItem(idx)}
+                onClick={() => {
+                  setSelectedItem(idx);
+                  setEditingItem(-1);
+                }}
               >
-                <td>
+                <td className={isEditing ? 'bg-green-200' : ''}>
                   {isEditing ? (
                     <input
                       ref={(el) => {
@@ -1079,7 +1081,7 @@ export default function ItemsView() {
                     <td>{quantity.reservation}</td>
                   </Fragment>
                 ))}
-                <td>
+                <td className='bg-green-200'>
                   <input
                     ref={(el) => {
                       if (rowsRef.current?.[item.id!]) {
@@ -1097,7 +1099,7 @@ export default function ItemsView() {
                     }
                   />
                 </td>
-                <td>
+                <td className={isEditing ? 'bg-green-200' : ''}>
                   {isEditing ? (
                     <input
                       ref={(el) => {
@@ -1118,7 +1120,7 @@ export default function ItemsView() {
                     item.unit
                   )}
                 </td>
-                <td>
+                <td className='bg-green-200'>
                   <input
                     ref={(el) => {
                       if (rowsRef.current?.[item.id!]) {

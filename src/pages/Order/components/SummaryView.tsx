@@ -70,7 +70,7 @@ function SummaryRow({
       <td>
         {item ? (item.type !== undefined ? PRODUCT_TYPES[item.type] : '-') : ''}
       </td>
-      <td>
+      <td className={!item || packagingItem?.saved ? '' : 'bg-green-200'}>
         {item ? (
           <input
             disabled={packagingItem?.saved}

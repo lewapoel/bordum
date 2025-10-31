@@ -40,6 +40,13 @@ th.empty, td.empty, tr.empty {
   border: none;
 }
 
+thead.freeze {
+  box-shadow: 1px 1px 0 #000, -1px -1px 0 #000;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
 .app-header {
   background-color: white;
   min-height: 100vh;

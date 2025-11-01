@@ -339,7 +339,7 @@ export default function Return() {
           </div>
 
           <table>
-            <thead>
+            <thead className='bg-white freeze'>
               <tr>
                 <th>WZ</th>
                 <th>Nazwa towaru</th>

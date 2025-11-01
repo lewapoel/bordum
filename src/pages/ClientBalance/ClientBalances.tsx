@@ -77,7 +77,7 @@ export default function ClientBalances() {
       </h2>
 
       <table>
-        <thead>
+        <thead className='bg-white freeze'>
           <tr>
             <th>Klient</th>
             <th>Przyznany limit</th>

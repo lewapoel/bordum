@@ -194,7 +194,7 @@ function SplitOrder() {
           </div>
 
           <table>
-            <thead>
+            <thead className='bg-white freeze'>
               <tr>
                 <th>Lp.</th>
                 <th>Nazwa towaru</th>

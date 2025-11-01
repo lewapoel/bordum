@@ -525,7 +525,7 @@ export default function Verification() {
           </div>
 
           <table>
-            <thead>
+            <thead className='bg-white freeze'>
               <tr>
                 <th>Nazwa towaru</th>
                 <th>Kategoria produktu</th>

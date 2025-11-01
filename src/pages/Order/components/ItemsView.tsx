@@ -988,7 +988,7 @@ export default function ItemsView() {
         </button>
       </div>
       <table>
-        <thead>
+        <thead className='bg-white freeze'>
           <tr>
             <th>Nazwa</th>
             {warehouses.map((warehouse) => (

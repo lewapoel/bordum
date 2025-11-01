@@ -255,7 +255,7 @@ export default function Packaging() {
           </div>
 
           <table>
-            <thead>
+            <thead className='bg-white freeze'>
               <tr>
                 <th>Nazwa towaru</th>
                 <th>Ilość</th>

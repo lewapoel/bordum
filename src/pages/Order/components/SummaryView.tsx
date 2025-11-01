@@ -406,7 +406,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
       </div>
 
       <table>
-        <thead>
+        <thead className='bg-white freeze'>
           <tr>
             <th>Lp.</th>
             <th>Nazwa towaru</th>

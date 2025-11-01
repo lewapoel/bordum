@@ -12,7 +12,7 @@ import ClientBalances from './pages/ClientBalance/ClientBalances.tsx';
 import Return from './pages/Return.tsx';
 import './App.css';
 import ClientBalance from './pages/ClientBalance/ClientBalance.tsx';
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import Calculator from '@/pages/Calculator/Calculator.tsx';
 import AcceptPayment from '@/pages/AcceptPayment.tsx';
 import CreateDealOrder from '@/pages/Order/CreateDealOrder.tsx';
@@ -29,24 +29,34 @@ const queryClient = new QueryClient({
 
 function App() {
   const contentRef = useRef<HTMLDivElement>(null);
+
   const [zoom, setZoom] = useState(1);
+  const zoomOverride = useRef(false);
 
-  useLayoutEffect(() => {
-    function updateZoom() {
-      if (!contentRef.current) {
-        return;
-      }
-
-      // Adjust for padding
-      const offsetWidth = contentRef.current.offsetWidth + 80;
-      if (offsetWidth === 0) {
-        return;
-      }
-
-      const newZoom = Math.min(1, window.innerWidth / offsetWidth);
-      setZoom(newZoom);
+  const updateZoom = useCallback(() => {
+    if (!contentRef.current) {
+      return;
     }
 
+    const contentWidth = contentRef.current.offsetWidth + 100;
+    const newZoom = Math.min(1, window.innerWidth / contentWidth);
+
+    if (!zoomOverride.current) {
+      setZoom((prev) => {
+        const delta = Math.abs(prev - newZoom);
+
+        if (delta >= 0.01) {
+          return newZoom;
+        }
+
+        return prev;
+      });
+    } else {
+      zoomOverride.current = false;
+    }
+  }, []);
+
+  useLayoutEffect(() => {
     updateZoom();
 
     // Track content resize
@@ -62,7 +72,7 @@ function App() {
       ro.disconnect();
       window.removeEventListener('resize', updateZoom);
     };
-  }, []);
+  }, [updateZoom]);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -80,15 +90,18 @@ function App() {
                 max='1'
                 step='0.01'
                 value={zoom}
-                onChange={(e) => setZoom(parseFloat(e.target.value))}
+                onChange={(e) => {
+                  zoomOverride.current = true;
+                  setZoom(parseFloat(e.target.value));
+                }}
               />
               <span>{(zoom * 100).toFixed(0)}%</span>
             </div>
 
             <header
               ref={contentRef}
-              style={{ scale: zoom }}
-              className='app-header w-max origin-top-left mx-auto'
+              style={{ zoom: zoom }}
+              className='app-header w-max mx-auto'
             >
               <Routes>
                 <Route path='/split-order' element={<SplitOrder />} />

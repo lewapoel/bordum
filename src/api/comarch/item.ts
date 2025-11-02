@@ -17,6 +17,11 @@ import {
 } from '@/api/comarch-sql/product.ts';
 import { Prices, PriceType } from '@/models/comarch/prices.ts';
 
+export enum ComarchItemType {
+  SERVICE,
+  GOOD,
+}
+
 export type Item = {
   id: number;
   code: string;
@@ -220,10 +225,17 @@ async function fixAddedItem(
   return parseItem(productGroups, addedItem);
 }
 
+export type AddEditItem = {
+  item: Item;
+  itemType: ComarchItemType;
+};
+
 export function useAddEditItem(token: string, sqlToken: string) {
   return useMutation({
     mutationKey: ['add-edit-item'],
-    mutationFn: async (item: Item) => {
+    mutationFn: async (addEditItem: AddEditItem) => {
+      const { item, itemType } = addEditItem;
+
       const convertedItem = convertDefaultItemPrices(item);
 
       let response = await fetch(`${API_URL}/Items/${convertedItem.id}`, {
@@ -236,7 +248,7 @@ export function useAddEditItem(token: string, sqlToken: string) {
       }
 
       const itemBody = {
-        type: 0,
+        type: itemType,
         code: generateItemCode(),
         name: convertedItem.name,
         vatRate: baseItem.vatRate,

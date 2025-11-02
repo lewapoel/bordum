@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { useGetWarehouses } from '@/api/comarch/warehouse.ts';
 import {
+  ComarchItemType,
   Item,
   ItemWarehouses,
   useAddEditItem,
@@ -339,10 +340,16 @@ export default function ItemsView() {
   });
 
   const addEditItem = useCallback(
-    async (editItem: Item) => {
+    async (
+      editItem: Item,
+      itemType: ComarchItemType = ComarchItemType.SERVICE,
+    ) => {
       return await toast.promise(
         async () => {
-          return await addEditItemMutation.mutateAsync(editItem);
+          return await addEditItemMutation.mutateAsync({
+            item: editItem,
+            itemType,
+          });
         },
         {
           pending: 'Dodawanie edytowanej pozycji...',
@@ -517,13 +524,16 @@ export default function ItemsView() {
         .replace(/\(\s*\)/g, '')
         .trim();
 
-      const item = await addEditItem({
-        ...currentTemplateItem,
-        unit: 'szt.',
-        name: sanitizedName + ` (H=${values.height}m L=${values.width}m)`,
-        prices: newPrices,
-        groups: ['ZAM1', 'MAG2'],
-      });
+      const item = await addEditItem(
+        {
+          ...currentTemplateItem,
+          unit: 'szt.',
+          name: sanitizedName + ` (H=${values.height}m L=${values.width}m)`,
+          prices: newPrices,
+          groups: ['ZAM1', 'MAG2'],
+        },
+        ComarchItemType.GOOD,
+      );
 
       await selectItemManual(
         item,

@@ -165,7 +165,11 @@ export default function ItemsView() {
                 ) -
                 Math.max(...Object.values(a.quantities).map((x) => x.quantity)),
             )
-            .filter((item) => !item.groups.includes(TEMPORARY_ITEM_GROUP))
+            .filter(
+              (item) =>
+                !TEMPLATE_PRODUCT_CODES.includes(item.code) &&
+                !item.groups.includes(TEMPORARY_ITEM_GROUP),
+            )
         : null,
     [itemsWarehouses],
   );

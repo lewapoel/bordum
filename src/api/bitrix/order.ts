@@ -38,7 +38,6 @@ import {
   PACKAGING_GROUPS,
   VERIFICATION_GROUPS,
 } from '@/data/comarch/groups.ts';
-import { calculateUnitPrice } from '@/utils/item.ts';
 
 export async function getOrderFields(): Promise<FieldsMeta | null> {
   const bx24 = getBitrix24();
@@ -94,7 +93,7 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
             productName: item['PRODUCT_NAME'],
             quantity: item['QUANTITY'],
             unit: item['MEASURE_NAME'],
-            unitPrice: item['PRICE_BRUTTO'],
+            unitPrice: item['PRICE'],
             taxRate: item['TAX_RATE'] ?? undefined,
             discountRate: item['DISCOUNT_RATE'] ?? undefined,
           }),
@@ -451,8 +450,7 @@ export async function updateOrder(
             order.length !== 0
               ? order.map((item) => ({
                   PRODUCT_NAME: item.productName,
-                  PRICE: calculateUnitPrice(item),
-                  PRICE_BRUTTO: calculateUnitPrice(item, false),
+                  PRICE: item.unitPrice,
                   QUANTITY: item.quantity,
                   MEASURE_CODE: item.unitCode,
                   TAX_RATE: item.taxRate,

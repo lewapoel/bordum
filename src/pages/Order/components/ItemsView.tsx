@@ -47,7 +47,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form.tsx';
-import { generateItemCode } from '@/utils/item.ts';
+import { calculateDiscountPrice, generateItemCode } from '@/utils/item.ts';
 import { TEMPORARY_ITEM_GROUP } from '@/data/comarch/groups.ts';
 import { TEMPLATE_PRODUCT_CODES } from '@/data/comarch/product.ts';
 import Combobox, { ComboboxItem } from '@/components/ui/combobox.tsx';
@@ -378,7 +378,10 @@ export default function ItemsView() {
           type: type,
           quantity: +quantity,
           unit: item.unit,
-          unitPrice: item.prices[ctx.selectedPrice!].value,
+          unitPrice: calculateDiscountPrice(
+            item.prices[ctx.selectedPrice!].value,
+            discount,
+          ),
           discountRate: discount ?? 0,
           taxRate: item.vatRate,
         });

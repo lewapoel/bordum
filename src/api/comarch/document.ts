@@ -7,7 +7,6 @@ import { getOrderDocuments, updateOrderDocument } from '../bitrix/order.ts';
 import { getDeal, updateDealReturnData } from '../bitrix/deal.ts';
 import moment from 'moment/moment';
 import { getCompanyCode, getContactCode } from '@/utils/bitrix24.ts';
-import { calculateUnitPrice } from '@/utils/item.ts';
 import { QUOTE_PAYMENT_TYPES } from '@/data/bitrix/const.ts';
 import { setDocumentDueDate } from '@/api/comarch-sql/document.ts';
 
@@ -118,7 +117,7 @@ export function useAddDocument(token: string, sqlToken: string) {
         elements: order.items.map((item) => ({
           code: item.code,
           quantity: item.quantity,
-          totalGrossValue: calculateUnitPrice(item) * item.quantity,
+          totalGrossValue: item.unitPrice * item.quantity,
           setCustomValue: true,
         })),
         payer: buyerNoAddress,

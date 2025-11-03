@@ -1,6 +1,5 @@
 import { Item } from '@/api/comarch/item.ts';
 import { roundMoney } from '@/utils/money.ts';
-import { OrderItem } from '@/models/bitrix/order.ts';
 import { v4 as uuidv4 } from 'uuid';
 import { PriceType } from '@/models/comarch/prices.ts';
 import { DEFAULT_PRICE_TYPES } from '@/data/comarch/prices.ts';
@@ -55,13 +54,12 @@ function convertItemPrice(
   return roundMoney(value * multiplier);
 }
 
-export function calculateUnitPrice(
-  item: OrderItem,
-  addDiscount: boolean = true,
+export function calculateDiscountPrice(
+  price: number,
+  discount?: number,
 ): number {
-  const discountRate = 1 - (item.discountRate ?? 0) / 100;
-
-  return roundMoney(item.unitPrice * (addDiscount ? discountRate : 1));
+  const discountRate = 1 - (discount ?? 0) / 100;
+  return roundMoney(price * discountRate);
 }
 
 export function generateItemCode(): string {

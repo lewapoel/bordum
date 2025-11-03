@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getCurrentPlacementId } from '../utils/bitrix24';
 import { OrderItem } from '../models/bitrix/order.ts';
 import { getOrder, hasOrderDeals, splitOrder } from '../api/bitrix/order.ts';
-import { calculateUnitPrice } from '@/utils/item.ts';
 import { formatMoney } from '@/utils/money.ts';
 
 function SplitOrder() {
@@ -29,7 +28,7 @@ function SplitOrder() {
   const reduceSum = useCallback(
     (o: Array<OrderItem>) =>
       o.reduce((acc, item) => {
-        acc += calculateUnitPrice(item) * item.quantity;
+        acc += item.unitPrice * item.quantity;
         return acc;
       }, 0),
     [],
@@ -231,10 +230,8 @@ function SplitOrder() {
                       />
                     </td>
                     <td>{item.unit}</td>
-                    <td>{formatMoney(calculateUnitPrice(item))}</td>
-                    <td>
-                      {formatMoney(calculateUnitPrice(item) * item.quantity)}
-                    </td>
+                    <td>{formatMoney(item.unitPrice)}</td>
+                    <td>{formatMoney(item.unitPrice * item.quantity)}</td>
                   </tr>
                 ))
               )}

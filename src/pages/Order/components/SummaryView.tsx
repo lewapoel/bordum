@@ -21,7 +21,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog.tsx';
 import { Button } from '@/components/ui/button.tsx';
-import { calculateUnitPrice } from '@/utils/item.ts';
 import { PRODUCT_TYPES } from '@/data/comarch/product.ts';
 
 interface SummaryRowProps {
@@ -88,10 +87,8 @@ function SummaryRow({
         )}
       </td>
       <td>{item?.unit}</td>
-      <td>{item ? formatMoney(calculateUnitPrice(item)) : null}</td>
-      <td>
-        {item ? formatMoney(calculateUnitPrice(item) * item.quantity) : null}
-      </td>
+      <td>{item ? formatMoney(item.unitPrice) : null}</td>
+      <td>{item ? formatMoney(item.unitPrice * item.quantity) : null}</td>
     </tr>
   );
 }
@@ -110,7 +107,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
   const sum = useMemo(
     () =>
       order.items.reduce((acc, item) => {
-        acc += calculateUnitPrice(item) * item.quantity;
+        acc += item.unitPrice * item.quantity;
         return acc;
       }, 0),
     [order],
@@ -296,8 +293,6 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
     selectRowQuantity(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  console.log(order.items);
 
   return ctx && !ctx.addDocument.pending && !ctx.pendingOrder ? (
     <div className='flex flex-col items-center'>

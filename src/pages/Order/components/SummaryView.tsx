@@ -297,6 +297,8 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  console.log(order.items);
+
   return ctx && !ctx.addDocument.pending && !ctx.pendingOrder ? (
     <div className='flex flex-col items-center'>
       <h1 className='mb-5'>
@@ -422,7 +424,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
             <SummaryRow
               quantitiesRef={quantitiesRef}
               selectItem={selectItem}
-              key={item.id}
+              key={`${item.itemId}${idx}`}
               editItemQuantity={ctx.editItemQuantity}
               selectedItem={ctx.selectedItem}
               index={idx}

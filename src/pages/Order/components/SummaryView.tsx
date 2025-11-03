@@ -1,7 +1,6 @@
 import clsx from 'clsx';
-import { OrderData, OrderItem, PackagingData } from '@/models/bitrix/order.ts';
+import { OrderData } from '@/models/bitrix/order.ts';
 import {
-  RefObject,
   useCallback,
   useContext,
   useEffect,
@@ -21,77 +20,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog.tsx';
 import { Button } from '@/components/ui/button.tsx';
-import { PRODUCT_TYPES } from '@/data/comarch/product.ts';
-
-interface SummaryRowProps {
-  index: number;
-  selectedItem: number;
-  item?: OrderItem;
-  editItemQuantity: (index: number, quantity: number) => number | null;
-  className?: string;
-  selectItem: (index: number) => void;
-  quantitiesRef: RefObject<Array<HTMLInputElement | null>>;
-  packagingData?: PackagingData;
-}
-
-function SummaryRow({
-  index,
-  selectItem,
-  selectedItem,
-  item,
-  editItemQuantity,
-  className,
-  quantitiesRef,
-  packagingData,
-}: SummaryRowProps) {
-  const [tempQuantity, setTempQuantity] = useState(item?.quantity ?? '');
-  const packagingItem = item?.id ? packagingData?.[item.id] : undefined;
-
-  useEffect(() => {
-    if (tempQuantity !== '' && +tempQuantity > 0) {
-      setTempQuantity(editItemQuantity(index, +tempQuantity) ?? '');
-    }
-  }, [tempQuantity, editItemQuantity, index]);
-
-  return (
-    <tr
-      onClick={() => {
-        selectItem(index);
-      }}
-      className={clsx(
-        selectedItem === index ? 'bg-gray-300' : '',
-        'cursor-pointer',
-        className,
-      )}
-    >
-      <td>{index + 1}</td>
-      <td>{item?.productName}</td>
-      <td>
-        {item ? (item.type !== undefined ? PRODUCT_TYPES[item.type] : '-') : ''}
-      </td>
-      <td className={!item || packagingItem?.saved ? '' : 'bg-green-200'}>
-        {item ? (
-          <input
-            disabled={packagingItem?.saved}
-            ref={(el) => {
-              quantitiesRef.current[index] = el;
-            }}
-            className='w-[100px] text-center'
-            type='number'
-            min={1}
-            value={tempQuantity}
-            onChange={(e) => setTempQuantity(e.target.value)}
-          />
-        ) : (
-          <></>
-        )}
-      </td>
-      <td>{item?.unit}</td>
-      <td>{item ? formatMoney(item.unitPrice) : null}</td>
-      <td>{item ? formatMoney(item.unitPrice * item.quantity) : null}</td>
-    </tr>
-  );
-}
+import SummaryRow, {
+  RowsElements,
+} from '@/pages/Order/components/SummaryRow.tsx';
 
 interface SummaryViewProps {
   order: OrderData;
@@ -102,7 +33,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
   const ctx = useContext(OrderContext);
 
   const [exceededCreditVisible, setExceededCreditVisible] = useState(false);
-  const quantitiesRef = useRef<Array<HTMLInputElement | null>>([]);
+  const rowsRef = useRef<RowsElements>(null);
 
   const sum = useMemo(
     () =>
@@ -158,19 +89,36 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
     [ctx, order.items.length],
   );
 
-  const selectRowQuantity = useCallback(
+  const selectRow = useCallback(
     (index: number) => {
-      if (document.activeElement instanceof HTMLInputElement) {
-        document.activeElement.blur();
-      }
-
       if (index < 0 || index >= order.items.length) {
+        if (document.activeElement instanceof HTMLInputElement) {
+          document.activeElement.blur();
+        }
+
         return;
       }
 
-      const quantityRef = quantitiesRef.current?.[index];
-      quantityRef?.focus();
-      quantityRef?.select();
+      if (rowsRef.current) {
+        const selectedRow = rowsRef.current?.[index];
+        const active = document.activeElement;
+
+        if (document.activeElement instanceof HTMLInputElement) {
+          document.activeElement.blur();
+        }
+
+        switch (active) {
+          case selectedRow.quantity:
+            selectedRow.discount?.focus();
+            selectedRow.discount?.select();
+            break;
+
+          default:
+            selectedRow.quantity?.focus();
+            selectedRow.quantity?.select();
+            break;
+        }
+      }
     },
     [order.items],
   );
@@ -205,7 +153,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
           if (ctx) {
             const newSelectedItem = Math.max(0, ctx.selectedItem - 1);
             ctx.setSelectedItem(newSelectedItem);
-            selectRowQuantity(newSelectedItem);
+            selectRow(newSelectedItem);
           }
           break;
         case 'ArrowDown':
@@ -218,7 +166,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
               ctx.selectedItem + 1,
             );
             ctx.setSelectedItem(newSelectedItem);
-            selectRowQuantity(newSelectedItem);
+            selectRow(newSelectedItem);
           }
           break;
         case 'Enter':
@@ -257,21 +205,14 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
           e.preventDefault();
 
           if (ctx) {
-            selectRowQuantity(ctx.selectedItem);
+            selectRow(ctx.selectedItem);
           }
           break;
         default:
           break;
       }
     },
-    [
-      ctx,
-      order.items.length,
-      saveOrder,
-      selectItem,
-      selectRowQuantity,
-      addDocument,
-    ],
+    [ctx, order.items.length, saveOrder, selectItem, selectRow, addDocument],
   );
 
   const selectedItemId =
@@ -290,7 +231,20 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
   }, [handleKeyDown]);
 
   useEffect(() => {
-    selectRowQuantity(0);
+    if (order.items) {
+      rowsRef.current = order.items.reduce((acc: RowsElements, _, idx) => {
+        acc[idx] = {
+          quantity: null,
+          discount: null,
+        };
+
+        return acc;
+      }, {});
+    }
+  }, [order.items]);
+
+  useEffect(() => {
+    selectRow(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -410,6 +364,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
             <th>Rodzaj</th>
             <th>Ilość</th>
             <th>Jedn. miary</th>
+            <th>Upust (%)</th>
             <th>Cena jedn.</th>
             <th>Wartość</th>
           </tr>
@@ -417,10 +372,11 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
         <tbody>
           {order.items.map((item, idx) => (
             <SummaryRow
-              quantitiesRef={quantitiesRef}
+              rowsRef={rowsRef}
               selectItem={selectItem}
               key={`${item.itemId}${idx}`}
               editItemQuantity={ctx.editItemQuantity}
+              editItemDiscount={ctx.editItemDiscount}
               selectedItem={ctx.selectedItem}
               index={idx}
               item={item}
@@ -428,9 +384,10 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
             />
           ))}
           <SummaryRow
-            quantitiesRef={quantitiesRef}
+            rowsRef={rowsRef}
             selectItem={selectItem}
             editItemQuantity={ctx.editItemQuantity}
+            editItemDiscount={ctx.editItemDiscount}
             selectedItem={ctx.selectedItem}
             index={order.items.length}
             packagingData={order.packagingData}

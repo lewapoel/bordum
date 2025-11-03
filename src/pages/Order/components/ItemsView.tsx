@@ -13,7 +13,6 @@ import {
   Item,
   ItemWarehouses,
   useAddEditItem,
-  useAddItem,
   useGetItems,
   useGetItemsGroups,
   useGetItemsWarehouses,
@@ -25,37 +24,13 @@ import { HighlightRanges } from '@nozbe/microfuzz';
 import update from 'immutability-helper';
 import { toast } from 'react-toastify';
 import { AuthContext } from '@/components/AuthContext.tsx';
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog.tsx';
-import { Button } from '@/components/ui/button.tsx';
-import { Input } from '@/components/ui/input.tsx';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form.tsx';
-import { calculateDiscountPrice, generateItemCode } from '@/utils/item.ts';
+import { calculateDiscountPrice, calculateMaxDiscount } from '@/utils/item.ts';
 import { TEMPORARY_ITEM_GROUP } from '@/data/comarch/groups.ts';
 import { TEMPLATE_PRODUCT_CODES } from '@/data/comarch/product.ts';
-import Combobox, { ComboboxItem } from '@/components/ui/combobox.tsx';
 import { formatMoney } from '@/utils/money.ts';
-import { Prices, PriceType } from '@/models/comarch/prices.ts';
-import { BUY_PRICE } from '@/data/comarch/prices.ts';
-import { validateNonNegativeInput, validatePrice } from '@/utils/validation.ts';
 import { ItemType } from '@/models/bitrix/order.ts';
+import AddItemDialog from '@/pages/Order/components/dialog/AddItemDialog.tsx';
+import AddTemplateItemDialog from '@/pages/Order/components/dialog/AddTemplateItemDialog.tsx';
 
 type Match = {
   item: ItemWarehouses;
@@ -81,50 +56,11 @@ type Discounts = {
   [key: number]: string;
 };
 
-const addItemFormSchema = z.object({
-  name: z.string().min(1, 'Nazwa pozycji jest wymagana'),
-  unit: z.string().min(1, 'Jednostka pozycji jest wymagana'),
-  prices: z.object({
-    retail: validatePrice(),
-  }),
-  quantity: z
-    .string()
-    .min(1, 'Ilość jest wymagana')
-    .refine((val) => !isNaN(parseFloat(val)), {
-      message: 'Ilość musi być liczbą',
-    })
-    .refine((val) => parseFloat(val) > 0, {
-      message: 'Ilość musi być większa od zera',
-    }),
-});
-
-const addTemplateItemFormSchema = z.object({
-  priceType: z
-    .string()
-    .min(1, 'Rodzaj ceny jest wymagany')
-    .refine((val) => val !== BUY_PRICE, {
-      message: 'Niedozwolony rodzaj ceny kontrahenta',
-    }),
-  code: z.string().min(1, 'Wybierz produkt z listy'),
-  width: validateNonNegativeInput('Szerokość'),
-  height: validateNonNegativeInput('Wysokość'),
-  quantity: z
-    .string()
-    .min(1, 'Ilość jest wymagana')
-    .refine((val) => !isNaN(parseFloat(val)), {
-      message: 'Ilość musi być liczbą',
-    })
-    .refine((val) => parseFloat(val) > 0, {
-      message: 'Ilość musi być większa od zera',
-    }),
-});
-
 export default function ItemsView() {
   const { token, sqlToken } = useContext(AuthContext);
   const ctx = useContext(OrderContext);
 
   const addEditItemMutation = useAddEditItem(token, sqlToken);
-  const addItemMutation = useAddItem(token, sqlToken);
   const warehousesQuery = useGetWarehouses(token);
   const itemsQuery = useGetItems(token, sqlToken);
   const itemsWarehousesQuery = useGetItemsWarehouses(
@@ -133,18 +69,8 @@ export default function ItemsView() {
     warehousesQuery.data,
   );
   const itemsGroupsQuery = useGetItemsGroups(token);
-
   const warehouses = warehousesQuery.data;
-  const itemsByCode = useMemo(
-    () =>
-      itemsQuery.data
-        ? itemsQuery.data.reduce((acc: { [key: string]: Item }, current) => {
-            acc[current.code] = current;
-            return acc;
-          }, {})
-        : {},
-    [itemsQuery.data],
-  );
+
   const itemsWarehouses = useMemo(
     () =>
       itemsWarehousesQuery.data
@@ -172,150 +98,6 @@ export default function ItemsView() {
             )
         : null,
     [itemsWarehouses],
-  );
-
-  const templateItems = useMemo(
-    () => TEMPLATE_PRODUCT_CODES.map((code) => itemsByCode[code]),
-    [itemsByCode],
-  )
-    .filter(Boolean)
-    .map(
-      (item): ComboboxItem => ({
-        label: item.name,
-        value: item.code,
-      }),
-    );
-
-  const addItemForm = useForm<z.infer<typeof addItemFormSchema>>({
-    resolver: zodResolver(addItemFormSchema),
-    defaultValues: {
-      name: '',
-      unit: 'szt.',
-      prices: {
-        retail: '0',
-      },
-      quantity: '1',
-    },
-    mode: 'onChange',
-  });
-
-  const addTemplateItemForm = useForm<
-    z.infer<typeof addTemplateItemFormSchema>
-  >({
-    resolver: zodResolver(addTemplateItemFormSchema),
-    defaultValues: useMemo(
-      () => ({
-        priceType: ctx?.selectedPrice,
-        code: '',
-        width: '0',
-        height: '0',
-        quantity: '1',
-      }),
-      [ctx],
-    ),
-    mode: 'onChange',
-  });
-  const formTemplateItem = addTemplateItemForm.watch();
-  const formTemplateItemArea = useMemo(
-    () => +formTemplateItem.width * +formTemplateItem.height,
-    [formTemplateItem.width, formTemplateItem.height],
-  );
-  const currentTemplateItem = useMemo(
-    () => itemsByCode[formTemplateItem.code],
-    [itemsByCode, formTemplateItem.code],
-  );
-  const currentTemplateItemUnitPrice = useMemo(
-    () =>
-      ctx && currentTemplateItem
-        ? currentTemplateItem.prices[ctx.selectedPrice!].value
-        : 0,
-    [ctx, currentTemplateItem],
-  );
-  const currentTemplateItemAreaPrice = useMemo(
-    () => currentTemplateItemUnitPrice * formTemplateItemArea,
-    [currentTemplateItemUnitPrice, formTemplateItemArea],
-  );
-
-  const onAddItemSubmit = useCallback(
-    async (values: z.infer<typeof addItemFormSchema>) => {
-      if (ctx) {
-        await toast.promise(
-          async () => {
-            const newItem = await addItemMutation.mutateAsync({
-              id: 0,
-              unit: values.unit,
-              name: values.name,
-              groups: [TEMPORARY_ITEM_GROUP],
-              code: generateItemCode(),
-              vatRate: 23.0,
-              prices: {
-                zakupu: {
-                  number: 1,
-                  type: PriceType.NETTO,
-                  value: 0,
-                  currency: 'PLN',
-                },
-                'hurtowa 1': {
-                  number: 2,
-                  type: PriceType.NETTO,
-                  value: 0,
-                  currency: 'PLN',
-                },
-                'hurtowa 2': {
-                  number: 3,
-                  type: PriceType.NETTO,
-                  value: 0,
-                  currency: 'PLN',
-                },
-                'hurtowa 3': {
-                  number: 4,
-                  type: PriceType.NETTO,
-                  value: 0,
-                  currency: 'PLN',
-                },
-                detaliczna: {
-                  number: 5,
-                  type: PriceType.BRUTTO,
-                  value: +values.prices.retail,
-                  currency: 'PLN',
-                },
-              },
-            });
-
-            if (newItem) {
-              ctx.saveItem({
-                code: newItem.code,
-                groups: newItem.groups,
-                itemId: newItem.id.toString(),
-                productName: newItem.name,
-                type: ItemType.CUSTOM_ITEM,
-                quantity: +values.quantity,
-                unit: newItem.unit,
-                unitPrice: newItem.prices['detaliczna'].value,
-                discountRate: 0,
-                taxRate: newItem.vatRate,
-              });
-
-              toast.info(`Dodano nową pozycję: ${newItem.name}`, {
-                position: 'top-center',
-                theme: 'light',
-                autoClose: 2000,
-              });
-
-              setAddingItemVisible(false);
-            }
-          },
-          {
-            pending: 'Dodawanie nowej pozycji...',
-          },
-          {
-            position: 'top-center',
-            theme: 'light',
-          },
-        );
-      }
-    },
-    [ctx, addItemMutation],
   );
 
   const [temporarySearch, setTemporarySearch] = useState('');
@@ -384,6 +166,12 @@ export default function ItemsView() {
           ),
           discountRate: discount ?? 0,
           taxRate: item.vatRate,
+          bruttoUnitPrice: item.prices[ctx.selectedPrice!].value,
+          maxDiscount: calculateMaxDiscount(
+            item,
+            ctx.selectedPrice!,
+            ctx.maxDiscount ?? 0,
+          ),
         });
 
         let resultLocalized: string;
@@ -507,49 +295,12 @@ export default function ItemsView() {
                 selectedRow.quantity?.focus();
                 selectedRow.quantity?.select();
               }
+              break;
           }
         }
       }
     },
     [filteredList],
-  );
-
-  const onAddTemplateItemSubmit = useCallback(
-    async (values: z.infer<typeof addTemplateItemFormSchema>) => {
-      const area = +values.width * +values.height;
-      const newPrices = Object.entries(currentTemplateItem.prices).reduce(
-        (acc: Prices, [priceKey, price]) => {
-          acc[priceKey] = { ...price, value: price.value * area };
-          return acc;
-        },
-        {},
-      );
-
-      const sanitizedName = currentTemplateItem.name
-        .replace('H=', '')
-        .replace('L=', '')
-        .replace(/\(\s*\)/g, '')
-        .trim();
-
-      const item = await addEditItem(
-        {
-          ...currentTemplateItem,
-          unit: 'szt.',
-          name: sanitizedName + ` (H=${values.height}m L=${values.width}m)`,
-          prices: newPrices,
-          groups: ['ZAM1', 'MAG2'],
-        },
-        ComarchItemType.GOOD,
-      );
-
-      await selectItemManual(
-        item,
-        ItemType.CUSTOM_TEMPLATE_ITEM,
-        +values.quantity,
-      );
-      setAddingTemplateItemVisible(false);
-    },
-    [currentTemplateItem, addEditItem, selectItemManual],
   );
 
   const addRow = useCallback(() => {
@@ -652,18 +403,6 @@ export default function ItemsView() {
   );
 
   useEffect(() => {
-    addTemplateItemForm.reset({
-      priceType: ctx?.selectedPrice,
-      code: '',
-      width: '0',
-      height: '0',
-      quantity: '1',
-    });
-
-    void addTemplateItemForm.trigger('priceType');
-  }, [ctx, addTemplateItemForm]);
-
-  useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
@@ -694,261 +433,16 @@ export default function ItemsView() {
 
   return ctx && warehouses && processedItemsWarehouses && itemsGroups ? (
     <div>
-      <Dialog open={addingItemVisible} onOpenChange={setAddingItemVisible}>
-        <DialogContent
-          showCloseButton={false}
-          className='lg:max-w-screen-lg overflow-y-auto max-h-screen'
-        >
-          <Form {...addItemForm}>
-            <form
-              className='flex flex-col gap-4'
-              onSubmit={addItemForm.handleSubmit(onAddItemSubmit)}
-            >
-              <DialogHeader>
-                <DialogTitle>Dodaj niestandardową pozycję</DialogTitle>
-                <DialogDescription>Uzupełnij dane pozycji</DialogDescription>
-              </DialogHeader>
-
-              <div className='flex flex-col gap-4'>
-                <FormField
-                  control={addItemForm.control}
-                  name='name'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nazwa</FormLabel>
-                      <FormControl>
-                        <Input
-                          type='text'
-                          placeholder='Wprowadź nazwę pozycji...'
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={addItemForm.control}
-                  name='unit'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Jednostka</FormLabel>
-                      <FormControl>
-                        <Input
-                          type='text'
-                          placeholder='Wprowadź nazwę jednostki...'
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={addItemForm.control}
-                  name='prices.retail'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cena detaliczna (brutto)</FormLabel>
-                      <FormControl>
-                        <Input type='number' {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={addItemForm.control}
-                  name='quantity'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Ilość</FormLabel>
-                      <FormControl>
-                        <Input type='number' {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <DialogFooter>
-                <Button
-                  disabled={
-                    !addItemForm.formState.isValid ||
-                    !addItemForm.formState.isDirty ||
-                    addItemForm.formState.isSubmitting
-                  }
-                  type='submit'
-                  className='confirm'
-                >
-                  Zapisz
-                </Button>
-                <DialogClose asChild>
-                  <Button className='delete'>Anuluj</Button>
-                </DialogClose>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-      <Dialog
-        open={addingTemplateItemVisible}
-        onOpenChange={setAddingTemplateItemVisible}
-      >
-        <DialogContent
-          showCloseButton={false}
-          className='lg:max-w-screen-lg overflow-y-auto max-h-screen'
-        >
-          <Form {...addTemplateItemForm}>
-            <form
-              className='flex flex-col gap-4'
-              onSubmit={addTemplateItemForm.handleSubmit(
-                onAddTemplateItemSubmit,
-              )}
-            >
-              <DialogHeader>
-                <DialogTitle>
-                  Dodaj pozycję z niestandardowym wymiarem
-                </DialogTitle>
-                <DialogDescription>Uzupełnij dane pozycji</DialogDescription>
-              </DialogHeader>
-
-              <div className='flex flex-col gap-4'>
-                <FormField
-                  control={addTemplateItemForm.control}
-                  name='code'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Pozycja</FormLabel>
-                      <FormControl>
-                        <Combobox
-                          width={300}
-                          items={templateItems}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormItem>
-                  <FormLabel>Nazwa</FormLabel>
-                  <p>{currentTemplateItem?.name ?? 'brak'}</p>
-                </FormItem>
-
-                <FormItem>
-                  <FormLabel>Jednostka</FormLabel>
-                  <p>{currentTemplateItem?.unit ?? 'brak'}</p>
-                </FormItem>
-
-                <FormField
-                  control={addTemplateItemForm.control}
-                  name='width'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Szerokość (m)</FormLabel>
-                      <FormControl>
-                        <Input type='number' {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={addTemplateItemForm.control}
-                  name='height'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Wysokość (m)</FormLabel>
-                      <FormControl>
-                        <Input type='number' {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormItem>
-                  <FormLabel>Powierzchnia (m²)</FormLabel>
-                  <p>{formTemplateItemArea.toFixed(2)}</p>
-                </FormItem>
-
-                <FormField
-                  control={addTemplateItemForm.control}
-                  name='priceType'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Rodzaj ceny</FormLabel>
-                      <FormControl>
-                        <Input disabled type='text' {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormItem>
-                  <FormLabel>
-                    Cena jednostkowa - {ctx.selectedPrice} (zł)
-                  </FormLabel>
-                  <p>{formatMoney(currentTemplateItemUnitPrice)}</p>
-                </FormItem>
-
-                <FormItem>
-                  <FormLabel>Cena za sztukę (zł)</FormLabel>
-                  <p>{formatMoney(currentTemplateItemAreaPrice)}</p>
-                </FormItem>
-
-                <FormField
-                  control={addTemplateItemForm.control}
-                  name='quantity'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Ilość</FormLabel>
-                      <FormControl>
-                        <Input type='number' {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormItem>
-                  <FormLabel>Wartość (zł)</FormLabel>
-                  <p>
-                    {formatMoney(
-                      currentTemplateItemAreaPrice * +formTemplateItem.quantity,
-                    )}
-                  </p>
-                </FormItem>
-              </div>
-
-              <DialogFooter>
-                <Button
-                  disabled={
-                    !addTemplateItemForm.formState.isValid ||
-                    !addTemplateItemForm.formState.isDirty ||
-                    addTemplateItemForm.formState.isSubmitting
-                  }
-                  type='submit'
-                  className='confirm'
-                >
-                  Dodaj
-                </Button>
-                <DialogClose asChild>
-                  <Button className='delete'>Anuluj</Button>
-                </DialogClose>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
+      <AddItemDialog
+        visible={addingItemVisible}
+        setVisible={setAddingItemVisible}
+      />
+      <AddTemplateItemDialog
+        visible={addingTemplateItemVisible}
+        setVisible={setAddingTemplateItemVisible}
+        addEditItem={addEditItem}
+        selectItemManual={selectItemManual}
+      />
 
       <h1 className='mb-5'>Wybór towaru</h1>
 
@@ -1019,32 +513,14 @@ export default function ItemsView() {
         </thead>
         <tbody>
           {filteredList.map(({ item, highlightRanges }, idx) => {
-            const buyPrice = item.prices['zakupu'];
             const selectedPrice = item.prices[ctx.selectedPrice!];
 
             const quantity = quantities[item.id] ?? '0';
             const discount = discounts[item.id] ?? 0;
-
-            // Calculate max discount based on buy price
-            let maxDiscountBuyPrice: number;
-            if (
-              buyPrice.value === 0 ||
-              selectedPrice.value === 0 ||
-              buyPrice.value >= selectedPrice.value
-            ) {
-              maxDiscountBuyPrice = 0;
-            } else {
-              maxDiscountBuyPrice = Math.min(
-                (1 - buyPrice.value / selectedPrice.value) * 100,
-                100,
-              );
-            }
-
-            // Final max discount is limited by both the buy price
-            // and the discount set on Bitrix
-            const maxDiscount = Math.min(
+            const maxDiscount = calculateMaxDiscount(
+              item,
+              ctx.selectedPrice!,
               ctx.maxDiscount ?? 0,
-              maxDiscountBuyPrice,
             );
 
             const discountMultiplier = 1 - +discount / 100;
@@ -1133,8 +609,9 @@ export default function ItemsView() {
                     item.unit
                   )}
                 </td>
-                <td className='bg-green-200'>
+                <td className={maxDiscount ? 'bg-green-200' : ''}>
                   <input
+                    disabled={!maxDiscount}
                     ref={(el) => {
                       if (rowsRef.current?.[item.id!]) {
                         rowsRef.current[item.id!].discount = el;

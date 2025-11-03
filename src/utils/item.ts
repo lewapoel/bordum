@@ -62,6 +62,34 @@ export function calculateDiscountPrice(
   return roundMoney(price * discountRate);
 }
 
+export function calculateMaxDiscount(
+  item: Item,
+  priceType: string,
+  userMaxDiscount: number,
+) {
+  const buyPrice = item.prices['zakupu'];
+  const selectedPrice = item.prices[priceType];
+
+  // Calculate max discount based on buy price
+  let maxDiscountBuyPrice: number;
+  if (
+    buyPrice.value === 0 ||
+    selectedPrice.value === 0 ||
+    buyPrice.value >= selectedPrice.value
+  ) {
+    maxDiscountBuyPrice = 0;
+  } else {
+    maxDiscountBuyPrice = Math.min(
+      (1 - buyPrice.value / selectedPrice.value) * 100,
+      100,
+    );
+  }
+
+  // Final max discount is limited by both the buy price
+  // and the discount set on Bitrix
+  return Math.min(userMaxDiscount, maxDiscountBuyPrice);
+}
+
 export function generateItemCode(): string {
   return uuidv4().replace(/-/g, '').slice(0, 32);
 }

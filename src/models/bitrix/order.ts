@@ -20,6 +20,8 @@ export type OrderItem = {
   taxRate?: number;
   discountRate?: number;
   type?: ItemType;
+  bruttoUnitPrice?: number;
+  maxDiscount?: number;
 };
 
 export type PackagingDataItem = {
@@ -42,13 +44,23 @@ export type VerificationDataItem = {
 
 export type VerificationData = { [key: string]: VerificationDataItem };
 
-// Meant for Bitrix API use only, use `OrderItem` and its props instead
-export type OrderAdditionalData = {
+export type OrderAdditionalDataItem = {
+  code: string;
+  groups: GroupsCodes;
+  itemId: string;
+  type?: ItemType;
+  bruttoUnitPrice?: number;
+  maxDiscount?: number;
+};
+
+export type OrderAdditionalDataLegacy = {
   itemCodes?: Array<string>;
   itemGroups?: Array<GroupsCodes>;
   itemIds?: Array<string>;
   itemTypes?: Array<ItemType | undefined>;
 };
+
+export type OrderAdditionalData = Array<OrderAdditionalDataItem>;
 
 export type OrderDeliveryAddress = {
   postalCode?: string;

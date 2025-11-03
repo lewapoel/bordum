@@ -20,7 +20,8 @@ export type OrderStore = {
   currentView: OrderView;
   setCurrentView: (view: OrderView) => void;
   saveItem: (item: OrderItem) => 'add' | 'edit';
-  editItemQuantity: (index: number, quantity: number) => number | null;
+  editItemQuantity: (index: number, quantity: number) => number;
+  editItemDiscount: (index: number, discount: number) => number;
   removeItem: () => void;
   selectedItem: number;
   setSelectedItem: (item: number) => void;

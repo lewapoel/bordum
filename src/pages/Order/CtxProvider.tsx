@@ -38,6 +38,7 @@ import {
   QUOTE_PAYMENT_TYPES,
 } from '@/data/bitrix/const.ts';
 import { ALLOWED_USERS } from '@/data/bitrix/user.ts';
+import { calculateDiscountPrice } from '@/utils/item.ts';
 
 interface CtxProviderProps {
   children: ReactNode;
@@ -216,18 +217,54 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
   const editItemQuantity = useCallback(
     (index: number, quantity: number) => {
       if (order && index >= 0 && index < order.items.length) {
+        const newQuantity = Math.max(0.01, quantity);
+
         setOrder((prev) =>
           update(prev, {
             items: {
-              [index]: { quantity: { $set: Math.max(0.01, quantity) } },
+              [index]: { quantity: { $set: newQuantity } },
             },
           }),
         );
 
-        return Math.max(0.01, quantity);
+        return newQuantity;
       }
 
-      return null;
+      return 0;
+    },
+    [order],
+  );
+
+  const editItemDiscount = useCallback(
+    (index: number, discount: number) => {
+      if (order && index >= 0 && index < order.items.length) {
+        const maxDiscount = order.items[index].maxDiscount ?? 0;
+        const bruttoUnitPrice = order.items[index].bruttoUnitPrice;
+
+        if (bruttoUnitPrice !== undefined) {
+          const newDiscount = Math.min(
+            Math.max(0, discount),
+            Math.floor(maxDiscount),
+          );
+
+          setOrder((prev) =>
+            update(prev, {
+              items: {
+                [index]: {
+                  discountRate: { $set: newDiscount },
+                  unitPrice: {
+                    $set: calculateDiscountPrice(bruttoUnitPrice, newDiscount),
+                  },
+                },
+              },
+            }),
+          );
+
+          return newDiscount;
+        }
+      }
+
+      return 0;
     },
     [order],
   );
@@ -323,6 +360,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
         setCurrentView,
         saveItem,
         editItemQuantity,
+        editItemDiscount,
         removeItem,
         selectedItem,
         setSelectedItem,

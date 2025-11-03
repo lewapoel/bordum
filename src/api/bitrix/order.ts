@@ -5,6 +5,7 @@ import {
 } from '@/utils/bitrix24.ts';
 import {
   OrderAdditionalData,
+  OrderAdditionalDataLegacy,
   OrderData,
   OrderItem,
   PackagingData,
@@ -83,21 +84,54 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
       } else {
         const data = result.data();
 
-        orderData.items = data.map(
-          (item: any, idx: number): OrderItem => ({
+        orderData.items = data.map((item: any, idx: number): OrderItem => {
+          const rawAdditionalData: any = orderData.additionalData;
+          let parsedAdditionalData: Pick<
+            OrderItem,
+            | 'code'
+            | 'groups'
+            | 'itemId'
+            | 'type'
+            | 'bruttoUnitPrice'
+            | 'maxDiscount'
+          >;
+
+          if (rawAdditionalData.itemCodes) {
+            const legacyAdditionalData =
+              rawAdditionalData as OrderAdditionalDataLegacy;
+
+            parsedAdditionalData = {
+              code: legacyAdditionalData?.itemCodes?.[idx] ?? '',
+              groups: legacyAdditionalData?.itemGroups?.[idx] ?? [],
+              itemId: legacyAdditionalData?.itemIds?.[idx] ?? '',
+              type: legacyAdditionalData?.itemTypes?.[idx] ?? undefined,
+            };
+          } else {
+            const additionalData: OrderAdditionalData =
+              rawAdditionalData as OrderAdditionalData;
+
+            parsedAdditionalData = {
+              code: additionalData?.[idx]?.code ?? '',
+              groups: additionalData?.[idx]?.groups ?? [],
+              itemId: additionalData?.[idx]?.itemId ?? '',
+              type: additionalData?.[idx]?.type ?? undefined,
+              bruttoUnitPrice:
+                additionalData?.[idx]?.bruttoUnitPrice ?? undefined,
+              maxDiscount: additionalData?.[idx]?.maxDiscount ?? undefined,
+            };
+          }
+
+          return {
+            ...parsedAdditionalData,
             id: item['ID'],
-            code: orderData.additionalData?.itemCodes?.[idx] ?? '',
-            groups: orderData.additionalData?.itemGroups?.[idx] ?? [],
-            itemId: orderData.additionalData?.itemIds?.[idx] ?? '',
-            type: orderData.additionalData?.itemTypes?.[idx] ?? undefined,
             productName: item['PRODUCT_NAME'],
             quantity: item['QUANTITY'],
             unit: item['MEASURE_NAME'],
             unitPrice: item['PRICE'],
             taxRate: item['TAX_RATE'] ?? undefined,
             discountRate: item['DISCOUNT_RATE'] ?? undefined,
-          }),
-        );
+          };
+        });
 
         orderData.packagingData = orderData.items.reduce(
           (acc: PackagingData, item) => {
@@ -158,7 +192,7 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
       } else {
         const data = result.data();
 
-        let additionalData = {};
+        let additionalData = [];
         let packagingData = {};
         let verificationData = {};
 
@@ -469,12 +503,14 @@ export async function updateOrder(
       }
     };
 
-    const additionalData: OrderAdditionalData = {
-      itemCodes: order.map((item) => item.code),
-      itemIds: order.map((item) => item.itemId),
-      itemGroups: order.map((item) => item.groups),
-      itemTypes: order.map((item) => item.type),
-    };
+    const additionalData: OrderAdditionalData = order.map((item) => ({
+      code: item.code,
+      itemId: item.itemId,
+      groups: item.groups,
+      type: item.type,
+      bruttoUnitPrice: item.bruttoUnitPrice,
+      maxDiscount: item.maxDiscount,
+    }));
 
     const updateBody: any = {
       id: placementId,

@@ -554,8 +554,8 @@ export default function ItemsView() {
   }, [ctx]);
 
   const addTemplateRow = useCallback(() => {
-    if (ctx?.allowAddingProduct) setAddingTemplateItemVisible(true);
-  }, [ctx]);
+    setAddingTemplateItemVisible(true);
+  }, []);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -965,11 +965,7 @@ export default function ItemsView() {
           Dodaj niestandardową pozycję (Alt+2)
         </button>
 
-        <button
-          disabled={!ctx.allowAddingProduct}
-          className={clsx(ctx.allowAddingProduct ? '' : 'disabled', 'confirm')}
-          onClick={() => addTemplateRow()}
-        >
+        <button className='confirm' onClick={() => addTemplateRow()}>
           Niestandardowy wymiar (Alt+3)
         </button>
       </div>

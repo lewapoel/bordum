@@ -55,8 +55,13 @@ function convertItemPrice(
   return roundMoney(value * multiplier);
 }
 
-export function calculateUnitPrice(item: OrderItem): number {
-  return roundMoney(item.unitPrice * (1 - (item.discountRate ?? 0) / 100));
+export function calculateUnitPrice(
+  item: OrderItem,
+  addDiscount: boolean = true,
+): number {
+  const discountRate = 1 - (item.discountRate ?? 0) / 100;
+
+  return roundMoney(item.unitPrice * (addDiscount ? discountRate : 1));
 }
 
 export function generateItemCode(): string {

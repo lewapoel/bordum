@@ -452,6 +452,7 @@ export async function updateOrder(
               ? order.map((item) => ({
                   PRODUCT_NAME: item.productName,
                   PRICE: calculateUnitPrice(item),
+                  PRICE_BRUTTO: calculateUnitPrice(item, false),
                   QUANTITY: item.quantity,
                   MEASURE_CODE: item.unitCode,
                   TAX_RATE: item.taxRate,

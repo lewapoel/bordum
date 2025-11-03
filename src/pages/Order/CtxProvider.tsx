@@ -241,27 +241,29 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
         const maxDiscount = order.items[index].maxDiscount ?? 0;
         const bruttoUnitPrice = order.items[index].bruttoUnitPrice;
 
-        if (bruttoUnitPrice !== undefined) {
-          const newDiscount = Math.min(
-            Math.max(0, discount),
-            Math.floor(maxDiscount),
-          );
+        if (bruttoUnitPrice === undefined) {
+          return order.items[index].discountRate ?? 0;
+        }
 
-          setOrder((prev) =>
-            update(prev, {
-              items: {
-                [index]: {
-                  discountRate: { $set: newDiscount },
-                  unitPrice: {
-                    $set: calculateDiscountPrice(bruttoUnitPrice, newDiscount),
-                  },
+        const newDiscount = Math.min(
+          Math.max(0, discount),
+          Math.floor(maxDiscount),
+        );
+
+        setOrder((prev) =>
+          update(prev, {
+            items: {
+              [index]: {
+                discountRate: { $set: newDiscount },
+                unitPrice: {
+                  $set: calculateDiscountPrice(bruttoUnitPrice, newDiscount),
                 },
               },
-            }),
-          );
+            },
+          }),
+        );
 
-          return newDiscount;
-        }
+        return newDiscount;
       }
 
       return 0;

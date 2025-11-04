@@ -2,11 +2,7 @@ import { API_URL } from './const.ts';
 import { getStocks, Stock } from './stock.ts';
 import { Warehouse } from './warehouse.ts';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import {
-  convertDefaultItemPrices,
-  convertItemPrices,
-  generateItemCode,
-} from '@/utils/item.ts';
+import { convertDefaultItemPrices, convertItemPrices } from '@/utils/item.ts';
 import { BUY_PRICE } from '@/data/comarch/prices.ts';
 import {
   getProductGroups,
@@ -16,6 +12,7 @@ import {
   setProductPrice,
 } from '@/api/comarch-sql/product.ts';
 import { Prices, PriceType } from '@/models/comarch/prices.ts';
+import { generateHashCode } from '@/utils/hash.ts';
 
 export enum ComarchItemType {
   SERVICE,
@@ -69,6 +66,15 @@ function parseItem(productGroups: ProductGroups, item: any): Item {
     },
     PriceType.BRUTTO,
   );
+}
+
+async function parseItemWithGroups(sqlToken: string, item: any): Promise<Item> {
+  const productGroups = await getProductGroups(sqlToken);
+  if (!productGroups) {
+    throw new Error('Missing product groups');
+  }
+
+  return parseItem(productGroups, item);
 }
 
 export function useGetItemsGroups(token: string) {
@@ -217,12 +223,7 @@ async function fixAddedItem(
     throw new Error();
   }
 
-  const productGroups = await getProductGroups(sqlToken);
-  if (!productGroups) {
-    throw new Error('Missing product groups');
-  }
-
-  return parseItem(productGroups, addedItem);
+  return parseItemWithGroups(sqlToken, addedItem);
 }
 
 export type AddEditItem = {
@@ -235,10 +236,22 @@ export function useAddEditItem(token: string, sqlToken: string) {
     mutationKey: ['add-edit-item'],
     mutationFn: async (addEditItem: AddEditItem) => {
       const { item, itemType } = addEditItem;
-
       const convertedItem = convertDefaultItemPrices(item);
 
-      let response = await fetch(`${API_URL}/Items/${convertedItem.id}`, {
+      const itemHashCode = await generateHashCode(
+        `${convertedItem.id}-${convertedItem.name}-${convertedItem.unit}`,
+      );
+
+      // Check if item already exists
+      let response = await fetch(`${API_URL}/Items?code=${itemHashCode}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const item = await response.json();
+        return parseItemWithGroups(sqlToken, item);
+      }
+
+      response = await fetch(`${API_URL}/Items/${convertedItem.id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -249,7 +262,7 @@ export function useAddEditItem(token: string, sqlToken: string) {
 
       const itemBody = {
         type: itemType,
-        code: generateItemCode(),
+        code: itemHashCode,
         name: convertedItem.name,
         vatRate: baseItem.vatRate,
         vatRateFlag: baseItem.vatRateFlag,

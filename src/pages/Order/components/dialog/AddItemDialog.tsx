@@ -26,10 +26,10 @@ import { OrderContext } from '@/models/order.ts';
 import { AuthContext } from '@/components/AuthContext.tsx';
 import { useAddItem } from '@/api/comarch/item.ts';
 import { TEMPORARY_ITEM_GROUP } from '@/data/comarch/groups.ts';
-import { generateItemCode } from '@/utils/item.ts';
 import { PriceType } from '@/models/comarch/prices.ts';
 import { ItemType } from '@/models/bitrix/order.ts';
 import { Button } from '@/components/ui/button.tsx';
+import { generateRandomCode } from '@/utils/hash.ts';
 
 const formSchema = z.object({
   name: z.string().min(1, 'Nazwa pozycji jest wymagana'),
@@ -85,7 +85,7 @@ export default function AddItemDialog({
               unit: values.unit,
               name: values.name,
               groups: [TEMPORARY_ITEM_GROUP],
-              code: generateItemCode(),
+              code: generateRandomCode(),
               vatRate: 23.0,
               prices: {
                 zakupu: {

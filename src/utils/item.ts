@@ -1,6 +1,5 @@
 import { Item } from '@/api/comarch/item.ts';
 import { roundMoney } from '@/utils/money.ts';
-import { v4 as uuidv4 } from 'uuid';
 import { PriceType } from '@/models/comarch/prices.ts';
 import { DEFAULT_PRICE_TYPES } from '@/data/comarch/prices.ts';
 
@@ -88,8 +87,4 @@ export function calculateMaxDiscount(
   // Final max discount is limited by both the buy price
   // and the discount set on Bitrix
   return Math.min(userMaxDiscount, maxDiscountBuyPrice);
-}
-
-export function generateItemCode(): string {
-  return uuidv4().replace(/-/g, '').slice(0, 32);
 }

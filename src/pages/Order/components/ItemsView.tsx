@@ -442,6 +442,7 @@ export default function ItemsView() {
         setVisible={setAddingTemplateItemVisible}
         addEditItem={addEditItem}
         selectItemManual={selectItemManual}
+        itemsData={itemsQuery.data}
       />
 
       <h1 className='mb-5'>Wybór towaru</h1>

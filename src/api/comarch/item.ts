@@ -3,7 +3,7 @@ import { getStocks, Stock } from './stock.ts';
 import { Warehouse } from './warehouse.ts';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { convertDefaultItemPrices, convertItemPrices } from '@/utils/item.ts';
-import { BUY_PRICE } from '@/data/comarch/prices.ts';
+import { BUY_PRICE, BUY_PRICE_INDEX } from '@/data/comarch/prices.ts';
 import {
   getProductGroups,
   GroupsCodes,
@@ -202,7 +202,6 @@ async function fixAddedItem(
   sqlToken: string,
   item: Item,
   addedItem: any,
-  defaultPriceValue: number,
 ): Promise<Item> {
   const groupsSet = await setProductGroups(
     sqlToken,
@@ -217,11 +216,16 @@ async function fixAddedItem(
     sqlToken,
     addedItem['code'],
     BUY_PRICE,
-    defaultPriceValue,
+    item.prices[BUY_PRICE].value,
   );
   if (!priceSet) {
     throw new Error();
   }
+
+  addedItem['prices'][BUY_PRICE_INDEX] = {
+    ...item.prices[BUY_PRICE],
+    name: BUY_PRICE,
+  };
 
   return parseItemWithGroups(sqlToken, addedItem);
 }
@@ -285,12 +289,7 @@ export function useAddEditItem(token: string, sqlToken: string) {
       }
 
       const addedItem = await response.json();
-      return await fixAddedItem(
-        sqlToken,
-        convertedItem,
-        addedItem,
-        convertedItem.prices[BUY_PRICE].value,
-      );
+      return await fixAddedItem(sqlToken, convertedItem, addedItem);
     },
     onError: (error) => {
       console.error(error);
@@ -338,12 +337,7 @@ export function useAddItem(token: string, sqlToken: string) {
       }
 
       const addedItem = await response.json();
-      return await fixAddedItem(
-        sqlToken,
-        convertedItem,
-        addedItem,
-        convertedItem.prices[BUY_PRICE].value,
-      );
+      return await fixAddedItem(sqlToken, convertedItem, addedItem);
     },
     onError: (error) => {
       console.error(error);

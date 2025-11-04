@@ -155,7 +155,6 @@ export default function ItemsView() {
 
   const selectItemManual = useCallback(
     async (item: Item, type: ItemType, quantity: number, discount?: number) => {
-      console.log(item);
       if (ctx) {
         const result = ctx.saveItem({
           code: item.code,

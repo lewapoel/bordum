@@ -8,6 +8,7 @@ export const PRICES = [
   'detaliczna',
 ] as const;
 
+export const BUY_PRICE_INDEX = 0;
 export const BUY_PRICE = 'zakupu';
 export const DEFAULT_PRICE = 'detaliczna';
 

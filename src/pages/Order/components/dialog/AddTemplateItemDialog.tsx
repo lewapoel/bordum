@@ -163,7 +163,7 @@ export default function AddTemplateItemDialog({
           unit: 'szt.',
           name: sanitizedName + ` (H=${values.height}m L=${values.width}m)`,
           prices: newPrices,
-          groups: ['ZAM1', 'MAG2'],
+          groups: ['ZAM1', 'MAG2', 'WYMIAR'],
         },
         ComarchItemType.GOOD,
       );

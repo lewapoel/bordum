@@ -25,7 +25,10 @@ import update from 'immutability-helper';
 import { toast } from 'react-toastify';
 import { AuthContext } from '@/components/AuthContext.tsx';
 import { calculateDiscountPrice, calculateMaxDiscount } from '@/utils/item.ts';
-import { TEMPORARY_ITEM_GROUP } from '@/data/comarch/groups.ts';
+import {
+  TEMPLATE_ITEM_GROUP,
+  TEMPORARY_ITEM_GROUP,
+} from '@/data/comarch/groups.ts';
 import { TEMPLATE_PRODUCT_CODES } from '@/data/comarch/product.ts';
 import { formatMoney } from '@/utils/money.ts';
 import { ItemType } from '@/models/bitrix/order.ts';
@@ -94,7 +97,8 @@ export default function ItemsView() {
             .filter(
               (item) =>
                 !TEMPLATE_PRODUCT_CODES.includes(item.code) &&
-                !item.groups.includes(TEMPORARY_ITEM_GROUP),
+                !item.groups.includes(TEMPORARY_ITEM_GROUP) &&
+                !item.groups.includes(TEMPLATE_ITEM_GROUP),
             )
         : null,
     [itemsWarehouses],

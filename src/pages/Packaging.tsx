@@ -37,7 +37,8 @@ export default function Packaging() {
   // Range of [1, 10]
   const qualities = Array(10)
     .fill(0)
-    .map((_, i) => i + 1);
+    .map((_, i) => i + 1)
+    .reverse();
 
   const [originalPackagingData, setOriginalPackagingData] =
     useState<PackagingData>();

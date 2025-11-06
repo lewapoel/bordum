@@ -14,6 +14,7 @@ import {
 import { ensureMeasure, getMeasures } from './measure.ts';
 import {
   ORDER_ADDITIONAL_DATA_FIELD,
+  ORDER_DEAL_INTELLIGENT_PROCESS_ID,
   ORDER_DELIVERY_CITY_FIELD,
   ORDER_DELIVERY_DATE_FIELD,
   ORDER_DELIVERY_HOUSE_NUMBER_FIELD,
@@ -312,6 +313,7 @@ export async function createOrderFromDeal(
       const updateBody = {
         fields: {
           DEAL_ID: dealId,
+          [ORDER_DEAL_INTELLIGENT_PROCESS_ID]: dealId,
           CONTACT_ID: dealData.CONTACT_ID,
           COMPANY_ID: dealData.COMPANY_ID,
         },

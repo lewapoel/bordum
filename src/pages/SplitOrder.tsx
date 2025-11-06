@@ -80,7 +80,7 @@ function SplitOrder() {
     [order],
   );
 
-  const handleSplitOrder = useCallback(() => {
+  const handleSplitOrder = useCallback(async () => {
     if (subOrderQuantity === 0) {
       alert(
         'Nie można podzielić oferty, podoferta musi mieć minimum jedną ilość produktu',
@@ -101,11 +101,14 @@ function SplitOrder() {
     }
 
     setPending(true);
-    splitOrder(placementId, {
+    await splitOrder(placementId, {
       order: orderResult,
       subOrder: subOrderResult,
       title: 'podoferta',
-    }).then(() => setPending(false));
+    });
+    setPending(false);
+
+    window.location.reload();
   }, [
     orderQuantity,
     orderResult,
@@ -220,6 +223,7 @@ function SplitOrder() {
                         ref={(el) => {
                           quantitiesRef.current[idx] = el;
                         }}
+                        className='text-center'
                         type='number'
                         min='0'
                         max={order[idx].quantity} // can't exceed original quantity

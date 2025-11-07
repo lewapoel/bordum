@@ -35,6 +35,9 @@ type RowsElements = { [key: string]: RowElements };
 type GroupItems = {
   groupName: string;
   items: Array<OrderItem>;
+  orderId?: number;
+  dealId?: number;
+  clientName: string;
 };
 
 type GroupsItems = { [key: string]: GroupItems };
@@ -128,6 +131,21 @@ export default function Verification() {
           <body>
             <h1 style={{ textAlign: 'center' }}>{group.groupName}</h1>
 
+            <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+              <p style={{ margin: '0' }}>
+                <span style={{ fontWeight: 'bold' }}>Nr deala:</span>{' '}
+                {group.dealId ? group.dealId : 'brak'}
+              </p>
+              <p style={{ margin: '0' }}>
+                <span style={{ fontWeight: 'bold' }}>Nr oferty:</span>{' '}
+                {group.orderId ? group.orderId : 'brak'}
+              </p>
+              <p style={{ margin: '0' }}>
+                <span style={{ fontWeight: 'bold' }}>Klient:</span>{' '}
+                {group.clientName ? group.clientName : 'brak'}
+              </p>
+            </div>
+
             <table>
               <thead>
                 <tr>
@@ -192,6 +210,14 @@ export default function Verification() {
       },
     };
 
+    let clientName = '';
+
+    if (order.company) {
+      clientName = order.company.title;
+    } else if (order.contact) {
+      clientName = `${order.contact.name} ${order.contact.lastName}`;
+    }
+
     const itemsByGroups = order.items.reduce((acc: GroupsItems, item) => {
       const group = item.groups.find((group) =>
         VERIFICATION_GROUPS.includes(group),
@@ -202,6 +228,9 @@ export default function Verification() {
           acc[group] = {
             groupName: itemsGroups[group].name,
             items: [item],
+            orderId: order.id,
+            dealId: order.dealId,
+            clientName: clientName,
           };
         } else {
           acc[group].items.push(item);

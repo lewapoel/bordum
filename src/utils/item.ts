@@ -2,6 +2,8 @@ import { Item } from '@/api/comarch/item.ts';
 import { roundMoney } from '@/utils/money.ts';
 import { PriceType } from '@/models/comarch/prices.ts';
 import { DEFAULT_PRICE_TYPES } from '@/data/comarch/prices.ts';
+import { getAppOption, setAppOption } from '@/api/bitrix/appOption.ts';
+import { APP_OPTIONS } from '@/data/bitrix/const.ts';
 
 export function convertItemPrices(item: Item, convertTo: PriceType): Item {
   Object.entries(item.prices).forEach(([priceKey, price]) => {
@@ -87,4 +89,12 @@ export function calculateMaxDiscount(
   // Final max discount is limited by both the buy price
   // and the discount set on Bitrix
   return Math.min(userMaxDiscount, maxDiscountBuyPrice);
+}
+
+export async function setTemplateItems(templateItems: Array<string>) {
+  return setAppOption(APP_OPTIONS.templateItems, JSON.stringify(templateItems));
+}
+
+export function getTemplateItems(): Array<string> {
+  return JSON.parse(getAppOption(APP_OPTIONS.templateItems));
 }

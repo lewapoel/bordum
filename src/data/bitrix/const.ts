@@ -46,3 +46,8 @@ export const INVOICE_STAGES = {
 export const ENTITY_TYPES = {
   INVOICE: 31,
 };
+
+export const APP_OPTIONS = {
+  calculator: 'CALCULATOR_OPTIONS',
+  templateItems: 'TEMPLATE_ITEMS',
+};

@@ -12,6 +12,7 @@ import {
   CRM_QUOTE_FIELDS,
   CRM_QUOTE_GET,
   CRM_QUOTE_PRODUCTROWS_GET,
+  TEMPLATE_ITEMS,
   USER_ADMIN,
   USER_CURRENT,
   USER_GET,
@@ -44,8 +45,20 @@ export async function fetchDiskApi(method: string, data: any) {
 
 const mockBX24 = {
   appOption: {
-    get: () => {},
-    set: () => {},
+    get: (name: string) => {
+      let data = undefined;
+
+      switch (name) {
+        case 'TEMPLATE_ITEMS':
+          data = TEMPLATE_ITEMS;
+          break;
+      }
+
+      return data;
+    },
+    set: (_name: string, _value: any, callback: () => void) => {
+      callback();
+    },
   },
   callMethod: (
     method: string,

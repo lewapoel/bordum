@@ -13,6 +13,7 @@ import {
   MASONRY_PARAMS,
   MASONRY_PRICING,
 } from '@/data/calculator.ts';
+import { APP_OPTIONS } from '@/data/bitrix/const.ts';
 
 export function getElementCost(
   area: number,
@@ -57,7 +58,7 @@ export function getElementHeight(
 }
 
 export function getOptions(): CalculatorOptions {
-  const options = JSON.parse(getAppOption('CALCULATOR_OPTIONS') ?? '{}');
+  const options = JSON.parse(getAppOption(APP_OPTIONS.calculator) ?? '{}');
 
   return {
     gateMotorPricing: options.gateMotorPricing ?? GATE_MOTOR_PRICING,
@@ -80,5 +81,8 @@ export async function setOptions(options: any) {
           ? obj
           : +obj;
 
-  return setAppOption('CALCULATOR_OPTIONS', JSON.stringify(toNumbers(options)));
+  return setAppOption(
+    APP_OPTIONS.calculator,
+    JSON.stringify(toNumbers(options)),
+  );
 }

@@ -24,16 +24,20 @@ import { HighlightRanges } from '@nozbe/microfuzz';
 import update from 'immutability-helper';
 import { toast } from 'react-toastify';
 import { AuthContext } from '@/components/AuthContext.tsx';
-import { calculateDiscountPrice, calculateMaxDiscount } from '@/utils/item.ts';
+import {
+  calculateDiscountPrice,
+  calculateMaxDiscount,
+  getTemplateItems,
+} from '@/utils/item.ts';
 import {
   TEMPLATE_ITEM_GROUP,
   TEMPORARY_ITEM_GROUP,
 } from '@/data/comarch/groups.ts';
-import { TEMPLATE_PRODUCT_CODES } from '@/data/comarch/product.ts';
 import { formatMoney } from '@/utils/money.ts';
 import { ItemType } from '@/models/bitrix/order.ts';
 import AddItemDialog from '@/pages/Order/components/dialog/AddItemDialog.tsx';
 import AddTemplateItemDialog from '@/pages/Order/components/dialog/AddTemplateItemDialog.tsx';
+import EditTemplateItems from '@/pages/Order/components/EditTemplateItems.tsx';
 
 type Match = {
   item: ItemWarehouses;
@@ -62,6 +66,7 @@ type Discounts = {
 export default function ItemsView() {
   const { token, sqlToken } = useContext(AuthContext);
   const ctx = useContext(OrderContext);
+  const currentTemplateItems = getTemplateItems();
 
   const addEditItemMutation = useAddEditItem(token, sqlToken);
   const warehousesQuery = useGetWarehouses(token);
@@ -96,20 +101,21 @@ export default function ItemsView() {
             )
             .filter(
               (item) =>
-                !TEMPLATE_PRODUCT_CODES.includes(item.code) &&
+                !currentTemplateItems.includes(item.code) &&
                 !item.groups.includes(TEMPORARY_ITEM_GROUP) &&
                 !item.groups.includes(TEMPLATE_ITEM_GROUP),
             )
         : null,
-    [itemsWarehouses],
+    [itemsWarehouses, currentTemplateItems],
   );
 
   const [temporarySearch, setTemporarySearch] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItem, setSelectedItem] = useState(0);
   const [editingItem, setEditingItem] = useState(-1);
-  const [addingItemVisible, setAddingItemVisible] = useState(false);
-  const [addingTemplateItemVisible, setAddingTemplateItemVisible] =
+  const [addItemVisible, setAddItemVisible] = useState(false);
+  const [addTemplateItemVisible, setAddTemplateItemVisible] = useState(false);
+  const [editTemplateItemsVisible, setEditTemplateItemsVisible] =
     useState(false);
 
   const [editedItem, setEditedItem] = useState<ItemWarehouses>();
@@ -308,16 +314,20 @@ export default function ItemsView() {
   );
 
   const addRow = useCallback(() => {
-    if (ctx?.allowAddingProduct) setAddingItemVisible(true);
+    if (ctx?.allowAddingProduct) setAddItemVisible(true);
   }, [ctx]);
 
   const addTemplateRow = useCallback(() => {
-    setAddingTemplateItemVisible(true);
+    setAddTemplateItemVisible(true);
   }, []);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (!addingItemVisible) {
+      if (
+        !addItemVisible &&
+        !addTemplateItemVisible &&
+        !editTemplateItemsVisible
+      ) {
         switch (e.key) {
           case 'ArrowUp':
             e.preventDefault();
@@ -401,8 +411,10 @@ export default function ItemsView() {
       editedItem,
       addRow,
       addTemplateRow,
-      addingItemVisible,
+      addItemVisible,
+      addTemplateItemVisible,
       temporarySearch,
+      editTemplateItemsVisible,
     ],
   );
 
@@ -437,220 +449,232 @@ export default function ItemsView() {
 
   return ctx && warehouses && processedItemsWarehouses && itemsGroups ? (
     <div>
-      <AddItemDialog
-        visible={addingItemVisible}
-        setVisible={setAddingItemVisible}
-      />
+      <AddItemDialog visible={addItemVisible} setVisible={setAddItemVisible} />
       <AddTemplateItemDialog
-        visible={addingTemplateItemVisible}
-        setVisible={setAddingTemplateItemVisible}
+        visible={addTemplateItemVisible}
+        setVisible={setAddTemplateItemVisible}
         addEditItem={addEditItem}
         selectItemManual={selectItemManual}
         itemsData={itemsQuery.data}
+        setEditTemplateItemVisible={setEditTemplateItemsVisible}
       />
 
-      <h1 className='mb-5'>Wybór towaru</h1>
-
-      <div className='justify-center flex items-center gap-2 mb-10'>
-        <button
-          className='confirm'
-          onClick={() => ctx.setCurrentView(OrderView.Summary)}
-        >
-          Powrót do oferty (ESC)
-        </button>
-
-        <button
-          disabled={!ctx.allowAddingProduct}
-          className={clsx(ctx.allowAddingProduct ? '' : 'disabled', 'confirm')}
-          onClick={() => addRow()}
-        >
-          Dodaj niestandardową pozycję (Alt+2)
-        </button>
-
-        <button className='confirm' onClick={() => addTemplateRow()}>
-          Niestandardowy wymiar (Alt+3)
-        </button>
-      </div>
-
-      <div className='text-[20px] justify-center flex items-center gap-4 mb-10'>
-        <p>Zmień zaznaczoną pozycję (↑/↓)</p>
-        <p>Zmień pole (TAB)</p>
-        <p>Potwierdź pozycję (ENTER)</p>
-        <p>Edytuj pozycję (Alt+1)</p>
-      </div>
-
-      <div className='flex items-center gap-4'>
-        <input
-          ref={searchBarRef}
-          type='text'
-          placeholder='Wyszukaj towar...'
-          value={temporarySearch}
-          onChange={(e) => {
-            setEditingItem(-1);
-            setTemporarySearch(e.target.value);
-          }}
-          className='searchbar w-full'
+      {editTemplateItemsVisible ? (
+        <EditTemplateItems
+          items={itemsWarehouses}
+          setVisible={setEditTemplateItemsVisible}
         />
+      ) : (
+        <>
+          <h1 className='mb-5'>Wybór towaru</h1>
 
-        <button
-          className='confirm shrink-0'
-          onClick={() => setSearchTerm(temporarySearch)}
-        >
-          Szukaj (=)
-        </button>
-      </div>
-      <table>
-        <thead className='bg-white freeze'>
-          <tr>
-            <th>Nazwa</th>
-            {warehouses.map((warehouse) => (
-              <Fragment key={warehouse.id}>
-                <th>Stan</th>
-                <th>Rezerwacja</th>
-              </Fragment>
-            ))}
-            <th>Ilość</th>
-            <th>Jedn. miary</th>
-            <th>Upust (%)</th>
-            <th>Cena jedn.</th>
-            <th>Wartość</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredList.map(({ item, highlightRanges }, idx) => {
-            const selectedPrice = item.prices[ctx.selectedPrice!];
+          <div className='justify-center flex items-center gap-2 mb-10'>
+            <button
+              className='confirm'
+              onClick={() => ctx.setCurrentView(OrderView.Summary)}
+            >
+              Powrót do oferty (ESC)
+            </button>
 
-            const quantity = quantities[item.id] ?? '0';
-            const discount = discounts[item.id] ?? 0;
-            const maxDiscount = calculateMaxDiscount(
-              item,
-              ctx.selectedPrice!,
-              ctx.maxDiscount ?? 0,
-            );
+            <button
+              disabled={!ctx.allowAddingProduct}
+              className={clsx(
+                ctx.allowAddingProduct ? '' : 'disabled',
+                'confirm',
+              )}
+              onClick={() => addRow()}
+            >
+              Dodaj niestandardową pozycję (Alt+2)
+            </button>
 
-            const discountMultiplier = 1 - +discount / 100;
-            const unitPrice = selectedPrice.value * discountMultiplier;
-            const price = unitPrice * +quantity;
+            <button className='confirm' onClick={() => addTemplateRow()}>
+              Niestandardowy wymiar (Alt+3)
+            </button>
+          </div>
 
-            const isSelected = idx === selectedItem;
-            const isEditing = idx === editingItem;
+          <div className='text-[20px] justify-center flex items-center gap-4 mb-10'>
+            <p>Zmień zaznaczoną pozycję (↑/↓)</p>
+            <p>Zmień pole (TAB)</p>
+            <p>Potwierdź pozycję (ENTER)</p>
+            <p>Edytuj pozycję (Alt+1)</p>
+          </div>
 
-            const bgClassName = clsx({
-              'bg-gray-300': isSelected,
-            });
+          <div className='flex items-center gap-4'>
+            <input
+              ref={searchBarRef}
+              type='text'
+              placeholder='Wyszukaj towar...'
+              value={temporarySearch}
+              onChange={(e) => {
+                setEditingItem(-1);
+                setTemporarySearch(e.target.value);
+              }}
+              className='searchbar w-full'
+            />
 
-            return (
-              <tr
-                key={item.id}
-                className={bgClassName}
-                onClick={() => {
-                  setSelectedItem(idx);
-                  setEditingItem(-1);
-                }}
-              >
-                <td className={isEditing ? 'bg-green-200' : ''}>
-                  {isEditing ? (
-                    <input
-                      ref={(el) => {
-                        if (rowsRef.current?.[item.id!]) {
-                          rowsRef.current[item.id!].name = el;
-                        }
-                      }}
-                      className='w-full text-center'
-                      type='text'
-                      value={editedItem?.name}
-                      onChange={(e) => {
-                        setEditedItem((prev) =>
-                          update(prev, { name: { $set: e.target.value } }),
-                        );
-                      }}
-                    />
-                  ) : (
-                    <Highlight text={item.name} ranges={highlightRanges} />
-                  )}
-                </td>
-                {Object.values(item.quantities).map((quantity) => (
-                  <Fragment key={quantity.warehouseId}>
-                    <td>{quantity.quantity - quantity.reservation}</td>
-                    <td>{quantity.reservation}</td>
+            <button
+              className='confirm shrink-0'
+              onClick={() => setSearchTerm(temporarySearch)}
+            >
+              Szukaj (=)
+            </button>
+          </div>
+          <table>
+            <thead className='bg-white freeze'>
+              <tr>
+                <th>Nazwa</th>
+                {warehouses.map((warehouse) => (
+                  <Fragment key={warehouse.id}>
+                    <th>Stan</th>
+                    <th>Rezerwacja</th>
                   </Fragment>
                 ))}
-                <td className='bg-green-200'>
-                  <input
-                    ref={(el) => {
-                      if (rowsRef.current?.[item.id!]) {
-                        rowsRef.current[item.id!].quantity = el;
-                      }
-                    }}
-                    className='w-[100px]'
-                    type='number'
-                    min={0}
-                    value={quantity}
-                    onChange={(e) =>
-                      setQuantities((prev) =>
-                        update(prev, { [item.id]: { $set: e.target.value } }),
-                      )
-                    }
-                  />
-                </td>
-                <td className={isEditing ? 'bg-green-200' : ''}>
-                  {isEditing ? (
-                    <input
-                      ref={(el) => {
-                        if (rowsRef.current?.[item.id!]) {
-                          rowsRef.current[item.id!].unit = el;
-                        }
-                      }}
-                      type='text'
-                      className='w-[100px] text-center'
-                      value={editedItem?.unit}
-                      onChange={(e) =>
-                        setEditedItem((prev) =>
-                          update(prev, { unit: { $set: e.target.value } }),
-                        )
-                      }
-                    />
-                  ) : (
-                    item.unit
-                  )}
-                </td>
-                <td className={maxDiscount ? 'bg-green-200' : ''}>
-                  <input
-                    disabled={!maxDiscount}
-                    ref={(el) => {
-                      if (rowsRef.current?.[item.id!]) {
-                        rowsRef.current[item.id!].discount = el;
-                      }
-                    }}
-                    className='w-[100px]'
-                    type='number'
-                    min={0}
-                    max={maxDiscount}
-                    value={discount}
-                    onChange={(e) =>
-                      setDiscounts((prev) =>
-                        update(prev, {
-                          [item.id]: {
-                            $set:
-                              e.target.value === ''
-                                ? ''
-                                : Math.min(
-                                    Math.max(0, +e.target.value),
-                                    Math.floor(maxDiscount),
-                                  ).toString(),
-                          },
-                        }),
-                      )
-                    }
-                  />
-                </td>
-                <td>{formatMoney(unitPrice)}</td>
-                <td>{formatMoney(price)}</td>
+                <th>Ilość</th>
+                <th>Jedn. miary</th>
+                <th>Upust (%)</th>
+                <th>Cena jedn.</th>
+                <th>Wartość</th>
               </tr>
-            );
-          })}
-        </tbody>
-      </table>
+            </thead>
+            <tbody>
+              {filteredList.map(({ item, highlightRanges }, idx) => {
+                const selectedPrice = item.prices[ctx.selectedPrice!];
+
+                const quantity = quantities[item.id] ?? '0';
+                const discount = discounts[item.id] ?? 0;
+                const maxDiscount = calculateMaxDiscount(
+                  item,
+                  ctx.selectedPrice!,
+                  ctx.maxDiscount ?? 0,
+                );
+
+                const discountMultiplier = 1 - +discount / 100;
+                const unitPrice = selectedPrice.value * discountMultiplier;
+                const price = unitPrice * +quantity;
+
+                const isSelected = idx === selectedItem;
+                const isEditing = idx === editingItem;
+
+                const bgClassName = clsx({
+                  'bg-gray-300': isSelected,
+                });
+
+                return (
+                  <tr
+                    key={item.id}
+                    className={bgClassName}
+                    onClick={() => {
+                      setSelectedItem(idx);
+                      setEditingItem(-1);
+                    }}
+                  >
+                    <td className={isEditing ? 'bg-green-200' : ''}>
+                      {isEditing ? (
+                        <input
+                          ref={(el) => {
+                            if (rowsRef.current?.[item.id!]) {
+                              rowsRef.current[item.id!].name = el;
+                            }
+                          }}
+                          className='w-full text-center'
+                          type='text'
+                          value={editedItem?.name}
+                          onChange={(e) => {
+                            setEditedItem((prev) =>
+                              update(prev, { name: { $set: e.target.value } }),
+                            );
+                          }}
+                        />
+                      ) : (
+                        <Highlight text={item.name} ranges={highlightRanges} />
+                      )}
+                    </td>
+                    {Object.values(item.quantities).map((quantity) => (
+                      <Fragment key={quantity.warehouseId}>
+                        <td>{quantity.quantity - quantity.reservation}</td>
+                        <td>{quantity.reservation}</td>
+                      </Fragment>
+                    ))}
+                    <td className='bg-green-200'>
+                      <input
+                        ref={(el) => {
+                          if (rowsRef.current?.[item.id!]) {
+                            rowsRef.current[item.id!].quantity = el;
+                          }
+                        }}
+                        className='w-[100px]'
+                        type='number'
+                        min={0}
+                        value={quantity}
+                        onChange={(e) =>
+                          setQuantities((prev) =>
+                            update(prev, {
+                              [item.id]: { $set: e.target.value },
+                            }),
+                          )
+                        }
+                      />
+                    </td>
+                    <td className={isEditing ? 'bg-green-200' : ''}>
+                      {isEditing ? (
+                        <input
+                          ref={(el) => {
+                            if (rowsRef.current?.[item.id!]) {
+                              rowsRef.current[item.id!].unit = el;
+                            }
+                          }}
+                          type='text'
+                          className='w-[100px] text-center'
+                          value={editedItem?.unit}
+                          onChange={(e) =>
+                            setEditedItem((prev) =>
+                              update(prev, { unit: { $set: e.target.value } }),
+                            )
+                          }
+                        />
+                      ) : (
+                        item.unit
+                      )}
+                    </td>
+                    <td className={maxDiscount ? 'bg-green-200' : ''}>
+                      <input
+                        disabled={!maxDiscount}
+                        ref={(el) => {
+                          if (rowsRef.current?.[item.id!]) {
+                            rowsRef.current[item.id!].discount = el;
+                          }
+                        }}
+                        className='w-[100px]'
+                        type='number'
+                        min={0}
+                        max={maxDiscount}
+                        value={discount}
+                        onChange={(e) =>
+                          setDiscounts((prev) =>
+                            update(prev, {
+                              [item.id]: {
+                                $set:
+                                  e.target.value === ''
+                                    ? ''
+                                    : Math.min(
+                                        Math.max(0, +e.target.value),
+                                        Math.floor(maxDiscount),
+                                      ).toString(),
+                              },
+                            }),
+                          )
+                        }
+                      />
+                    </td>
+                    <td>{formatMoney(unitPrice)}</td>
+                    <td>{formatMoney(price)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </>
+      )}
     </div>
   ) : (
     <div>

@@ -32,11 +32,11 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { OrderContext } from '@/models/order.ts';
-import { TEMPLATE_PRODUCT_CODES } from '@/data/comarch/product.ts';
 import Combobox, { ComboboxItem } from '@/components/ui/combobox.tsx';
 import { ComarchItemType, Item } from '@/api/comarch/item.ts';
 import { Prices } from '@/models/comarch/prices.ts';
 import { ItemType } from '@/models/bitrix/order.ts';
+import { getTemplateItems } from '@/utils/item.ts';
 
 interface AddTemplateItemDialogProps {
   visible: boolean;
@@ -49,6 +49,7 @@ interface AddTemplateItemDialogProps {
     quantity: number,
     discount?: number,
   ): Promise<void>;
+  setEditTemplateItemVisible: Dispatch<SetStateAction<boolean>>;
 }
 
 const formSchema = z.object({
@@ -78,8 +79,10 @@ export default function AddTemplateItemDialog({
   itemsData,
   addEditItem,
   selectItemManual,
+  setEditTemplateItemVisible,
 }: AddTemplateItemDialogProps) {
   const ctx = useContext(OrderContext);
+  const currentTemplateItems = getTemplateItems();
 
   const itemsByCode = useMemo(
     () =>
@@ -108,8 +111,8 @@ export default function AddTemplateItemDialog({
   });
 
   const templateItems = useMemo(
-    () => TEMPLATE_PRODUCT_CODES.map((code) => itemsByCode[code]),
-    [itemsByCode],
+    () => currentTemplateItems.map((code) => itemsByCode[code]),
+    [itemsByCode, currentTemplateItems],
   )
     .filter(Boolean)
     .map(
@@ -216,13 +219,27 @@ export default function AddTemplateItemDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Pozycja</FormLabel>
-                      <FormControl>
-                        <Combobox
-                          width={300}
-                          items={templateItems}
-                          {...field}
-                        ></Combobox>
-                      </FormControl>
+
+                      <div className='flex items-center gap-4'>
+                        <FormControl>
+                          <Combobox
+                            width={300}
+                            items={templateItems}
+                            {...field}
+                          ></Combobox>
+                        </FormControl>
+
+                        <Button
+                          type='button'
+                          onClick={() => {
+                            setEditTemplateItemVisible(true);
+                            setVisible(false);
+                          }}
+                        >
+                          Edytuj niestandardowe pozycje
+                        </Button>
+                      </div>
+
                       <FormMessage />
                     </FormItem>
                   )}

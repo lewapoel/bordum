@@ -41,7 +41,7 @@ export default function EditTemplateItems({
     () =>
       items
         ? items
-            .sort((a, b) => {
+            .toSorted((a, b) => {
               const aIsTemplate = currentTemplateItems.includes(a.code);
               const bIsTemplate = currentTemplateItems.includes(b.code);
 

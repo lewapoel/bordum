@@ -71,6 +71,8 @@ const formSchema = z.object({
     .refine((val) => parseFloat(val) > 0, {
       message: 'Ilość musi być większa od zera',
     }),
+  color: z.string(),
+  additional: z.string(),
 });
 
 export default function AddTemplateItemDialog({
@@ -104,6 +106,8 @@ export default function AddTemplateItemDialog({
         width: '0',
         height: '0',
         quantity: '1',
+        color: '',
+        additional: '',
       }),
       [ctx],
     ),
@@ -160,11 +164,15 @@ export default function AddTemplateItemDialog({
         .replace(/\(\s*\)/g, '')
         .trim();
 
+      const optional = [values.color.trim(), values.additional.trim()];
+
       const item = await addEditItem(
         {
           ...currentTemplateItem,
           unit: 'szt.',
-          name: sanitizedName + ` (H=${values.height}m L=${values.width}m)`,
+          name:
+            sanitizedName +
+            `${optional.join(' ')} (H=${values.height}m L=${values.width}m)`,
           prices: newPrices,
           groups: ['ZAM1', 'MAG2', 'WYMIAR'],
         },
@@ -188,6 +196,8 @@ export default function AddTemplateItemDialog({
       width: '0',
       height: '0',
       quantity: '1',
+      color: '',
+      additional: '',
     });
 
     void form.trigger('priceType');
@@ -254,6 +264,34 @@ export default function AddTemplateItemDialog({
                   <FormLabel>Jednostka</FormLabel>
                   <p>{currentTemplateItem?.unit ?? 'brak'}</p>
                 </FormItem>
+
+                <FormField
+                  control={form.control}
+                  name='color'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Kolor</FormLabel>
+                      <FormControl>
+                        <Input type='text' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='additional'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Dodatkowe parametry</FormLabel>
+                      <FormControl>
+                        <Input type='text' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <FormField
                   control={form.control}

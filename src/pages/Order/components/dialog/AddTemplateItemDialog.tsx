@@ -164,15 +164,18 @@ export default function AddTemplateItemDialog({
         .replace(/\(\s*\)/g, '')
         .trim();
 
-      const optional = [values.color.trim(), values.additional.trim()];
+      const parts = [
+        sanitizedName,
+        values.color.trim(),
+        values.additional.trim(),
+        `(H=${values.height}m L=${values.width}m)`,
+      ].filter(Boolean);
 
       const item = await addEditItem(
         {
           ...currentTemplateItem,
           unit: 'szt.',
-          name:
-            sanitizedName +
-            `${optional.join(' ')} (H=${values.height}m L=${values.width}m)`,
+          name: parts.join(' '),
           prices: newPrices,
           groups: ['ZAM1', 'MAG2', 'WYMIAR'],
         },

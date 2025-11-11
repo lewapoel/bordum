@@ -39,6 +39,7 @@ import {
 } from '@/data/bitrix/const.ts';
 import { ALLOWED_USERS } from '@/data/bitrix/user.ts';
 import { calculateDiscountPrice } from '@/utils/item.ts';
+import { normalizeIndex } from '@/lib/utils.ts';
 
 interface CtxProviderProps {
   children: ReactNode;
@@ -271,6 +272,32 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
     [order],
   );
 
+  const moveItem = useCallback(
+    (difference: number) => {
+      const item = order?.items?.[selectedItem];
+
+      if (order && item && selectedItem < order.items.length) {
+        const newIndex = normalizeIndex(
+          order.items.length,
+          selectedItem + difference,
+        );
+
+        setOrder((prev) =>
+          update(prev, {
+            items: {
+              $splice: [
+                [selectedItem, 1],
+                [newIndex, 0, item],
+              ],
+            },
+          }),
+        );
+        setSelectedItem(newIndex);
+      }
+    },
+    [selectedItem, order],
+  );
+
   const removeItem = useCallback(() => {
     const bitrixId = order?.items?.[selectedItem]?.id;
 
@@ -363,6 +390,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
         saveItem,
         editItemQuantity,
         editItemDiscount,
+        moveItem,
         removeItem,
         selectedItem,
         setSelectedItem,

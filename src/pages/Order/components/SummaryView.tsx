@@ -147,28 +147,38 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       switch (e.key) {
-        case 'ArrowUp':
+        case 'ArrowUp': {
           e.preventDefault();
 
           if (ctx) {
-            const newSelectedItem = Math.max(0, ctx.selectedItem - 1);
-            ctx.setSelectedItem(newSelectedItem);
-            selectRow(newSelectedItem);
+            if (e.ctrlKey) {
+              ctx.moveItem(-1);
+            } else {
+              const newSelectedItem = Math.max(0, ctx.selectedItem - 1);
+              ctx.setSelectedItem(newSelectedItem);
+              selectRow(newSelectedItem);
+            }
           }
           break;
-        case 'ArrowDown':
+        }
+        case 'ArrowDown': {
           e.preventDefault();
 
           if (ctx) {
-            // Max index is order.length, because there is an additional empty item for adding new rows
-            const newSelectedItem = Math.min(
-              order.items.length,
-              ctx.selectedItem + 1,
-            );
-            ctx.setSelectedItem(newSelectedItem);
-            selectRow(newSelectedItem);
+            if (e.ctrlKey) {
+              ctx.moveItem(1);
+            } else {
+              // Max index is order.length, because there is an additional empty item for adding new rows
+              const newSelectedItem = Math.min(
+                order.items.length,
+                ctx.selectedItem + 1,
+              );
+              ctx.setSelectedItem(newSelectedItem);
+              selectRow(newSelectedItem);
+            }
           }
           break;
+        }
         case 'Enter':
           if (ctx) {
             selectItem(ctx.selectedItem);
@@ -289,6 +299,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
 
       <div className='text-[20px] justify-center flex items-center gap-4 mb-4'>
         <p>Zmień zaznaczoną pozycję (↑/↓)</p>
+        <p>Zmień kolejność pozycji (Ctrl+↑/↓)</p>
         <p>Dodaj/modyfikuj pozycję (ENTER)</p>
       </div>
 

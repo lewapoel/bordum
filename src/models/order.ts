@@ -22,6 +22,7 @@ export type OrderStore = {
   saveItem: (item: OrderItem) => 'add' | 'edit';
   editItemQuantity: (index: number, quantity: number) => number;
   editItemDiscount: (index: number, discount: number) => number;
+  moveItem: (difference: number) => void;
   removeItem: () => void;
   selectedItem: number;
   setSelectedItem: (item: number) => void;

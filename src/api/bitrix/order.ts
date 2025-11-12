@@ -5,7 +5,6 @@ import {
 } from '@/utils/bitrix24.ts';
 import {
   OrderAdditionalData,
-  OrderAdditionalDataItem,
   OrderAdditionalDataLegacy,
   OrderAdditionalDataLegacyList,
   OrderData,
@@ -110,16 +109,13 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
               type: legacyAdditionalData?.itemTypes?.[idx] ?? undefined,
             };
           } else {
-            let entry: OrderAdditionalDataItem | undefined;
+            let entry;
 
             if (Array.isArray(rawAdditionalData)) {
               const additionalData: OrderAdditionalDataLegacyList =
                 rawAdditionalData as OrderAdditionalDataLegacyList;
 
-              // Check if has valid data
-              if (additionalData?.[idx]?.bruttoUnitPrice === +item['PRICE']) {
-                entry = additionalData?.[idx];
-              }
+              entry = additionalData?.[idx];
             } else {
               const additionalData: OrderAdditionalData =
                 rawAdditionalData as OrderAdditionalData;

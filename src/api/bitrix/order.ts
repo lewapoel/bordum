@@ -40,6 +40,7 @@ import {
   PACKAGING_GROUPS,
   VERIFICATION_GROUPS,
 } from '@/data/comarch/groups.ts';
+import { calculateDiscountPrice } from '@/utils/item.ts';
 
 export async function getOrderFields(): Promise<FieldsMeta | null> {
   const bx24 = getBitrix24();
@@ -110,11 +111,19 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
           } else {
             const additionalData: OrderAdditionalData =
               rawAdditionalData as OrderAdditionalData;
+            const bruttoUnitPrice = additionalData?.[idx]?.bruttoUnitPrice;
 
             let entry;
 
-            // Check if has valid data
-            if (additionalData?.[idx]?.bruttoUnitPrice === +item['PRICE']) {
+            // Check if additional data is valid
+            if (
+              orderData.items.length === additionalData.length &&
+              bruttoUnitPrice !== undefined &&
+              calculateDiscountPrice(
+                bruttoUnitPrice,
+                +(item['DISCOUNT_RATE'] ?? 0),
+              ) === +item['PRICE']
+            ) {
               entry = additionalData?.[idx];
             }
 

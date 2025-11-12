@@ -56,9 +56,9 @@ export default function SummaryRow({
 
   const editDiscountAllowed =
     item &&
-    (!item.maxDiscount || item.maxDiscount <= userMaxDiscount) &&
-    !packagingItem?.saved &&
     item.maxDiscount &&
+    (!item.discountRate || item.discountRate <= finalMaxDiscount) &&
+    !packagingItem?.saved &&
     item.bruttoUnitPrice !== undefined;
 
   useEffect(() => {

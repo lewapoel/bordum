@@ -126,6 +126,7 @@ export default function SummaryRow({
       <td
         className={cn(
           !item ||
+            (item.maxDiscount && item.maxDiscount > userMaxDiscount) ||
             packagingItem?.saved ||
             !item.maxDiscount ||
             item.bruttoUnitPrice === undefined

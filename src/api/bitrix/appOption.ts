@@ -1,4 +1,5 @@
 import { getBitrix24 } from '@/utils/bitrix24.ts';
+import { useMemo } from 'react';
 
 export function getAppOption(name: string): any | null {
   const bx24 = getBitrix24();
@@ -8,6 +9,11 @@ export function getAppOption(name: string): any | null {
   }
 
   return bx24.appOption.get(name);
+}
+
+export function useGetAppOption(name: string): any | null {
+  const current = getAppOption(name);
+  return useMemo(() => current, [current]);
 }
 
 export async function setAppOption(name: string, value: any): Promise<boolean> {

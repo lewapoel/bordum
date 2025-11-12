@@ -10,7 +10,7 @@ import { GateMotorKey } from '@/models/calculator.ts';
 import { z } from 'zod';
 import { UseFormReturn } from 'react-hook-form';
 import { Checkbox } from '@/components/ui/checkbox.tsx';
-import { getOptions } from '@/utils/calculator.ts';
+import { useGetOptions } from '@/utils/calculator.ts';
 
 interface GateMotorCalculatorProps {
   calculatorForm: UseFormReturn<z.input<typeof calculatorFormSchema>>;
@@ -19,7 +19,7 @@ interface GateMotorCalculatorProps {
 export default function GateMotorCalculator({
   calculatorForm,
 }: GateMotorCalculatorProps) {
-  const options = getOptions();
+  const options = useGetOptions();
 
   return (
     <table>

@@ -10,7 +10,7 @@ import { z } from 'zod';
 import { UseFormReturn } from 'react-hook-form';
 import { Dispatch, SetStateAction, useEffect } from 'react';
 import { TypeKey } from '@/models/calculator.ts';
-import { getOptions } from '@/utils/calculator.ts';
+import { useGetOptions } from '@/utils/calculator.ts';
 
 interface MasonryCalculatorProps {
   calculatorForm: UseFormReturn<z.input<typeof calculatorFormSchema>>;
@@ -21,7 +21,7 @@ export default function MasonryCalculator({
   calculatorForm,
   setMasonrySum,
 }: MasonryCalculatorProps) {
-  const options = getOptions();
+  const options = useGetOptions();
 
   const watchedCalculator = calculatorForm.watch();
   const watchedType = watchedCalculator.type as TypeKey;

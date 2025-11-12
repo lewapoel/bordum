@@ -13,7 +13,7 @@ import {
   getElementCost,
   getElementHeight,
   getFencePanelFixedCost,
-  getOptions,
+  useGetOptions,
 } from '@/utils/calculator.ts';
 import { useEffect } from 'react';
 
@@ -24,7 +24,7 @@ interface ElementCalculatorProps {
 export default function ElementCalculator({
   calculatorForm,
 }: ElementCalculatorProps) {
-  const options = getOptions();
+  const options = useGetOptions();
   const watchedCalculator = useWatch({ control: calculatorForm.control });
 
   const watchedType = watchedCalculator?.type as TypeKey;

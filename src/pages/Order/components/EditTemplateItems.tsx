@@ -11,7 +11,7 @@ import clsx from 'clsx';
 import { Highlight, useFuzzySearchList } from '@nozbe/microfuzz/react';
 import { Item } from '@/api/comarch/item.ts';
 import { HighlightRanges } from '@nozbe/microfuzz';
-import { getTemplateItems, setTemplateItems } from '@/utils/item.ts';
+import { useGetTemplateItems, setTemplateItems } from '@/utils/item.ts';
 import update from 'immutability-helper';
 import { toast } from 'react-toastify';
 
@@ -30,7 +30,7 @@ export default function EditTemplateItems({
   items,
 }: EditTemplateItemsProps) {
   const searchBarRef = useRef<HTMLInputElement>(null);
-  const currentTemplateItems = getTemplateItems();
+  const currentTemplateItems = useGetTemplateItems();
 
   const [showOther, setShowOther] = useState(true);
   const [selectedItem, setSelectedItem] = useState(0);

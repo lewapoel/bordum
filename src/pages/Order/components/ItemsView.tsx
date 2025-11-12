@@ -27,7 +27,7 @@ import { AuthContext } from '@/components/AuthContext.tsx';
 import {
   calculateDiscountPrice,
   calculateMaxDiscount,
-  getTemplateItems,
+  useGetTemplateItems,
 } from '@/utils/item.ts';
 import {
   TEMPLATE_ITEM_GROUP,
@@ -66,7 +66,7 @@ type Discounts = {
 export default function ItemsView() {
   const { token, sqlToken } = useContext(AuthContext);
   const ctx = useContext(OrderContext);
-  const currentTemplateItems = getTemplateItems();
+  const currentTemplateItems = useGetTemplateItems();
 
   const addEditItemMutation = useAddEditItem(token, sqlToken);
   const warehousesQuery = useGetWarehouses(token);

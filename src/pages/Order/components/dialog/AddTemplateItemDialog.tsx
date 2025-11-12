@@ -36,7 +36,7 @@ import Combobox, { ComboboxItem } from '@/components/ui/combobox.tsx';
 import { ComarchItemType, Item } from '@/api/comarch/item.ts';
 import { Prices } from '@/models/comarch/prices.ts';
 import { ItemType } from '@/models/bitrix/order.ts';
-import { getTemplateItems } from '@/utils/item.ts';
+import { useGetTemplateItems } from '@/utils/item.ts';
 
 interface AddTemplateItemDialogProps {
   visible: boolean;
@@ -84,7 +84,7 @@ export default function AddTemplateItemDialog({
   setEditTemplateItemVisible,
 }: AddTemplateItemDialogProps) {
   const ctx = useContext(OrderContext);
-  const currentTemplateItems = getTemplateItems();
+  const currentTemplateItems = useGetTemplateItems();
 
   const itemsByCode = useMemo(
     () =>

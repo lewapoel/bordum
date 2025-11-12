@@ -13,7 +13,7 @@ import {
   getElementCost,
   getElementHeight,
   getFencePanelFixedCost,
-  getOptions,
+  useGetOptions,
 } from '@/utils/calculator.ts';
 
 interface Sum1Props {
@@ -22,7 +22,7 @@ interface Sum1Props {
 }
 
 export default function Sum1({ calculatorForm, setMetalworkSum }: Sum1Props) {
-  const options = getOptions();
+  const options = useGetOptions();
   const watchedCalculator = useWatch({ control: calculatorForm.control });
 
   const watchedType = watchedCalculator.type as TypeKey;

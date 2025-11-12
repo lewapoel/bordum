@@ -1,4 +1,4 @@
-import { getOptions, setOptions } from '@/utils/calculator.ts';
+import { useGetOptions, setOptions } from '@/utils/calculator.ts';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -25,7 +25,7 @@ import { Button } from '@/components/ui/button.tsx';
 import { useCallback, useMemo } from 'react';
 
 export default function EditPrices() {
-  const options = getOptions();
+  const options = useGetOptions();
 
   const editPricesForm = useForm({
     resolver: zodResolver(editPricesFormSchema),

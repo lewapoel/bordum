@@ -14,6 +14,7 @@ import {
   MASONRY_PRICING,
 } from '@/data/calculator.ts';
 import { APP_OPTIONS } from '@/data/bitrix/const.ts';
+import { useMemo } from 'react';
 
 export function getElementCost(
   area: number,
@@ -57,16 +58,21 @@ export function getElementHeight(
   return (targetHeight - heightDifference) / 100;
 }
 
-export function getOptions(): CalculatorOptions {
-  const options = JSON.parse(getAppOption(APP_OPTIONS.calculator) ?? '{}');
+export function useGetOptions(): CalculatorOptions {
+  const rawOptions = getAppOption(APP_OPTIONS.calculator);
 
-  return {
-    gateMotorPricing: options.gateMotorPricing ?? GATE_MOTOR_PRICING,
-    masonryParams: options.masonryParams ?? MASONRY_PARAMS,
-    elementPricing: options.elementPricing ?? ELEMENT_PRICING,
-    fencePanelFixedCost: options.fencePanelFixedCost ?? FENCE_PANEL_FIXED_COST,
-    masonryPricing: options.masonryPricing ?? MASONRY_PRICING,
-  };
+  return useMemo(() => {
+    const options = JSON.parse(rawOptions ?? '{}');
+
+    return {
+      gateMotorPricing: options.gateMotorPricing ?? GATE_MOTOR_PRICING,
+      masonryParams: options.masonryParams ?? MASONRY_PARAMS,
+      elementPricing: options.elementPricing ?? ELEMENT_PRICING,
+      fencePanelFixedCost:
+        options.fencePanelFixedCost ?? FENCE_PANEL_FIXED_COST,
+      masonryPricing: options.masonryPricing ?? MASONRY_PRICING,
+    };
+  }, [rawOptions]);
 }
 
 export async function setOptions(options: any) {

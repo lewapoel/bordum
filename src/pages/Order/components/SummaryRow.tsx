@@ -54,6 +54,13 @@ export default function SummaryRow({
     Math.min(userMaxDiscount, productMaxDiscount),
   );
 
+  const editDiscountAllowed =
+    item &&
+    (!item.maxDiscount || item.maxDiscount <= userMaxDiscount) &&
+    !packagingItem?.saved &&
+    item.maxDiscount &&
+    item.bruttoUnitPrice !== undefined;
+
   useEffect(() => {
     if (tempQuantity !== '' && +tempQuantity > 0) {
       setTempQuantity(editItemQuantity(index, +tempQuantity) ?? '');
@@ -61,10 +68,10 @@ export default function SummaryRow({
   }, [tempQuantity, editItemQuantity, index]);
 
   useEffect(() => {
-    if (tempDiscount !== '' && +tempDiscount >= 0) {
+    if (editDiscountAllowed && tempDiscount !== '' && +tempDiscount >= 0) {
       setTempDiscount(editItemDiscount(index, +tempDiscount) ?? '');
     }
-  }, [tempDiscount, editItemDiscount, index]);
+  }, [editDiscountAllowed, tempDiscount, editItemDiscount, index]);
 
   useEffect(() => {
     if (discountDirty && tempDiscount !== '' && +tempDiscount >= 0) {
@@ -124,16 +131,7 @@ export default function SummaryRow({
       </td>
       <td>{item?.unit}</td>
       <td
-        className={cn(
-          !item ||
-            (item.maxDiscount && item.maxDiscount > userMaxDiscount) ||
-            packagingItem?.saved ||
-            !item.maxDiscount ||
-            item.bruttoUnitPrice === undefined
-            ? ''
-            : 'bg-green-200',
-          'relative',
-        )}
+        className={cn(!editDiscountAllowed ? '' : 'bg-green-200', 'relative')}
       >
         {item ? (
           <>
@@ -144,12 +142,7 @@ export default function SummaryRow({
               setOpen={setShowDiscountLimited}
             />
             <input
-              disabled={
-                (item.maxDiscount && item.maxDiscount > userMaxDiscount) ||
-                packagingItem?.saved ||
-                !item.maxDiscount ||
-                item.bruttoUnitPrice === undefined
-              }
+              disabled={!editDiscountAllowed}
               ref={(el) => {
                 if (rowsRef.current?.[index]) {
                   rowsRef.current[index].discount = el;

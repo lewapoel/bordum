@@ -6,6 +6,7 @@ import {
 import {
   OrderAdditionalData,
   OrderAdditionalDataLegacy,
+  OrderAdditionalDataLegacyList,
   OrderData,
   OrderItem,
   PackagingData,
@@ -108,9 +109,19 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
               type: legacyAdditionalData?.itemTypes?.[idx] ?? undefined,
             };
           } else {
-            const additionalData: OrderAdditionalData =
-              rawAdditionalData as OrderAdditionalData;
-            const entry = additionalData.find((x) => x.itemId === item['ID']);
+            let entry;
+
+            if (Array.isArray(rawAdditionalData)) {
+              const additionalData: OrderAdditionalDataLegacyList =
+                rawAdditionalData as OrderAdditionalDataLegacyList;
+
+              entry = additionalData?.[idx];
+            } else {
+              const additionalData: OrderAdditionalData =
+                rawAdditionalData as OrderAdditionalData;
+
+              entry = additionalData[item['ID']];
+            }
 
             parsedAdditionalData = {
               code: entry?.code ?? '',
@@ -505,14 +516,20 @@ export async function updateOrder(
       }
     };
 
-    const additionalData: OrderAdditionalData = order.map((item) => ({
-      code: item.code,
-      itemId: item.itemId,
-      groups: item.groups,
-      type: item.type,
-      bruttoUnitPrice: item.bruttoUnitPrice,
-      maxDiscount: item.maxDiscount,
-    }));
+    const additionalData = order.reduce((acc: OrderAdditionalData, item) => {
+      if (item.id) {
+        acc[item.id] = {
+          code: item.code,
+          itemId: item.itemId,
+          groups: item.groups,
+          type: item.type,
+          bruttoUnitPrice: item.bruttoUnitPrice,
+          maxDiscount: item.maxDiscount,
+        };
+      }
+
+      return acc;
+    }, {});
 
     const updateBody: any = {
       id: placementId,

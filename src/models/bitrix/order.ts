@@ -60,7 +60,10 @@ export type OrderAdditionalDataLegacy = {
   itemTypes?: Array<ItemType | undefined>;
 };
 
-export type OrderAdditionalData = Array<OrderAdditionalDataItem>;
+export type OrderAdditionalDataLegacyList = Array<OrderAdditionalDataItem>;
+export type OrderAdditionalData = {
+  [bitrixId: string]: OrderAdditionalDataItem;
+};
 
 export type OrderDeliveryAddress = {
   postalCode?: string;

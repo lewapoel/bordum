@@ -117,7 +117,7 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
 
             // Check if additional data is valid
             if (
-              orderData.items.length === additionalData.length &&
+              data.length === additionalData.length &&
               bruttoUnitPrice !== undefined &&
               calculateDiscountPrice(
                 bruttoUnitPrice,

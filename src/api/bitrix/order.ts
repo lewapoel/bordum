@@ -465,77 +465,106 @@ export async function updateOrder(
     item.unitCode = measures[item.unit].code;
   }
 
+  const additionalData: OrderAdditionalData = order.map((item) => ({
+    code: item.code,
+    itemId: item.itemId,
+    groups: item.groups,
+    type: item.type,
+    bruttoUnitPrice: item.bruttoUnitPrice,
+    maxDiscount: item.maxDiscount,
+  }));
+
   return new Promise((resolve, reject) => {
-    const setProductRowsCallback = (result: any) => {
+    const getEstimateCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert('Nie udało się zapisać produktów oferty. Szczegóły w konsoli');
+        alert('Nie udało się pobrać danych oferty. Szczegóły w konsoli');
         reject();
       } else {
-        if (showAlertOnSuccess) {
-          alert('Produkty oferty zapisane pomyślnie');
-        }
+        const originalData = result.data();
 
-        resolve(true);
-      }
-    };
+        const setProductRowsCallback = (result: any) => {
+          if (result.error()) {
+            // Revert order to original state
+            bx24.callMethod(
+              'crm.quote.update',
+              {
+                fields: originalData,
+              },
+              () => {
+                console.error(result.error());
+                alert(
+                  'Nie udało się zapisać produktów oferty. Szczegóły w konsoli',
+                );
+                reject();
+              },
+            );
+          } else {
+            if (showAlertOnSuccess) {
+              alert('Produkty oferty zapisane pomyślnie');
+            }
 
-    const setEstimateCallback = (result: any) => {
-      if (result.error()) {
-        console.error(result.error());
-        alert('Nie udało się zapisać oferty. Szczegóły w konsoli');
-        reject();
-      } else {
-        const updateBody = {
-          id: placementId,
-          rows:
-            order.length !== 0
-              ? order.map((item) => ({
-                  PRODUCT_NAME: item.productName,
-                  PRICE: item.unitPrice,
-                  QUANTITY: item.quantity,
-                  MEASURE_CODE: item.unitCode,
-                  TAX_RATE: item.taxRate,
-                  TAX_INCLUDED: 'Y',
-                  DISCOUNT_RATE: item.discountRate,
-                  DISCOUNT_TYPE_ID: 2,
-                }))
-              : null,
+            resolve(true);
+          }
         };
 
-        bx24.callMethod(
-          'crm.quote.productrows.set',
-          updateBody,
-          setProductRowsCallback,
-        );
+        const setEstimateCallback = (result: any) => {
+          if (result.error()) {
+            console.error(result.error());
+            alert('Nie udało się zapisać oferty. Szczegóły w konsoli');
+            reject();
+          } else {
+            const updateBody = {
+              id: placementId,
+              rows:
+                order.length !== 0
+                  ? order.map((item) => ({
+                      PRODUCT_NAME: item.productName,
+                      PRICE: item.unitPrice,
+                      QUANTITY: item.quantity,
+                      MEASURE_CODE: item.unitCode,
+                      TAX_RATE: item.taxRate,
+                      TAX_INCLUDED: 'Y',
+                      DISCOUNT_RATE: item.discountRate,
+                      DISCOUNT_TYPE_ID: 2,
+                    }))
+                  : null,
+            };
+
+            bx24.callMethod(
+              'crm.quote.productrows.set',
+              updateBody,
+              setProductRowsCallback,
+            );
+          }
+        };
+
+        const updateBody: any = {
+          id: placementId,
+          fields: {
+            [ORDER_ADDITIONAL_DATA_FIELD]: JSON.stringify(additionalData),
+          },
+        };
+
+        if (title) {
+          updateBody.fields.TITLE = title;
+        }
+
+        if (statusId) {
+          updateBody.fields.STATUS_ID = statusId;
+        }
+
+        bx24.callMethod('crm.quote.update', updateBody, setEstimateCallback);
       }
     };
 
-    const additionalData: OrderAdditionalData = order.map((item) => ({
-      code: item.code,
-      itemId: item.itemId,
-      groups: item.groups,
-      type: item.type,
-      bruttoUnitPrice: item.bruttoUnitPrice,
-      maxDiscount: item.maxDiscount,
-    }));
-
-    const updateBody: any = {
-      id: placementId,
-      fields: {
-        [ORDER_ADDITIONAL_DATA_FIELD]: JSON.stringify(additionalData),
+    bx24.callMethod(
+      'crm.quote.get',
+      {
+        id: placementId,
       },
-    };
-
-    if (title) {
-      updateBody.fields.TITLE = title;
-    }
-
-    if (statusId) {
-      updateBody.fields.STATUS_ID = statusId;
-    }
-
-    bx24.callMethod('crm.quote.update', updateBody, setEstimateCallback);
+      getEstimateCallback,
+    );
   });
 }
 

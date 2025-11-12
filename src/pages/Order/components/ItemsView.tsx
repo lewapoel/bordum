@@ -18,10 +18,8 @@ import {
   useGetItemsWarehouses,
 } from '@/api/comarch/item.ts';
 import { OrderContext, OrderView } from '@/models/order.ts';
-import { Highlight, useFuzzySearchList } from '@nozbe/microfuzz/react';
+import { useFuzzySearchList } from '@nozbe/microfuzz/react';
 import clsx from 'clsx';
-import { HighlightRanges } from '@nozbe/microfuzz';
-import update from 'immutability-helper';
 import { toast } from 'react-toastify';
 import { AuthContext } from '@/components/AuthContext.tsx';
 import {
@@ -33,35 +31,16 @@ import {
   TEMPLATE_ITEM_GROUP,
   TEMPORARY_ITEM_GROUP,
 } from '@/data/comarch/groups.ts';
-import { formatMoney } from '@/utils/money.ts';
 import { ItemType } from '@/models/bitrix/order.ts';
 import AddItemDialog from '@/pages/Order/components/dialog/AddItemDialog.tsx';
 import AddTemplateItemDialog from '@/pages/Order/components/dialog/AddTemplateItemDialog.tsx';
 import EditTemplateItems from '@/pages/Order/components/EditTemplateItems.tsx';
-
-type Match = {
-  item: ItemWarehouses;
-  highlightRanges: HighlightRanges | null;
-};
-
-type RowElements = {
-  name: HTMLInputElement | null;
-  unit: HTMLInputElement | null;
-  quantity: HTMLInputElement | null;
-  discount: HTMLInputElement | null;
-};
-
-type RowsElements = {
-  [key: number]: RowElements;
-};
-
-type Quantities = {
-  [key: number]: string;
-};
-
-type Discounts = {
-  [key: number]: string;
-};
+import ItemsRow, {
+  Discounts,
+  Match,
+  Quantities,
+  RowsElements,
+} from '@/pages/Order/components/ItemsRow.tsx';
 
 export default function ItemsView() {
   const { token, sqlToken } = useContext(AuthContext);
@@ -177,11 +156,7 @@ export default function ItemsView() {
           discountRate: discount ?? 0,
           taxRate: item.vatRate,
           bruttoUnitPrice: item.prices[ctx.selectedPrice!].value,
-          maxDiscount: calculateMaxDiscount(
-            item,
-            ctx.selectedPrice!,
-            ctx.maxDiscount ?? 0,
-          ),
+          maxDiscount: calculateMaxDiscount(item, ctx.selectedPrice!),
         });
 
         let resultLocalized: string;
@@ -537,140 +512,24 @@ export default function ItemsView() {
               </tr>
             </thead>
             <tbody>
-              {filteredList.map(({ item, highlightRanges }, idx) => {
-                const selectedPrice = item.prices[ctx.selectedPrice!];
-
-                const quantity = quantities[item.id] ?? '0';
-                const discount = discounts[item.id] ?? 0;
-                const maxDiscount = calculateMaxDiscount(
-                  item,
-                  ctx.selectedPrice!,
-                  ctx.maxDiscount ?? 0,
-                );
-
-                const discountMultiplier = 1 - +discount / 100;
-                const unitPrice = selectedPrice.value * discountMultiplier;
-                const price = unitPrice * +quantity;
-
-                const isSelected = idx === selectedItem;
-                const isEditing = idx === editingItem;
-
-                const bgClassName = clsx({
-                  'bg-gray-300': isSelected,
-                });
-
-                return (
-                  <tr
-                    key={item.id}
-                    className={bgClassName}
-                    onClick={() => {
-                      setSelectedItem(idx);
-                      setEditingItem(-1);
-                    }}
-                  >
-                    <td className={isEditing ? 'bg-green-200' : ''}>
-                      {isEditing ? (
-                        <input
-                          ref={(el) => {
-                            if (rowsRef.current?.[item.id!]) {
-                              rowsRef.current[item.id!].name = el;
-                            }
-                          }}
-                          className='w-full text-center'
-                          type='text'
-                          value={editedItem?.name}
-                          onChange={(e) => {
-                            setEditedItem((prev) =>
-                              update(prev, { name: { $set: e.target.value } }),
-                            );
-                          }}
-                        />
-                      ) : (
-                        <Highlight text={item.name} ranges={highlightRanges} />
-                      )}
-                    </td>
-                    {Object.values(item.quantities).map((quantity) => (
-                      <Fragment key={quantity.warehouseId}>
-                        <td>{quantity.quantity - quantity.reservation}</td>
-                        <td>{quantity.reservation}</td>
-                      </Fragment>
-                    ))}
-                    <td className='bg-green-200'>
-                      <input
-                        ref={(el) => {
-                          if (rowsRef.current?.[item.id!]) {
-                            rowsRef.current[item.id!].quantity = el;
-                          }
-                        }}
-                        className='w-[100px]'
-                        type='number'
-                        min={0}
-                        value={quantity}
-                        onChange={(e) =>
-                          setQuantities((prev) =>
-                            update(prev, {
-                              [item.id]: { $set: e.target.value },
-                            }),
-                          )
-                        }
-                      />
-                    </td>
-                    <td className={isEditing ? 'bg-green-200' : ''}>
-                      {isEditing ? (
-                        <input
-                          ref={(el) => {
-                            if (rowsRef.current?.[item.id!]) {
-                              rowsRef.current[item.id!].unit = el;
-                            }
-                          }}
-                          type='text'
-                          className='w-[100px] text-center'
-                          value={editedItem?.unit}
-                          onChange={(e) =>
-                            setEditedItem((prev) =>
-                              update(prev, { unit: { $set: e.target.value } }),
-                            )
-                          }
-                        />
-                      ) : (
-                        item.unit
-                      )}
-                    </td>
-                    <td className={maxDiscount ? 'bg-green-200' : ''}>
-                      <input
-                        disabled={!maxDiscount}
-                        ref={(el) => {
-                          if (rowsRef.current?.[item.id!]) {
-                            rowsRef.current[item.id!].discount = el;
-                          }
-                        }}
-                        className='w-[100px]'
-                        type='number'
-                        min={0}
-                        max={maxDiscount}
-                        value={discount}
-                        onChange={(e) =>
-                          setDiscounts((prev) =>
-                            update(prev, {
-                              [item.id]: {
-                                $set:
-                                  e.target.value === ''
-                                    ? ''
-                                    : Math.min(
-                                        Math.max(0, +e.target.value),
-                                        Math.floor(maxDiscount),
-                                      ).toString(),
-                              },
-                            }),
-                          )
-                        }
-                      />
-                    </td>
-                    <td>{formatMoney(unitPrice)}</td>
-                    <td>{formatMoney(price)}</td>
-                  </tr>
-                );
-              })}
+              {filteredList.map((match, idx) => (
+                <ItemsRow
+                  key={idx}
+                  match={match}
+                  quantities={quantities}
+                  discounts={discounts}
+                  idx={idx}
+                  selectedItem={selectedItem}
+                  editingItem={editingItem}
+                  setSelectedItem={setSelectedItem}
+                  setEditingItem={setEditingItem}
+                  rowsRef={rowsRef}
+                  editedItem={editedItem}
+                  setEditedItem={setEditedItem}
+                  setQuantities={setQuantities}
+                  setDiscounts={setDiscounts}
+                />
+              ))}
             </tbody>
           </table>
         </>

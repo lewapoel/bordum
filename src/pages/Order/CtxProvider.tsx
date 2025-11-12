@@ -237,18 +237,19 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
   );
 
   const editItemDiscount = useCallback(
-    (index: number, discount: number) => {
+    (index: number, discount: number): number => {
       if (order && index >= 0 && index < order.items.length) {
-        const maxDiscount = order.items[index].maxDiscount ?? 0;
+        const userMaxDiscount = maxDiscount ?? 0;
+        const productMaxDiscount = order.items[index].maxDiscount ?? 0;
         const bruttoUnitPrice = order.items[index].bruttoUnitPrice;
 
         if (bruttoUnitPrice === undefined) {
           return order.items[index].discountRate ?? 0;
         }
 
-        const newDiscount = Math.min(
-          Math.max(0, discount),
-          Math.floor(maxDiscount),
+        const finalMaxDiscount = Math.min(userMaxDiscount, productMaxDiscount);
+        const newDiscount = Math.floor(
+          Math.min(Math.max(0, discount), finalMaxDiscount),
         );
 
         setOrder((prev) =>
@@ -269,7 +270,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
 
       return 0;
     },
-    [order],
+    [order, maxDiscount],
   );
 
   const moveItem = useCallback(

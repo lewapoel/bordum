@@ -64,11 +64,7 @@ export function calculateDiscountPrice(
   return roundMoney(price * discountRate);
 }
 
-export function calculateMaxDiscount(
-  item: Item,
-  priceType: string,
-  userMaxDiscount: number,
-) {
+export function calculateProductMaxDiscount(item: Item, priceType: string) {
   const buyPrice = item.prices['zakupu'];
   const selectedPrice = item.prices[priceType];
 
@@ -87,9 +83,23 @@ export function calculateMaxDiscount(
     );
   }
 
+  return maxDiscountBuyPrice;
+}
+
+export function calculateMaxDiscount(
+  item: Item,
+  priceType: string,
+  userMaxDiscount?: number,
+) {
+  let result = calculateProductMaxDiscount(item, priceType);
+
   // Final max discount is limited by both the buy price
   // and the discount set on Bitrix
-  return Math.min(userMaxDiscount, maxDiscountBuyPrice);
+  if (userMaxDiscount !== undefined) {
+    result = Math.min(userMaxDiscount, result);
+  }
+
+  return Math.floor(result);
 }
 
 export async function setTemplateItems(templateItems: Array<string>) {

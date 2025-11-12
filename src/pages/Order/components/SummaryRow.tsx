@@ -1,8 +1,11 @@
-import { RefObject, useEffect, useState } from 'react';
+import { RefObject, useContext, useEffect, useState } from 'react';
 import { OrderItem, PackagingData } from '@/models/bitrix/order.ts';
 import clsx from 'clsx';
 import { PRODUCT_TYPES } from '@/data/comarch/product.ts';
 import { formatMoney } from '@/utils/money.ts';
+import { cn } from '@/lib/utils.ts';
+import { OrderContext } from '@/models/order.ts';
+import LimitedDiscountTooltip from '@/pages/Order/components/LimitedDiscountTooltip.tsx';
 
 export type RowElements = {
   quantity: HTMLInputElement | null;
@@ -36,9 +39,20 @@ export default function SummaryRow({
   rowsRef,
   packagingData,
 }: SummaryRowProps) {
+  const ctx = useContext(OrderContext);
+
+  const [discountDirty, setDiscountDirty] = useState(false);
   const [tempQuantity, setTempQuantity] = useState(item?.quantity ?? '');
   const [tempDiscount, setTempDiscount] = useState(item?.discountRate ?? '');
+  const [showDiscountLimited, setShowDiscountLimited] = useState(false);
+
   const packagingItem = item?.id ? packagingData?.[item.id] : undefined;
+
+  const userMaxDiscount = ctx?.maxDiscount ?? 0;
+  const productMaxDiscount = item?.maxDiscount ?? 0;
+  const finalMaxDiscount = Math.floor(
+    Math.min(userMaxDiscount, productMaxDiscount),
+  );
 
   useEffect(() => {
     if (tempQuantity !== '' && +tempQuantity > 0) {
@@ -51,6 +65,27 @@ export default function SummaryRow({
       setTempDiscount(editItemDiscount(index, +tempDiscount) ?? '');
     }
   }, [tempDiscount, editItemDiscount, index]);
+
+  useEffect(() => {
+    if (discountDirty && tempDiscount !== '' && +tempDiscount >= 0) {
+      if (
+        userMaxDiscount > productMaxDiscount &&
+        finalMaxDiscount === +tempDiscount
+      ) {
+        setShowDiscountLimited(true);
+      }
+    }
+  }, [
+    discountDirty,
+    tempDiscount,
+    userMaxDiscount,
+    productMaxDiscount,
+    finalMaxDiscount,
+  ]);
+
+  useEffect(() => {
+    setShowDiscountLimited(false);
+  }, [selectedItem]);
 
   return (
     <tr
@@ -89,34 +124,46 @@ export default function SummaryRow({
       </td>
       <td>{item?.unit}</td>
       <td
-        className={
+        className={cn(
           !item ||
-          packagingItem?.saved ||
-          !item.maxDiscount ||
-          item.bruttoUnitPrice === undefined
+            packagingItem?.saved ||
+            !item.maxDiscount ||
+            item.bruttoUnitPrice === undefined
             ? ''
-            : 'bg-green-200'
-        }
+            : 'bg-green-200',
+          'relative',
+        )}
       >
         {item ? (
-          <input
-            disabled={
-              packagingItem?.saved ||
-              !item.maxDiscount ||
-              item.bruttoUnitPrice === undefined
-            }
-            ref={(el) => {
-              if (rowsRef.current?.[index]) {
-                rowsRef.current[index].discount = el;
+          <>
+            <LimitedDiscountTooltip
+              productMaxDiscount={item.maxDiscount ?? 0}
+              userMaxDiscount={ctx?.maxDiscount ?? 0}
+              open={showDiscountLimited}
+              setOpen={setShowDiscountLimited}
+            />
+            <input
+              disabled={
+                packagingItem?.saved ||
+                !item.maxDiscount ||
+                item.bruttoUnitPrice === undefined
               }
-            }}
-            className='w-[100px] text-center'
-            type='number'
-            min={0}
-            max={item.maxDiscount ?? 0}
-            value={tempDiscount}
-            onChange={(e) => setTempDiscount(e.target.value)}
-          />
+              ref={(el) => {
+                if (rowsRef.current?.[index]) {
+                  rowsRef.current[index].discount = el;
+                }
+              }}
+              className='w-[100px] text-center'
+              type='number'
+              min={0}
+              max={item.maxDiscount ?? 0}
+              value={tempDiscount}
+              onChange={(e) => {
+                setTempDiscount(e.target.value);
+                setDiscountDirty(true);
+              }}
+            />
+          </>
         ) : (
           <></>
         )}

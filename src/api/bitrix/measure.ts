@@ -13,7 +13,9 @@ export async function getMeasures(): Promise<Measures | null> {
     const getMeasuresCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert('Nie udało się pobrać danych jednostek. Szczegóły w konsoli');
+        alert(
+          `Nie udało się pobrać danych jednostek. Szczegóły: ${result.error()?.ex?.error_description}`,
+        );
         reject();
       } else {
         const data = result.data();
@@ -56,7 +58,9 @@ export async function ensureMeasure(symbol: string) {
       const addMeasureCallback = (result: any) => {
         if (result.error()) {
           console.error(result.error());
-          alert('Nie udało się dodać jednostki. Szczegóły w konsoli');
+          alert(
+            `Nie udało się dodać jednostki. Szczegóły: ${result.error()?.ex?.error_description}`,
+          );
           reject();
         } else {
           resolve(true);

@@ -20,7 +20,9 @@ export async function getProductGroups(
     })
     .catch((error) => {
       console.error(error);
-      alert('Nie udało się pobrać grup produktów');
+      alert(
+        `Nie udało się pobrać grup produktów. Szczegóły: ${JSON.stringify(error)}`,
+      );
       return null;
     });
 }
@@ -48,7 +50,9 @@ export async function setProductGroups(
     })
     .catch((error) => {
       console.error(error);
-      alert('Nie udało się ustawić grupy produktu');
+      alert(
+        `Nie udało się ustawić grupy produktu. Szczegóły: ${JSON.stringify(error)}`,
+      );
       return false;
     });
 }
@@ -78,7 +82,9 @@ export async function setProductPrice(
     })
     .catch((error) => {
       console.error(error);
-      alert('Nie udało się ustawić ceny produktu');
+      alert(
+        `Nie udało się ustawić ceny produktu. Szczegóły: ${JSON.stringify(error)}`,
+      );
       return false;
     });
 }

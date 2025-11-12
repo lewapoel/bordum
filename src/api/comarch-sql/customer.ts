@@ -36,7 +36,9 @@ export function useGetCreditCustomers(token: string) {
         })
         .catch((error) => {
           console.error(error);
-          alert('Nie udało się pobrać sald klientów');
+          alert(
+            `Nie udało się pobrać sald klientów. Szczegóły: ${JSON.stringify(error)}`,
+          );
           return null;
         }),
     enabled: !!token,
@@ -71,7 +73,9 @@ export function useGetCreditCustomer(token: string, code?: string) {
         })
         .catch((error) => {
           console.error(error);
-          alert('Nie udało się pobrać salda klienta');
+          alert(
+            `Nie udało się pobrać salda klienta. Szczegóły: ${JSON.stringify(error)}`,
+          );
           return null;
         }),
     enabled: !!token && !!code,

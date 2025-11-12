@@ -53,7 +53,9 @@ export async function getOrderFields(): Promise<FieldsMeta | null> {
     const getFieldsCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert('Nie udało się pobrać pól oferty. Szczegóły w konsoli');
+        alert(
+          `Nie udało się pobrać pól oferty. Szczegóły: ${result.error()?.ex?.error_description}`,
+        );
         reject();
       } else {
         const data = result.data();
@@ -81,7 +83,9 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
     const getProductRowsCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert('Nie udało się pobrać produktów oferty. Szczegóły w konsoli');
+        alert(
+          `Nie udało się pobrać produktów oferty. Szczegóły: ${result.error()?.ex?.error_description}`,
+        );
         reject();
       } else {
         const data = result.data();
@@ -203,7 +207,9 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
     const getEstimateCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert('Nie udało się pobrać oferty. Szczegóły w konsoli');
+        alert(
+          `Nie udało się pobrać oferty. Szczegóły: ${result.error()?.ex?.error_description}`,
+        );
         reject();
       } else {
         const data = result.data();
@@ -278,7 +284,9 @@ export async function hasOrderDeals(placementId: number): Promise<boolean> {
     const getDeals = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert('Nie udało się pobrać deali podanej oferty. Szczegóły w konsoli');
+        alert(
+          `Nie udało się pobrać deali podanej oferty. Szczegóły: ${result.error()?.ex?.error_description}`,
+        );
         reject();
       } else {
         const data = result.data();
@@ -317,7 +325,9 @@ export async function createOrderFromDeal(
     const addEstimateCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert('Nie udało się utworzyć oferty. Szczegóły w konsoli');
+        alert(
+          `Nie udało się utworzyć oferty. Szczegóły: ${result.error()?.ex?.error_description}`,
+        );
         reject();
       } else {
         resolve(result.data());
@@ -340,7 +350,9 @@ export async function createOrderFromDeal(
       bx24.callMethod('crm.quote.add', updateBody, addEstimateCallback);
     } catch (error) {
       console.error(error);
-      alert('Nie udało się ustalić pól tworzonej oferty. Szczegóły w konsoli');
+      alert(
+        `Nie udało się ustalić pól tworzonej oferty. Szczegóły: ${JSON.stringify(error)}`,
+      );
       reject();
     }
   });
@@ -381,7 +393,9 @@ export async function splitOrder(
     const addEstimateCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert('Nie udało się utworzyć oferty. Szczegóły w konsoli');
+        alert(
+          `Nie udało się utworzyć oferty. Szczegóły: ${result.error()?.ex?.error_description}`,
+        );
         reject();
       } else {
         updateOrder(result.data(), params.subOrder, {
@@ -400,7 +414,9 @@ export async function splitOrder(
     const getEstimateCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert('Nie udało się pobrać danych oferty. Szczegóły w konsoli');
+        alert(
+          `Nie udało się pobrać danych oferty. Szczegóły: ${result.error()?.ex?.error_description}`,
+        );
         reject();
       } else {
         estimateData = result.data();
@@ -487,7 +503,9 @@ export async function updateOrder(
     const getEstimateCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert('Nie udało się pobrać danych oferty. Szczegóły w konsoli');
+        alert(
+          `Nie udało się pobrać danych oferty. Szczegóły: ${result.error()?.ex?.error_description}`,
+        );
         reject();
       } else {
         const originalData = result.data();
@@ -503,7 +521,7 @@ export async function updateOrder(
               () => {
                 console.error(result.error());
                 alert(
-                  'Nie udało się zapisać produktów oferty. Szczegóły w konsoli',
+                  `Nie udało się zapisać produktów oferty. Szczegóły: ${result.error()?.ex?.error_description}`,
                 );
                 reject();
               },
@@ -520,7 +538,9 @@ export async function updateOrder(
         const setEstimateCallback = (result: any) => {
           if (result.error()) {
             console.error(result.error());
-            alert('Nie udało się zapisać oferty. Szczegóły w konsoli');
+            alert(
+              `Nie udało się zapisać oferty. Szczegóły: ${result.error()?.ex?.error_description}`,
+            );
             reject();
           } else {
             const updateBody = {
@@ -591,7 +611,9 @@ export async function updateOrderPackagingData(
     const setEstimateCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert('Nie udało się zapisać oferty. Szczegóły w konsoli');
+        alert(
+          `Nie udało się zapisać oferty. Szczegóły: ${result.error()?.ex?.error_description}`,
+        );
         reject();
       } else {
         if (!silentSuccess) {
@@ -625,7 +647,9 @@ export async function updateOrderVerificationData(
     const setEstimateCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert('Nie udało się zapisać oferty. Szczegóły w konsoli');
+        alert(
+          `Nie udało się zapisać oferty. Szczegóły: ${result.error()?.ex?.error_description}`,
+        );
         reject();
       } else {
         alert('Dane weryfikacji stanu zapisane pomyślnie');

@@ -29,7 +29,9 @@ export function useGetWarehouses(token: string) {
         })
         .catch((error) => {
           console.error(error);
-          alert('Nie udało się pobrać magazynów');
+          alert(
+            `Nie udało się pobrać magazynów. Szczegóły: ${JSON.stringify(error)}`,
+          );
           return null;
         }),
     enabled: !!token,

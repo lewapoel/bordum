@@ -12,7 +12,9 @@ export async function getContact(contactId: number): Promise<Contact | null> {
     const getContactCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert('Nie udało się pobrać danych firmy. Szczegóły w konsoli');
+        alert(
+          `Nie udało się pobrać danych firmy. Szczegóły: ${result.error()?.ex?.error_description}`,
+        );
         reject();
       } else {
         const data = result.data();

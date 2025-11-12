@@ -23,7 +23,9 @@ export function useGetToken() {
         })
         .catch((error) => {
           console.error(error);
-          alert('Nie udało się pobrać tokenu dostępu');
+          alert(
+            `Nie udało się pobrać tokenu dostępu. Szczegóły: ${error?.error}`,
+          );
           return null;
         }),
   });

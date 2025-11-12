@@ -117,7 +117,9 @@ export function useGetItemsGroups(token: string) {
         })
         .catch((error) => {
           console.error(error);
-          alert('Nie udało się pobrać grup przedmiotów');
+          alert(
+            `Nie udało się pobrać grup przedmiotów. Szczegóły: ${JSON.stringify(error)}`,
+          );
           return null;
         }),
     enabled: !!token,
@@ -144,7 +146,9 @@ export function useGetItems(token: string, sqlToken: string) {
         })
         .catch((error) => {
           console.error(error);
-          alert('Nie udało się pobrać przedmiotów');
+          alert(
+            `Nie udało się pobrać przedmiotów. Szczegóły: ${JSON.stringify(error)}`,
+          );
           return null;
         });
     },
@@ -293,7 +297,9 @@ export function useAddEditItem(token: string, sqlToken: string) {
     },
     onError: (error) => {
       console.error(error);
-      alert('Wystąpił błąd przy dodawaniu edycji przedmiotu. Sprawdź konsolę');
+      alert(
+        `Wystąpił błąd przy dodawaniu edycji przedmiotu. Szczegóły: ${JSON.stringify(error)}`,
+      );
     },
   });
 }
@@ -341,7 +347,9 @@ export function useAddItem(token: string, sqlToken: string) {
     },
     onError: (error) => {
       console.error(error);
-      alert('Wystąpił błąd przy dodawaniu przedmiotu. Sprawdź konsolę');
+      alert(
+        `Wystąpił błąd przy dodawaniu przedmiotu. Szczegóły: ${JSON.stringify(error)}`,
+      );
     },
   });
 }

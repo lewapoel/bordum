@@ -38,7 +38,9 @@ export async function getInvoiceFields(): Promise<FieldsMeta | null> {
     const getFieldsCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert('Nie udało się pobrać pól faktury. Szczegóły w konsoli');
+        alert(
+          `Nie udało się pobrać pól faktury. Szczegóły: ${result.error()?.ex?.error_description}`,
+        );
         reject();
       } else {
         const data = result.data()['fields'];
@@ -141,7 +143,9 @@ export async function getInvoice(
     const getInvoiceCallback = async (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert('Nie udało się pobrać faktury. Szczegóły w konsoli');
+        alert(
+          `Nie udało się pobrać faktury. Szczegóły: ${result.error()?.ex?.error_description}`,
+        );
         reject();
       } else {
         const data = result.data()['item'];
@@ -181,7 +185,9 @@ export async function getDueInvoices(
     const getInvoicesCallback = async (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert('Nie udało się pobrać listy faktur. Szczegóły w konsoli');
+        alert(
+          `Nie udało się pobrać listy faktur. Szczegóły: ${result.error()?.ex?.error_description}`,
+        );
         reject();
       } else {
         const data = result.data();
@@ -298,7 +304,9 @@ export async function updateInvoicePayment(
     const setInvoiceCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert('Nie udało się zapisać faktury. Szczegóły w konsoli');
+        alert(
+          `Nie udało się zapisać faktury. Szczegóły: ${result.error()?.ex?.error_description}`,
+        );
         reject();
       } else {
         resolve(true);

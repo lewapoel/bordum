@@ -14,7 +14,7 @@ export async function getCurrentUser(): Promise<User | null> {
       if (result.error()) {
         console.error(result.error());
         alert(
-          'Nie udało się pobrać aktualnego użytkownika. Szczegóły w konsoli',
+          `Nie udało się pobrać aktualnego użytkownika. Szczegóły: ${result.error()?.ex?.error_description}`,
         );
         reject();
       } else {
@@ -59,7 +59,7 @@ export async function isCurrentUserAdmin(): Promise<boolean> {
       if (result.error()) {
         console.error(result.error());
         alert(
-          'Nie udało się pobrać aktualnego użytkownika. Szczegóły w konsoli',
+          `Nie udało się pobrać aktualnego użytkownika. Szczegóły: ${result.error()?.ex?.error_description}`,
         );
         reject();
       } else {

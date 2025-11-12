@@ -41,7 +41,9 @@ export async function getStocks(
     })
     .catch((error) => {
       console.error(error);
-      alert('Nie udało się pobrać zasobów');
+      alert(
+        `Nie udało się pobrać zasobów. Szczegóły: ${JSON.stringify(error)}`,
+      );
       return null;
     });
 }

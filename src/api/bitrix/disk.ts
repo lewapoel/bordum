@@ -28,7 +28,9 @@ export async function folderUploadFile(
     return null;
   } catch (e) {
     console.error(e);
-    alert('Nie udało się zapisać pliku w folderze. Szczegóły w konsoli');
+    alert(
+      `Nie udało się zapisać pliku w folderze. Szczegóły: ${JSON.stringify(e)}`,
+    );
     return null;
   }
 }
@@ -47,7 +49,7 @@ export async function deleteFile(fileId: number): Promise<boolean> {
     return false;
   } catch (e) {
     console.error(e);
-    alert('Nie udało się usunąć pliku. Szczegóły w konsoli');
+    alert(`Nie udało się usunąć pliku. Szczegóły: ${JSON.stringify(e)}`);
     return false;
   }
 }

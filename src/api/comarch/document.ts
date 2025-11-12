@@ -252,7 +252,9 @@ export function useAddDocument(token: string, sqlToken: string) {
         );
       } else {
         console.error(error.message);
-        alert('Wystąpił błąd przy dodawaniu dokumentu. Sprawdź konsolę');
+        alert(
+          `Wystąpił błąd przy dodawaniu dokumentu. Szczegóły: ${error.message}`,
+        );
       }
     },
   });

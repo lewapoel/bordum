@@ -40,7 +40,9 @@ export function useGetCustomerByNip(token: string, nip?: string) {
           })
           .catch((error) => {
             console.error(error);
-            alert('Nie udało się pobrać kontrahenta');
+            alert(
+              `Nie udało się pobrać kontrahenta. Szczegóły: ${JSON.stringify(error)}`,
+            );
             return null;
           });
       }
@@ -77,7 +79,9 @@ export function useGetCustomerByName(token: string, name?: string) {
           })
           .catch((error) => {
             console.error(error);
-            alert('Nie udało się pobrać kontrahentów');
+            alert(
+              `Nie udało się pobrać kontrahentów. Szczegóły: ${JSON.stringify(error)}`,
+            );
             return null;
           });
       }

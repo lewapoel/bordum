@@ -27,7 +27,9 @@ export async function setAppOption(name: string, value: any): Promise<boolean> {
     const setAppOptionCallback = (result: any) => {
       if (result?.error) {
         console.error(result.error);
-        alert('Nie udało się zapisać danych aplikacji. Szczegóły w konsoli');
+        alert(
+          `Nie udało się zapisać danych aplikacji. Szczegóły: ${result.error()?.ex?.error_description}`,
+        );
         reject();
       } else {
         resolve(true);

@@ -19,7 +19,9 @@ export async function getDealFields(): Promise<FieldsMeta | null> {
     const getFieldsCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert('Nie udało się pobrać pól deala. Szczegóły w konsoli');
+        alert(
+          `Nie udało się pobrać pól deala. Szczegóły: ${result.error()?.ex?.error_description}`,
+        );
         reject();
       } else {
         const data = result.data();
@@ -42,7 +44,9 @@ export async function getDeal(placementId: number): Promise<DealData | null> {
     const getDealCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert('Nie udało się pobrać deala. Szczegóły w konsoli');
+        alert(
+          `Nie udało się pobrać deala. Szczegóły: ${result.error()?.ex?.error_description}`,
+        );
         reject();
       } else {
         const data = result.data();
@@ -113,7 +117,9 @@ export async function getDealRaw(placementId: number): Promise<any | null> {
     const getDealCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert('Nie udało się pobrać deala. Szczegóły w konsoli');
+        alert(
+          `Nie udało się pobrać deala. Szczegóły: ${result.error()?.ex?.error_description}`,
+        );
         reject();
       } else {
         const data = result.data();
@@ -139,7 +145,9 @@ export async function updateDealReturnData(
     const setDealCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert('Nie udało się zapisać deala. Szczegóły w konsoli');
+        alert(
+          `Nie udało się zapisać deala. Szczegóły: ${result.error()?.ex?.error_description}`,
+        );
         reject();
       } else {
         if (alertOnSuccess) {
@@ -170,7 +178,9 @@ export async function updateDealEstimate(placementId: number, value: number) {
     const setDealCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert('Nie udało się zapisać deala. Szczegóły w konsoli');
+        alert(
+          `Nie udało się zapisać deala. Szczegóły: ${result.error()?.ex?.error_description}`,
+        );
         reject();
       } else {
         alert('Wycena zapisana pomyślnie');
@@ -199,7 +209,9 @@ export async function createDeal(): Promise<number | null> {
     const addDealCallback = (result: any) => {
       if (result.error()) {
         console.error(result.error());
-        alert('Nie udało się utworzyć deala. Szczegóły w konsoli');
+        alert(
+          `Nie udało się utworzyć deala. Szczegóły: ${result.error()?.ex?.error_description}`,
+        );
         reject();
       } else {
         resolve(result.data());

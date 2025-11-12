@@ -23,7 +23,9 @@ export async function setDocumentDueDate(
     })
     .catch((error) => {
       console.error(error);
-      alert('Nie udało się ustawić terminu zapłaty dokumentu');
+      alert(
+        `Nie udało się ustawić terminu zapłaty dokumentu. Szczegóły: ${JSON.stringify(error)}`,
+      );
       return false;
     });
 }

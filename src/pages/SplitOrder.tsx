@@ -121,7 +121,7 @@ function SplitOrder() {
     (e: KeyboardEvent) => {
       switch (e.key) {
         case 'Enter':
-          handleSplitOrder();
+          void handleSplitOrder();
           break;
         case 'Tab':
           e.preventDefault();

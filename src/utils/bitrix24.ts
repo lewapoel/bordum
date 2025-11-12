@@ -357,5 +357,7 @@ export function getCompanyCode(company: Company): string {
 }
 
 export function getContactCode(contact: Contact): string {
-  return _.deburr(`${contact.name} ${contact.lastName}`);
+  const parts = [contact.name, contact.lastName];
+
+  return _.deburr(parts.filter(Boolean).join(' '));
 }

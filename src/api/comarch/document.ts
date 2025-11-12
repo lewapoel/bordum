@@ -68,9 +68,11 @@ export function useAddDocument(token: string, sqlToken: string) {
           phone1: company.phone,
         };
       } else if (contact) {
+        const parts = [contact.name, contact.lastName];
+
         buyer = {
           code: getContactCode(contact),
-          name1: `${contact.name} ${contact.lastName}`,
+          name1: parts.filter(Boolean).join(' '),
           email: contact.email,
           phone1: contact.phone,
         };

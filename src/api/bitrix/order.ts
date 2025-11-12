@@ -87,15 +87,17 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
 
         orderData.items = data.map((item: any, idx: number): OrderItem => {
           const rawAdditionalData: any = orderData.additionalData;
-          let parsedAdditionalData: Pick<
-            OrderItem,
-            | 'code'
-            | 'groups'
-            | 'itemId'
-            | 'type'
-            | 'bruttoUnitPrice'
-            | 'maxDiscount'
-          >;
+          let parsedAdditionalData = <
+            Pick<
+              OrderItem,
+              | 'code'
+              | 'groups'
+              | 'itemId'
+              | 'type'
+              | 'bruttoUnitPrice'
+              | 'maxDiscount'
+            >
+          >{};
 
           if (rawAdditionalData.itemCodes) {
             const legacyAdditionalData =
@@ -111,15 +113,18 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
             const additionalData: OrderAdditionalData =
               rawAdditionalData as OrderAdditionalData;
 
-            parsedAdditionalData = {
-              code: additionalData?.[idx]?.code ?? '',
-              groups: additionalData?.[idx]?.groups ?? [],
-              itemId: additionalData?.[idx]?.itemId ?? '',
-              type: additionalData?.[idx]?.type ?? undefined,
-              bruttoUnitPrice:
-                additionalData?.[idx]?.bruttoUnitPrice ?? undefined,
-              maxDiscount: additionalData?.[idx]?.maxDiscount ?? undefined,
-            };
+            // Check if has valid data
+            if (additionalData?.[idx]?.bruttoUnitPrice === +item['PRICE']) {
+              parsedAdditionalData = {
+                code: additionalData?.[idx]?.code ?? '',
+                groups: additionalData?.[idx]?.groups ?? [],
+                itemId: additionalData?.[idx]?.itemId ?? '',
+                type: additionalData?.[idx]?.type ?? undefined,
+                bruttoUnitPrice:
+                  additionalData?.[idx]?.bruttoUnitPrice ?? undefined,
+                maxDiscount: additionalData?.[idx]?.maxDiscount ?? undefined,
+              };
+            }
           }
 
           return {

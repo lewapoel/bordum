@@ -144,6 +144,7 @@ export default function SummaryRow({
             />
             <input
               disabled={
+                (item.maxDiscount && item.maxDiscount > userMaxDiscount) ||
                 packagingItem?.saved ||
                 !item.maxDiscount ||
                 item.bruttoUnitPrice === undefined
@@ -156,7 +157,6 @@ export default function SummaryRow({
               className='w-[100px] text-center'
               type='number'
               min={0}
-              max={item.maxDiscount ?? 0}
               value={tempDiscount}
               onChange={(e) => {
                 setTempDiscount(e.target.value);

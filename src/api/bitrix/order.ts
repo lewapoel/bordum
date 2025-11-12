@@ -110,15 +110,15 @@ export async function getOrder(placementId: number): Promise<OrderData | null> {
           } else {
             const additionalData: OrderAdditionalData =
               rawAdditionalData as OrderAdditionalData;
-            const entry = additionalData.find((x) => x.itemId === item['ID']);
 
             parsedAdditionalData = {
-              code: entry?.code ?? '',
-              groups: entry?.groups ?? [],
-              itemId: entry?.itemId ?? '',
-              type: entry?.type ?? undefined,
-              bruttoUnitPrice: entry?.bruttoUnitPrice ?? undefined,
-              maxDiscount: entry?.maxDiscount ?? undefined,
+              code: additionalData?.[idx]?.code ?? '',
+              groups: additionalData?.[idx]?.groups ?? [],
+              itemId: additionalData?.[idx]?.itemId ?? '',
+              type: additionalData?.[idx]?.type ?? undefined,
+              bruttoUnitPrice:
+                additionalData?.[idx]?.bruttoUnitPrice ?? undefined,
+              maxDiscount: additionalData?.[idx]?.maxDiscount ?? undefined,
             };
           }
 

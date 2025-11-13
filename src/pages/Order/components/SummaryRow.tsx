@@ -123,7 +123,7 @@ export default function SummaryRow({
             type='number'
             min={1}
             value={tempQuantity}
-            // onChange={(e) => setTempQuantity(e.target.value)}
+            onChange={(e) => setTempQuantity(e.target.value)}
           />
         ) : (
           <></>

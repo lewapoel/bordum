@@ -385,7 +385,7 @@ export default function SummaryView({ order, orderType }: SummaryViewProps) {
             <SummaryRow
               rowsRef={rowsRef}
               selectItem={selectItem}
-              key={`${item.itemId}${idx}`}
+              key={`${item.id ?? item.itemId}${idx}`}
               editItemQuantity={ctx.editItemQuantity}
               editItemDiscount={ctx.editItemDiscount}
               selectedItem={ctx.selectedItem}

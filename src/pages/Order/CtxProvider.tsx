@@ -86,7 +86,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
       const res = await getCompany(crm.companyId);
 
       if (res) {
-        setCode(getCompanyCode(res));
+        setCode(await getCompanyCode(res));
         getClientDueCreditInvoices({
           companyId: res.id,
         }).then((res) => setInvoices(res));
@@ -103,7 +103,7 @@ export default function CtxProvider({ children, orderType }: CtxProviderProps) {
       const res = await getContact(crm.contactId);
 
       if (res && !invoicesFetched) {
-        setCode(getContactCode(res));
+        setCode(await getContactCode(res));
         getClientDueCreditInvoices({
           contactId: res.id,
         }).then((res) => setInvoices(res));

@@ -202,9 +202,9 @@ export async function getDueInvoices(
 
           let code;
           if (invoice.company) {
-            code = getCompanyCode(invoice.company);
+            code = await getCompanyCode(invoice.company);
           } else if (invoice.contact) {
-            code = getContactCode(invoice.contact);
+            code = await getContactCode(invoice.contact);
           } else {
             continue;
           }

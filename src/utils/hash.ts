@@ -15,7 +15,10 @@ export function generateRandomCode(): string {
   return uuidv4().replace(/-/g, '').slice(0, 32);
 }
 
-export async function generateHashCode(str: string): Promise<string> {
+export async function generateHashCode(
+  str: string,
+  length: number = 32,
+): Promise<string> {
   const data = new TextEncoder().encode(str);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
 
@@ -24,5 +27,5 @@ export async function generateHashCode(str: string): Promise<string> {
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
 
-  return hashHex.slice(0, 32);
+  return hashHex.slice(0, length);
 }

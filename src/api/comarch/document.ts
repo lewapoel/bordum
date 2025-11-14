@@ -61,7 +61,7 @@ export function useAddDocument(token: string, sqlToken: string) {
       let buyer;
       if (company) {
         buyer = {
-          code: getCompanyCode(company),
+          code: await getCompanyCode(company),
           vatNumber: company.nip,
           name1: company.title,
           email: company.email,
@@ -71,7 +71,7 @@ export function useAddDocument(token: string, sqlToken: string) {
         const parts = [contact.name, contact.lastName];
 
         buyer = {
-          code: getContactCode(contact),
+          code: await getContactCode(contact),
           name1: parts.filter(Boolean).join(' '),
           email: contact.email,
           phone1: contact.phone,

@@ -38,13 +38,15 @@ export default function ClientBalance() {
     } else {
       switch (placement) {
         case 'CRM_COMPANY_DETAIL_TAB':
-          getCompany(+placementId).then((company) => {
+          getCompany(+placementId).then(async (company) => {
             if (company) {
-              setCode(getCompanyCode(company));
+              const companyCode = await getCompanyCode(company);
+              setCode(companyCode);
 
-              getClientDueCreditInvoices({
+              const res = await getClientDueCreditInvoices({
                 companyId: +placementId,
-              }).then((res) => setInvoices(res));
+              });
+              setInvoices(res);
             } else {
               setError(true);
             }
@@ -52,13 +54,15 @@ export default function ClientBalance() {
           break;
 
         case 'CRM_CONTACT_DETAIL_TAB':
-          getContact(+placementId).then((contact) => {
+          getContact(+placementId).then(async (contact) => {
             if (contact) {
-              setCode(getContactCode(contact));
+              const contactCode = await getContactCode(contact);
+              setCode(contactCode);
 
-              getClientDueCreditInvoices({
+              const res = await getClientDueCreditInvoices({
                 contactId: +placementId,
-              }).then((res) => setInvoices(res));
+              });
+              setInvoices(res);
             } else {
               setError(true);
             }

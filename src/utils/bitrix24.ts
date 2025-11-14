@@ -27,6 +27,7 @@ import { downloadBase64File } from './file.ts';
 import { Company } from '../models/bitrix/company.ts';
 import _ from 'lodash';
 import { Contact } from '../models/bitrix/contact.ts';
+import { generateHashCode } from '@/utils/hash.ts';
 
 type MockBitrixResult = {
   error: () => any;
@@ -352,12 +353,14 @@ export function translateFields(
   return result;
 }
 
-export function getCompanyCode(company: Company): string {
-  return company.nip ?? _.deburr(company.title);
+export async function getCompanyCode(company: Company): Promise<string> {
+  const titleHash = await generateHashCode(_.deburr(company.title), 20);
+
+  return company.nip ?? titleHash;
 }
 
-export function getContactCode(contact: Contact): string {
+export async function getContactCode(contact: Contact): Promise<string> {
   const parts = [contact.id, contact.name, contact.lastName];
 
-  return _.deburr(parts.filter(Boolean).join(' '));
+  return await generateHashCode(_.deburr(parts.filter(Boolean).join(' ')), 20);
 }
